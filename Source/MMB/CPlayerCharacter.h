@@ -36,6 +36,7 @@ DECLARE_DELEGATE(FStandToRoll);
 DECLARE_DELEGATE(FHitDown);
 DECLARE_DELEGATE(FHitDownRecover);
 DECLARE_DELEGATE(FDizzy);
+DECLARE_DELEGATE(FClimbingRope);
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter
 {
@@ -86,6 +87,7 @@ public:
 	FHitDown HitDown;
 	FHitDownRecover HitDownRecover;
 	FDizzy Dizzy;
+	FClimbingRope ClimbingRope;
 
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
@@ -112,6 +114,7 @@ protected:
 	float MaxStamina;
 	float ShiftStamina;
 	UINT32 PlayerGold;
+	float ClimbSpeed = 10.f;
 	class ACEnemyCharacter* LastDealingEnemy;
 	FTimerHandle LastDealingEnemyTimerHandle;
 	FTimerHandle HitReactTimerHandle;
@@ -147,7 +150,6 @@ private:
 	void UpdateHUDStates();
 	bool CheckIsActing();
 	void SetStaminaRegain();
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -77,7 +77,7 @@ protected:
 
 	class UCButtonAction* ButtonActionUI;
 	//TArray<Quest> QuestArray;
-
+	class ACClimbableRope* GraspingRope;
 	UFUNCTION()
 	void DequeueDamageUI();
 public:
@@ -93,7 +93,15 @@ public:
 	void CheckQuest(UClass* ToCheckClass);
 	bool CheckQuest_Cleared(FString QuestName);
 	void ShowDroppedItemList(bool e, class ACDroppedItem* Dropped, class UCInventoryItemData* ItemData);
+
+
+	void OnInteract();
+
 	void NPCInteract_ShowAndInputReady(class ACStaticNPC* NPC);
 	void NPCInteract_Interact();
 	void NPCInteract_UnShow();
+
+	void ClimbRopeInteract_ShowAndInputReady(class ACClimbableRope* Rope);
+	void ClimbRopeInteract_Interact();
+	void ClimbRopeInteract_Move(FVector& NextTickClimbPos, bool& Result, bool IsUpWard);
 };

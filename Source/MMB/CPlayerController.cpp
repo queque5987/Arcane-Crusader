@@ -2,6 +2,7 @@
 
 
 #include "CPlayerController.h"
+#include "CClimbableRope.h"
 #include "Blueprint/UserWidget.h"
 
 ACPlayerController::ACPlayerController()
@@ -112,10 +113,6 @@ bool ACPlayerController::SetInventoryVisibility()
 		if (ItemInventory->GetVisibility() == ESlateVisibility::Visible)
 		{
 			ItemInventory->SetVisibility(ESlateVisibility::Hidden);
-			/*if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter()))
-			{
-				PC->SetState(PLAYER_UI_INTERACTING, false);
-			}*/
 			bShowMouseCursor = false;
 			bEnableClickEvents = false;
 			return false;
@@ -123,10 +120,6 @@ bool ACPlayerController::SetInventoryVisibility()
 		else
 		{
 			ItemInventory->SetVisibility(ESlateVisibility::Visible);
-			/*if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter()))
-			{
-				PC->SetState(PLAYER_UI_INTERACTING, true);
-			}*/
 			bShowMouseCursor = true;
 			bEnableClickEvents = true;
 			return true;
@@ -174,14 +167,12 @@ void ACPlayerController::SetNPCConversationVisibility(bool e, ACStaticNPC* npc)
 		}
 
 		NPCConversation->SetVisibility(ESlateVisibility::Visible);
-		//if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter())) PC->SetState(PLAYER_UI_INTERACTING, true);
 		bShowMouseCursor = true;
 		bEnableClickEvents = true;
 	}
 	else
 	{
 		NPCConversation->SetVisibility(ESlateVisibility::Hidden);
-		//if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter())) PC->SetState(PLAYER_UI_INTERACTING, false);
 		bShowMouseCursor = false;
 		bEnableClickEvents = false;
 
@@ -316,6 +307,20 @@ void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem* Dropped, UCI
 	}
 }
 
+void ACPlayerController::OnInteract()
+{
+	if (ButtonActionUI == nullptr) return;
+	switch(ButtonActionUI->GetButtonMode())
+	{
+	case(INTERACT_BUTTON_MODE_NPCDIALOGUE):
+		NPCInteract_Interact();
+		return;
+	case(INTERACT_BUTTON_MODE_CLIMBROPE):
+		ClimbRopeInteract_Interact();
+		return;
+	}
+}
+
 void ACPlayerController::NPCInteract_ShowAndInputReady(ACStaticNPC* NPC)
 {
 	if (ButtonActionUI != nullptr) NPCInteract_UnShow();
@@ -327,6 +332,7 @@ void ACPlayerController::NPCInteract_ShowAndInputReady(ACStaticNPC* NPC)
 		ProjectWorldLocationToScreen(MiddlePos, ScreenLocation);
 
 		ButtonActionUI->AddToViewport();
+		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_NPCDIALOGUE);
 		ButtonActionUI->SetNPC(NPC);
 		ButtonActionUI->SetPositionInViewport(ScreenLocation);
 	}
@@ -344,4 +350,46 @@ void ACPlayerController::NPCInteract_UnShow()
 	if (ButtonActionUI == nullptr) return;
 	ButtonActionUI->RemoveFromViewport();
 	ButtonActionUI = nullptr;
+}
+
+void ACPlayerController::ClimbRopeInteract_ShowAndInputReady(ACClimbableRope* Rope)
+{
+	if (ButtonActionUI != nullptr) NPCInteract_UnShow();
+	ButtonActionUI = CreateWidget<UCButtonAction>(this, ButtonActionAsset);
+	if (IsValid(ButtonActionUI))
+	{
+		FVector MiddlePos = (GetCharacter()->GetActorLocation() + (GetCharacter()->GetActorRightVector() * 100.f + GetCharacter()->GetActorUpVector() * 100.f));
+		FVector2D ScreenLocation;
+		ProjectWorldLocationToScreen(MiddlePos, ScreenLocation);
+
+		ButtonActionUI->AddToViewport();
+		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_CLIMBROPE);
+		ButtonActionUI->SetRope(Rope);
+		ButtonActionUI->SetPositionInViewport(ScreenLocation);
+	}
+}
+
+void ACPlayerController::ClimbRopeInteract_Interact()
+{
+	if (ButtonActionUI == nullptr) return;
+	GraspingRope = ButtonActionUI->GetRope();
+	if (GraspingRope == nullptr) return;
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetPawn());
+	if (PC == nullptr) return;
+	NPCInteract_UnShow();
+
+	PC->GetCharacterMovement()->GravityScale = 0;
+	PC->SetState(PLAYER_CLIMBING_ROPE, true);
+	PC->ClimbingRope.ExecuteIfBound();
+	PC->SetActorLocation(
+		GraspingRope->GetIsUpWard() ? GraspingRope->GetDownLocation() : GraspingRope->GetUpLocation()
+	);
+	UE_LOG(LogTemp, Log, TEXT("Player Contoller : Player Climbing State Set True"));
+}
+
+void ACPlayerController::ClimbRopeInteract_Move(FVector& NextTickClimbPos, bool& Result, bool IsUpWard)
+{
+	if (GraspingRope == nullptr) return;
+	if (IsUpWard) GraspingRope->ClimbUp(NextTickClimbPos, Result);
+	else GraspingRope->ClimbDown(NextTickClimbPos, Result);
 }

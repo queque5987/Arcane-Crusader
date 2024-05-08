@@ -28,10 +28,15 @@ protected:
 	TObjectPtr<UTextBlock> NPCName;
 
 	class ACStaticNPC* NPC;
-
+	class ACClimbableRope* Rope;
+	int ButtonMode;
 public:
 	void SetNPC(class ACStaticNPC* e);
 	class ACStaticNPC* GetNPC() { return NPC; }
+	void SetRope(class ACClimbableRope* e);
+	class ACClimbableRope* GetRope() { return Rope; }
+	void SetButtonMode(int e) { ButtonMode = e; }
+	int GetButtonMode() { return ButtonMode; }
 
 	UFUNCTION()
 	void OnButtonTriggered();

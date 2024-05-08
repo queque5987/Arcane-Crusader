@@ -29,6 +29,8 @@ protected:
 	float ZSpeed;
 	UPROPERTY(BlueprintReadOnly)
 	float PawnAnimRadian;
+	UPROPERTY(BlueprintReadOnly)
+	bool RopeClimbing;
 
 	UAnimSequenceBase* AnimSequenceLMBAttack;
 	UAnimSequenceBase* AnimSequenceRMBCastStart;
@@ -46,6 +48,8 @@ protected:
 	UAnimSequenceBase* AnimSequenceHitDown;
 	UAnimSequenceBase* AnimSequenceHitDownRecover;
 	UAnimSequenceBase* AnimSequenceDizzy;
+
+	UAnimSequenceBase* AnimSequenceRopeClimb;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -77,4 +81,6 @@ protected:
 	void HitDownRecover();
 	UFUNCTION()
 	void Dizzy();
+	UFUNCTION()
+	void RopeClimb();
 };

@@ -55,7 +55,8 @@
 #define PLAYER_STAMINA_REGAIN		UINT(1) << 21
 //#define UINT(1) << 22
 //#define UINT(1) << 23
-//#define UINT(1) << 24
+
+#define PLAYER_CLIMBING_ROPE		UINT(1) << 24
 //#define UINT(1) << 25
 //#define UINT(1) << 26
 //#define UINT(1) << 27
@@ -105,6 +106,10 @@
 #define PLAYER_HIT_REACT_STAND		0
 #define PLAYER_HIT_REACT_FLINCH		1
 #define PLAYER_HIT_REACT_HITDOWN	2
+
+#define INTERACT_BUTTON_MODE_NPCDIALOGUE	0
+#define INTERACT_BUTTON_MODE_CLIMBROPE		1
+
 
 struct AttackResult
 {

@@ -335,6 +335,44 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 
 	if (GetState(PLAYER_ATTACKING) || GetState(PLAYER_ROLLING)) return;
 
+	if (GetState(PLAYER_CLIMBING_ROPE))
+	{
+		ACPlayerController* PC = Cast<ACPlayerController>(GetController());
+		if (PC == nullptr) return;
+
+		bool IsArrived;
+		if (GetState(PLAYER_INPUT_W))
+		{
+			FVector CurrLocation = GetActorLocation();
+			FVector NextTickLocation = CurrLocation + (FVector::UpVector * ClimbSpeed);
+			PC->ClimbRopeInteract_Move(NextTickLocation, IsArrived, true);
+			//SetActorLocation(NextTickLocation);
+			AddMovementInput(FVector::UpVector, ClimbSpeed);
+			if (IsArrived)
+			{
+				SetState(PLAYER_CLIMBING_ROPE, false);
+				GetCharacterMovement()->GravityScale = 1;
+				ClimbingRope.ExecuteIfBound();
+			}
+			UE_LOG(LogTemp, Log, TEXT("PlayerCharacter : Setting Location : %s"), *NextTickLocation.ToString());
+			return;
+		}
+		else if (GetState(PLAYER_INPUT_S))
+		{
+			FVector NextTickLocation = GetActorLocation() + FVector::DownVector * ClimbSpeed;
+			PC->ClimbRopeInteract_Move(NextTickLocation, IsArrived, false);
+			SetActorLocation(NextTickLocation);
+			if (IsArrived)
+			{
+				SetState(PLAYER_CLIMBING_ROPE, false);
+				GetCharacterMovement()->GravityScale = 1;
+				ClimbingRope.ExecuteIfBound();
+			}
+			UE_LOG(LogTemp, Log, TEXT("PlayerCharacter : Setting Location : %s"), *NextTickLocation.ToString());
+			return;
+		}
+	}
+
 	if (Controller != nullptr && PlayerInputCheck(PLAYER_INPUT_TYPE_MOVE))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -492,7 +530,7 @@ void ACPlayerCharacter::E_Triggered()
 {
 	ACPlayerController* PC = Cast<ACPlayerController>(GetController());
 	if (!IsValid(PC)) return;
-	PC->NPCInteract_Interact();
+	PC->OnInteract();
 }
 
 

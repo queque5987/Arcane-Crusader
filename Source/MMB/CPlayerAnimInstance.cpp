@@ -30,6 +30,10 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/Player/Guard/Animation/Hostile/Stand_Up.Stand_Up"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Injured_Idle.Injured_Idle"));
 
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RopeClimbFinder(TEXT("/Game/Player/Guard/Animation/Climbing_A_Rope.Climbing_A_Rope"));
+
+	
+
 	//Knithe Version
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim.Attack03StartAnim"));
@@ -68,22 +72,24 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/BattleWizardPolyart/Animations/DieRecoverAnim.DieRecoverAnim"));
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/BattleWizardPolyart/Animations/DizzyAnim.DizzyAnim"));
 
-	AnimSequenceLMBAttack = LMBAttackFinder.Object;
-	AnimSequenceRMBCastStart = RMBCastStartFinder.Object;
-	AnimSequenceRMBCastOngoing = RMBCastOngoingFinder.Object;
-	AnimSequenceMeleeCombo = MeleeComboFinder.Object;
+	if(LMBAttackFinder.Succeeded())			AnimSequenceLMBAttack = LMBAttackFinder.Object;
+	if(RMBCastStartFinder.Succeeded())		AnimSequenceRMBCastStart = RMBCastStartFinder.Object;
+	if(RMBCastOngoingFinder.Succeeded())	AnimSequenceRMBCastOngoing = RMBCastOngoingFinder.Object;
+	if(MeleeComboFinder.Succeeded())		AnimSequenceMeleeCombo = MeleeComboFinder.Object;
+	
+	if(MeleeCombo1Finder.Succeeded())		AnimSequenceMeleeCombo1 = MeleeCombo1Finder.Object;
+	if(MeleeCombo2Finder.Succeeded())		AnimSequenceMeleeCombo2 = MeleeCombo2Finder.Object;
+	if(MeleeCombo3Finder.Succeeded())		AnimSequenceMeleeCombo3 = MeleeCombo3Finder.Object;
+	
+	if(FinishAttackFinder.Succeeded())		AnimSequenceMeleeFinishAttack = FinishAttackFinder.Object;
+	if(Combo1AttackFinder.Succeeded())		AnimSequenceMelee1ComboAttack = Combo1AttackFinder.Object;
+	if(Combo2AttackFinder.Succeeded())		AnimSequenceMelee2ComboAttack = Combo2AttackFinder.Object;
+	if(StandToRollFinder.Succeeded())		AnimSequenceStandToRoll = StandToRollFinder.Object;
+	if(HitDownFinder.Succeeded())			AnimSequenceHitDown = HitDownFinder.Object;
+	if(HitDownRecover.Succeeded())			AnimSequenceHitDownRecover = HitDownRecover.Object;
+	if(DizzyFinder.Succeeded())				AnimSequenceDizzy = DizzyFinder.Object;
 
-	AnimSequenceMeleeCombo1 = MeleeCombo1Finder.Object;
-	AnimSequenceMeleeCombo2 = MeleeCombo2Finder.Object;
-	AnimSequenceMeleeCombo3 = MeleeCombo3Finder.Object;
-
-	AnimSequenceMeleeFinishAttack = FinishAttackFinder.Object;
-	AnimSequenceMelee1ComboAttack = Combo1AttackFinder.Object;
-	AnimSequenceMelee2ComboAttack = Combo2AttackFinder.Object;
-	AnimSequenceStandToRoll = StandToRollFinder.Object;
-	AnimSequenceHitDown = HitDownFinder.Object;
-	AnimSequenceHitDownRecover = HitDownRecover.Object;
-	AnimSequenceDizzy = DizzyFinder.Object;
+	if (RopeClimbFinder.Succeeded())			AnimSequenceRopeClimb = RopeClimbFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -153,9 +159,12 @@ void UCPlayerAnimInstance::HitDownRecover()
 
 void UCPlayerAnimInstance::Dizzy()
 {
-	//PlaySlotAnimationAsDynamicMontage(AnimSequenceDizzy, "DefaultSlot", 3.f, 0.25f, 1.f);
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceDizzy, "DefaultSlot", -1.f, 0.25f, 1.f);
+}
 
+void UCPlayerAnimInstance::RopeClimb()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceRopeClimb, "DefaultSlot", 1.f, 0.25f, 1.f);
 }
 
 void UCPlayerAnimInstance::NativeInitializeAnimation()
@@ -178,6 +187,10 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->HitDown.BindUFunction(this, FName("HitDown"));
 		PC->HitDownRecover.BindUFunction(this, FName("HitDownRecover"));
 		PC->Dizzy.BindUFunction(this, FName("Dizzy"));
+		PC->ClimbingRope.BindLambda([&]() {
+			RopeClimbing = true;
+			UE_LOG(LogTemp, Log, TEXT("Player AnimInstane : RopeClimbing Set True"));
+		});
 	}
 }
 
