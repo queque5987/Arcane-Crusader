@@ -378,12 +378,8 @@ void ACPlayerController::ClimbRopeInteract_Interact()
 	if (PC == nullptr) return;
 	NPCInteract_UnShow();
 
-	PC->GetCharacterMovement()->GravityScale = 0;
-	PC->SetState(PLAYER_CLIMBING_ROPE, true);
-	PC->ClimbingRope.ExecuteIfBound();
-	PC->SetActorLocation(
-		GraspingRope->GetIsUpWard() ? GraspingRope->GetDownLocation() : GraspingRope->GetUpLocation()
-	);
+	//PC->OnGraspRope(GraspingRope->GetIsUpWard() ? GraspingRope->GetDownLocation() : GraspingRope->GetUpLocation());
+	PC->OnGraspRope(GraspingRope->GetIsUpWard() ? GraspingRope->GetDownTransform() : GraspingRope->GetUpTransform());
 	UE_LOG(LogTemp, Log, TEXT("Player Contoller : Player Climbing State Set True"));
 }
 

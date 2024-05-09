@@ -189,27 +189,28 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 	bool GroundedButCanGetUp = GetState(PLAYER_CANGETUP) && GetState(PLAYER_RAGDOLL);
 	bool notGettingUp = !GetState(PLAYER_GETTINGUP);
 	bool notStaminaRunout = !GetState(PLAYER_STAMINA_RUNOUT);
+	bool notClimbing = !GetState(PLAYER_CLIMBING_ROPE);
 
 	switch (InputType)
 	{
 	case(PLAYER_INPUT_TYPE_SHIFT):
 		Getup();
-		return UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout;
+		return UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout && notClimbing;
 		break;
 	case(PLAYER_INPUT_TYPE_LOOK):
 		return UICheck;
 		break;
 	case(PLAYER_INPUT_TYPE_CLICK):
 		LazyGetUp();
-		return UICheck && Standing && notGettingUp && notStaminaRunout;
+		return UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
 		break;
 	case(PLAYER_INPUT_TYPE_JUMP):
 		LazyGetUp();
-		return UICheck && Standing && notGettingUp && notStaminaRunout;
+		return UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
 		break;
 	case(PLAYER_INPUT_TYPE_MOVE):
 		LazyGetUp();
-		return UICheck && Standing && notGettingUp && notStaminaRunout;
+		return UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
 		break;
 	default:
 		return false;
@@ -297,7 +298,9 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 		GetCapsuleComponent()->SetRelativeTransform(RT);
 	}
 
-
+// ROPE ACTION TEMP
+	if (GetState(PLAYER_CLIMBING_ROPE_UP)) SetActorLocation(GetActorLocation() + FVector::UpVector * ClimbSpeed);
+	else if (GetState(PLAYER_CLIMBING_ROPE_DOWN)) SetActorLocation(GetActorLocation() + FVector::DownVector * ClimbSpeed);
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -339,36 +342,29 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 	{
 		ACPlayerController* PC = Cast<ACPlayerController>(GetController());
 		if (PC == nullptr) return;
+		GetMovementComponent()->StopMovementImmediately();
 
 		bool IsArrived;
 		if (GetState(PLAYER_INPUT_W))
 		{
+			GetMesh()->bPauseAnims = false;
 			FVector CurrLocation = GetActorLocation();
-			FVector NextTickLocation = CurrLocation + (FVector::UpVector * ClimbSpeed);
-			PC->ClimbRopeInteract_Move(NextTickLocation, IsArrived, true);
-			//SetActorLocation(NextTickLocation);
-			AddMovementInput(FVector::UpVector, ClimbSpeed);
-			if (IsArrived)
-			{
-				SetState(PLAYER_CLIMBING_ROPE, false);
-				GetCharacterMovement()->GravityScale = 1;
-				ClimbingRope.ExecuteIfBound();
-			}
-			UE_LOG(LogTemp, Log, TEXT("PlayerCharacter : Setting Location : %s"), *NextTickLocation.ToString());
+			CurrLocation.Z += ClimbSpeed;
+			PC->ClimbRopeInteract_Move(CurrLocation, IsArrived, true);
+			//UE_LOG(LogTemp, Log, TEXT("PlayerCharacter : Current Location : %s"), *GetActorLocation().ToString());
+			SetActorLocation(CurrLocation);
+			if (IsArrived) OnLooseRope();
 			return;
 		}
 		else if (GetState(PLAYER_INPUT_S))
 		{
-			FVector NextTickLocation = GetActorLocation() + FVector::DownVector * ClimbSpeed;
-			PC->ClimbRopeInteract_Move(NextTickLocation, IsArrived, false);
-			SetActorLocation(NextTickLocation);
-			if (IsArrived)
-			{
-				SetState(PLAYER_CLIMBING_ROPE, false);
-				GetCharacterMovement()->GravityScale = 1;
-				ClimbingRope.ExecuteIfBound();
-			}
-			UE_LOG(LogTemp, Log, TEXT("PlayerCharacter : Setting Location : %s"), *NextTickLocation.ToString());
+			GetMesh()->bPauseAnims = false;
+			FVector CurrLocation = GetActorLocation();
+			CurrLocation.Z -= ClimbSpeed;
+			PC->ClimbRopeInteract_Move(CurrLocation, IsArrived, false);
+			SetActorLocation(CurrLocation);
+			if (IsArrived) OnLooseRope();
+			//UE_LOG(LogTemp, Log, TEXT("PlayerCharacter : Setting Location : %s"), *NextTickLocation.ToString());
 			return;
 		}
 	}
@@ -394,6 +390,11 @@ void ACPlayerCharacter::StopMove(const FInputActionValue& Value)
 	SetState(PLAYER_INPUT_A, false);
 	SetState(PLAYER_INPUT_S, false);
 	SetState(PLAYER_INPUT_D, false);
+
+	if (GetState(PLAYER_CLIMBING_ROPE))
+	{
+		GetMesh()->bPauseAnims = true;
+	}
 }
 
 void ACPlayerCharacter::Look(const FInputActionValue& Value)
@@ -786,4 +787,27 @@ void ACPlayerCharacter::MonsterKilledCount(TSubclassOf<ACEnemyCharacter> Monster
 		PC->CheckQuest(MonsterClass);
 	}
 	
+}
+
+void ACPlayerCharacter::OnGraspRope(FTransform GraspTransform)
+{
+	StopAnimMontage();
+	SetState(PLAYER_CLIMBING_ROPE, true);
+	ClimbingRope.ExecuteIfBound(true);
+	GetCharacterMovement()->GravityScale = 0;
+	GetMovementComponent()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
+	//SetActorLocation(GraspLocation);
+	SetActorLocationAndRotation(GraspTransform.GetLocation(), GraspTransform.GetRotation());
+	//SetActorTransform();
+}
+
+void ACPlayerCharacter::OnLooseRope()
+{
+	GetMesh()->bPauseAnims = false;
+	SetState(PLAYER_CLIMBING_ROPE, false);
+	ClimbingRope.ExecuteIfBound(false);
+	GetCharacterMovement()->GravityScale = 1;
+	GetMovementComponent()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 }

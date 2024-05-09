@@ -36,7 +36,8 @@ DECLARE_DELEGATE(FStandToRoll);
 DECLARE_DELEGATE(FHitDown);
 DECLARE_DELEGATE(FHitDownRecover);
 DECLARE_DELEGATE(FDizzy);
-DECLARE_DELEGATE(FClimbingRope);
+
+DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter
 {
@@ -207,4 +208,6 @@ public:
 	void OnHitDown(bool OnLazyGetUp = false);
 	void StaminaSpend(float RequiredStamina);
 	void MonsterKilledCount(TSubclassOf<class ACEnemyCharacter> MonsterClass);
+	void OnGraspRope(FTransform GraspLocation);
+	void OnLooseRope();
 };

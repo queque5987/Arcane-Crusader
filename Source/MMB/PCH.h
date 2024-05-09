@@ -57,8 +57,8 @@
 //#define UINT(1) << 23
 
 #define PLAYER_CLIMBING_ROPE		UINT(1) << 24
-//#define UINT(1) << 25
-//#define UINT(1) << 26
+#define PLAYER_CLIMBING_ROPE_UP		UINT(1) << 25
+#define PLAYER_CLIMBING_ROPE_DOWN	UINT(1) << 26
 //#define UINT(1) << 27
 //#define UINT(1) << 28
 //#define UINT(1) << 29

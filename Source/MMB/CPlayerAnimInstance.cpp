@@ -187,8 +187,8 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->HitDown.BindUFunction(this, FName("HitDown"));
 		PC->HitDownRecover.BindUFunction(this, FName("HitDownRecover"));
 		PC->Dizzy.BindUFunction(this, FName("Dizzy"));
-		PC->ClimbingRope.BindLambda([&]() {
-			RopeClimbing = true;
+		PC->ClimbingRope.BindLambda([&](bool b) {
+			RopeClimbing = b;
 			UE_LOG(LogTemp, Log, TEXT("Player AnimInstane : RopeClimbing Set True"));
 		});
 	}

@@ -32,11 +32,14 @@ protected:
 	UPROPERTY(EditAnywhere)
 	class USphereComponent* DownPoint;
 	FVector UpLocation;
+	FTransform UpTransform;
 	FVector DownLocation;
+	FTransform DownTransform;
 	bool bIsUpWard;
 	//float ClimbSpeed;
 public:	
 	//virtual void Tick(float DeltaTime) override;
+	void PlayerSetOnRope(class ACPlayerCharacter* PC);
 	void ClimbUp(FVector& NextTickClimbPos, bool& Result);
 	//void ClimbUp(FVector& NextRelativeLocation, float ClimbSpeed);
 
@@ -52,6 +55,8 @@ public:
 	bool GetIsUpWard() { return bIsUpWard; }
 	FVector GetUpLocation() { return UpLocation; }
 	FVector GetDownLocation() { return DownLocation; }
+	FTransform GetUpTransform() { return UpTransform; }
+	FTransform GetDownTransform() { return DownTransform; }
 private:
 	void PopInteractButton(AActor* OtherActor, bool IsUpWard);
 	//float SetClimbSpeed(float e) { ClimbSpeed = e; }

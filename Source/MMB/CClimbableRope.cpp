@@ -19,10 +19,14 @@ ACClimbableRope::ACClimbableRope()
 	UpPoint->SetupAttachment(StaticMeshComponent);
 	UpPoint->InitSphereRadius(100.f);
 	UpArrivalPoint->SetupAttachment(UpPoint);
+	UpArrivalPoint->SetCapsuleHalfHeight(88.f);
+	UpArrivalPoint->SetCapsuleRadius(88.f);
 
 	DownPoint->SetupAttachment(StaticMeshComponent);
 	DownPoint->InitSphereRadius(100.f);
 	DownArrivalPoint->SetupAttachment(DownPoint);
+	DownArrivalPoint->SetCapsuleHalfHeight(88.f);
+	DownArrivalPoint->SetCapsuleRadius(88.f);
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +42,13 @@ void ACClimbableRope::BeginPlay()
 
 	UpLocation = UpPoint->GetComponentLocation();
 	DownLocation = DownPoint->GetComponentLocation();
+	UpTransform = UpPoint->GetComponentTransform();
+	DownTransform = DownPoint->GetComponentTransform();
+}
+
+void ACClimbableRope::PlayerSetOnRope(ACPlayerCharacter* PC)
+{
+	PC->SetActorLocation(GetIsUpWard() ? DownLocation : UpLocation);
 }
 
 //void ACClimbableRope::ClimbUp(FVector CurrLocation, FVector& NextTickLocation, float ClimbSpeed)
@@ -76,13 +87,13 @@ void ACClimbableRope::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 
 void ACClimbableRope::PopInteractButton(AActor* OtherActor, bool IsUpWard)
 {
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(OtherActor);
+	if (PC == nullptr) return;
+	if (PC->GetState(PLAYER_CLIMBING_ROPE)) return;
+	ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController());
+	if (PCC == nullptr) return;
+
 	bIsUpWard = IsUpWard;
-	if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(OtherActor))
-	{
-		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
-		{
-			PCC->ClimbRopeInteract_ShowAndInputReady(this);
-		}
-	}
+	PCC->ClimbRopeInteract_ShowAndInputReady(this);
 }
 
