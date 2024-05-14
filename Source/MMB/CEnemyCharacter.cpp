@@ -22,6 +22,7 @@ ACEnemyCharacter::ACEnemyCharacter()
 	//AIControllerClass = ACEnemyAIController::StaticClass();
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Ignore);
 	//GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 
 	RotationSpeed = 0.8f;
@@ -29,6 +30,7 @@ ACEnemyCharacter::ACEnemyCharacter()
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetMesh()->SetCollisionObjectType(PlayerAttackChannel);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -298,3 +300,9 @@ void ACEnemyCharacter::Die()
 	//return true;
 }
 
+void ACEnemyCharacter::SetbAttacking(bool e)
+{
+	SetBBAttacking.ExecuteIfBound(e);
+	UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
+	bAttacking = e;
+}

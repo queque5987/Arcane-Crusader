@@ -189,7 +189,7 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 	bool GroundedButCanGetUp = GetState(PLAYER_CANGETUP) && GetState(PLAYER_RAGDOLL);
 	bool notGettingUp = !GetState(PLAYER_GETTINGUP);
 	bool notStaminaRunout = !GetState(PLAYER_STAMINA_RUNOUT);
-	bool notClimbing = !GetState(PLAYER_CLIMBING_ROPE);
+	bool notClimbing = !GetState(PLAYER_CLIMBING_ROPE) && !GetState(PLAYER_JUMPING_POINTS); // or jumping
 
 	switch (InputType)
 	{
@@ -299,8 +299,8 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	}
 
 // ROPE ACTION TEMP
-	if (GetState(PLAYER_CLIMBING_ROPE_UP)) SetActorLocation(GetActorLocation() + FVector::UpVector * ClimbSpeed);
-	else if (GetState(PLAYER_CLIMBING_ROPE_DOWN)) SetActorLocation(GetActorLocation() + FVector::DownVector * ClimbSpeed);
+	//if (GetState(PLAYER_CLIMBING_ROPE_UP)) SetActorLocation(GetActorLocation() + FVector::UpVector * ClimbSpeed);
+	//else if (GetState(PLAYER_CLIMBING_ROPE_DOWN)) SetActorLocation(GetActorLocation() + FVector::DownVector * ClimbSpeed);
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -324,6 +324,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ACPlayerCharacter::Jump()
 {
+	return;
 	Super::Jump();
 }
 
@@ -794,6 +795,7 @@ void ACPlayerCharacter::OnGraspRope(FTransform GraspTransform)
 	StopAnimMontage();
 	SetState(PLAYER_CLIMBING_ROPE, true);
 	ClimbingRope.ExecuteIfBound(true);
+	GetMesh()->bPauseAnims = true;
 	GetCharacterMovement()->GravityScale = 0;
 	GetMovementComponent()->StopMovementImmediately();
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);

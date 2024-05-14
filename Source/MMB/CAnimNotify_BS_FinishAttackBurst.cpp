@@ -2,6 +2,7 @@
 
 
 #include "CAnimNotify_BS_FinishAttackBurst.h"
+#include "PCH.h"
 
 UCAnimNotify_BS_FinishAttackBurst::UCAnimNotify_BS_FinishAttackBurst()
 {
@@ -35,23 +36,6 @@ void UCAnimNotify_BS_FinishAttackBurst::Notify(USkeletalMeshComponent* MeshComp,
 		SpawnLocations.Enqueue(SpawnLocation3);
 		SpawnLocations.Enqueue(SpawnLocation4);
 		SpawnLocations.Enqueue(SpawnLocation5);
-
-		//FRotator UpRotator = PC->GetActorRotation();
-		//UpRotator.Pitch = 90.f;
-		////DrawDebugSphere(GetWorld(), SpawnLocation, 120.f, 20.f, FColor::Red, false, 1.5f);
-		//SpawnBonusExplosion(SpawnLocation, UpRotator, 0.f);
-
-		////DrawDebugSphere(GetWorld(), SpawnLocation1, 120.f, 20.f, FColor::Green, false, 1.5f);
-		////DrawDebugSphere(GetWorld(), SpawnLocation2, 120.f, 20.f, FColor::Green, false, 1.5f);
-		//SpawnBonusExplosion(SpawnLocation1, UpRotator, 0.4f);
-		//SpawnBonusExplosion(SpawnLocation2, UpRotator, 0.4f);
-
-		////DrawDebugSphere(GetWorld(), SpawnLocation3, 120.f, 20.f, FColor::Blue, false, 1.5f);
-		////DrawDebugSphere(GetWorld(), SpawnLocation4, 120.f, 20.f, FColor::Blue, false, 1.5f);
-		////DrawDebugSphere(GetWorld(), SpawnLocation5, 120.f, 20.f, FColor::Blue, false, 1.5f);
-		//SpawnBonusExplosion(SpawnLocation3, UpRotator, 0.6f);
-		//SpawnBonusExplosion(SpawnLocation4, UpRotator, 0.6f);
-		//SpawnBonusExplosion(SpawnLocation5, UpRotator, 0.6f);
 
 		float Delay = 0.01f;
 		int MC = 2;
@@ -132,12 +116,24 @@ void UCAnimNotify_BS_FinishAttackBurst::test()
 
 		UGameplayStatics::SpawnEmitterAtLocation(PC->GetWorld(),
 			Weapon->GetWeaponEffect(E_MELEEATTACKCOMBO_3_FINALATTACK_EXPLODE),
-			SL);
+			SL
+		);
+		UGameplayStatics::PlaySoundAtLocation(PC->GetWorld(),
+			Weapon->GetWeaponSoundEffect(SE_MELEEATTACKCOMBO_3_EXPLODE),
+			SL, 0.8f, 0.65f
+		);
 		if (bResult)
 		{
 			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
 			if (EC == nullptr) return;
 			EC->HitDamage(Weapon->GettempDamage2(), *PC, HitResult.Location);
+			FTransform SpawnTransform;
+			SpawnTransform.SetScale3D(FVector(3.f, 3.f, 3.f));
+			SpawnTransform.SetLocation(SL);
+			UGameplayStatics::SpawnEmitterAtLocation(PC->GetWorld(),
+				Weapon->GetWeaponEffect(E_MELLEATTACKCOMBO_2_PROJECTILE_HIT),
+				SpawnTransform
+			);
 		}
 	}
 }

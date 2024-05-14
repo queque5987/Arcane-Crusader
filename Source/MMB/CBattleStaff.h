@@ -57,6 +57,7 @@ public:
 	virtual bool MeleeAttackHitCheck() override;
 
 	virtual class UParticleSystem* GetWeaponEffect(int e) override;
+	virtual class USoundBase* GetWeaponSoundEffect(int e) override;
 	virtual TArray<class UParticleSystem*>* GetWeaponEffect() override;
 	virtual class UStaticMeshSocket* GetSocket(FName e) override;
 	virtual class UStaticMeshComponent* GetStaticMeshComponent() override;
@@ -64,7 +65,12 @@ public:
 protected:
 	virtual class UCInventoryItemData* GetItemData(ACharacter* PC) override;
 	//class UCInventoryItemData* GetItemData(ACharacter* PC);
-
+	UStaticMeshSocket* FireSocket;
+	FVector PrevFireSocketPos;
+	FVector SwingingDirection;
+	FTimerHandle EffectSpawnTimerHandler;
+	TQueue<class UParticleSystemComponent*> HitParticleQueue;
+	void DequeueHitParticle();
 private:
 	float AttackingEffectClock = 2.4f;
 	float CAEC = 0.f;
@@ -85,6 +91,8 @@ public:
 	class USphereComponent* Collider;
 
 	TArray<UParticleSystem*> WeaponEffect;
+	TArray<USoundBase*> WeaponSoundEffect;
+	class USoundCue* StaffMeleeHitSoundCue;
 protected:
 	float tempDamage0;
 	float tempDamage1;

@@ -20,6 +20,12 @@ void UCButtonAction::SetRope(ACClimbableRope* e)
 	NPCName->SetText(FText::FromString(TEXT("매달리기")));
 }
 
+void UCButtonAction::SetJumpPoints(ACJumpPoints* e)
+{
+	JumpPoints = e;
+	NPCName->SetText(FText::FromString(TEXT("점프")));
+}
+
 void UCButtonAction::OnButtonTriggered()
 {
 }

@@ -37,6 +37,10 @@ DECLARE_DELEGATE(FHitDown);
 DECLARE_DELEGATE(FHitDownRecover);
 DECLARE_DELEGATE(FDizzy);
 
+DECLARE_DELEGATE(FJumpPointReady);
+DECLARE_DELEGATE_OneParam(FJumpPointJump, float);
+DECLARE_DELEGATE(FJumpPointLand);
+
 DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter
@@ -89,7 +93,9 @@ public:
 	FHitDownRecover HitDownRecover;
 	FDizzy Dizzy;
 	FClimbingRope ClimbingRope;
-
+	FJumpPointReady JumpPointReady;
+	FJumpPointJump JumpPointJump;
+	FJumpPointLand JumpPointLand;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;

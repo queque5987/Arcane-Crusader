@@ -35,7 +35,14 @@ protected:
 
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	void Explode(bool Hit);
+
+	ACharacter* SweepActor;
+	FVector HitLocation;
+	float PenetrationTick = 0.4f;
+	int PenetrationTickCounter;
 
 	bool Launch;
 	float Trail;
@@ -56,8 +63,11 @@ protected:
 	float fSnowball = 0.01f;
 
 	int PlayerReactPower = 0;
-private:
 
+	USoundBase* ExplodeSE;
+	USoundBase* LaunchSE;
+private:
+	void SweepOnLaunch();
 public:	
 	virtual void Tick(float DeltaTime) override;
 	void SetLaunch(UParticleSystem* ProjectileEffect, UParticleSystem* ExplodeEffect, float RangeLimit = 1500.f, float Acc = 20.f, float LaunchClock = 0.f, float ClockLimit = -1.f, bool Snowball = false, float SnowballAcc = 0.01f);
@@ -65,10 +75,14 @@ public:
 		UParticleSystem* ProjectileEffect, UParticleSystem* ExplodeEffect, UParticleSystem* SpawnEffect, UParticleSystem* LaunchEffect,
 		float Damage, float RangeLimit = 1500.f, float Acc = 20.f, float ClockLimit = -1.f,
 		struct DELAY_START_PROJECTILE_CONFIGURE* config = nullptr,
-		bool DoPenetrate = false, bool OnlyDestructOnClock = false, bool Snowball = false, float SnowballAcc = 0.01f
+		bool DoPenetrate = false, bool OnlyDestructOnClock = false, bool Snowball = false, float SnowballAcc = 0.01f,
+		USoundBase* pExplodeSE = nullptr, USoundBase* pLaunchSE = nullptr
 	);
 	void SetPlayerReactPower(int e) { PlayerReactPower = e; }
 	UFUNCTION()
 	void SetLaunchQuick();
 	void SetProjCollisionScale(float e);
+
+	void SetExplodeSE(USoundBase* SE) { ExplodeSE = SE; }
+	void SetLaunchSE(USoundBase* SE) { LaunchSE = SE; }
 };

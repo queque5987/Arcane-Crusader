@@ -29,8 +29,11 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Falling_Back_Death.Falling_Back_Death"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/Player/Guard/Animation/Hostile/Stand_Up.Stand_Up"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Injured_Idle.Injured_Idle"));
-
+	
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RopeClimbFinder(TEXT("/Game/Player/Guard/Animation/Climbing_A_Rope.Climbing_A_Rope"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointReadyFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/JumpReady.JumpReady"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointJumpFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Mutant_Jumping.Mutant_Jumping"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointLandFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Hard_Landing.Hard_Landing"));
 
 	
 
@@ -90,6 +93,11 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if(DizzyFinder.Succeeded())				AnimSequenceDizzy = DizzyFinder.Object;
 
 	if (RopeClimbFinder.Succeeded())			AnimSequenceRopeClimb = RopeClimbFinder.Object;
+
+	if (JumpPointReadyFinder.Succeeded()) AnimSequenceJumpPointReady = JumpPointReadyFinder.Object;
+	if (JumpPointJumpFinder.Succeeded()) AnimSequenceJumpPointJump = JumpPointJumpFinder.Object;
+	if (JumpPointLandFinder.Succeeded()) AnimSequenceJumpPointLand = JumpPointLandFinder.Object;
+
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -167,6 +175,23 @@ void UCPlayerAnimInstance::RopeClimb()
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceRopeClimb, "DefaultSlot", 1.f, 0.25f, 1.f);
 }
 
+void UCPlayerAnimInstance::JumpPoint_Ready()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointReady, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	//e = AnimSequenceJumpPointReady->GetPlayLength();
+}
+
+void UCPlayerAnimInstance::JumpPoint_Jump(float e)
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointJump, "DefaultSlot", 0.25f, 0.25f, 1.f);
+}
+
+void UCPlayerAnimInstance::JumpPoint_Land()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointLand, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float e = AnimSequenceJumpPointLand->GetPlayLength();
+}
+
 void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
 	//Super::NativeInitializeAnimation();
@@ -191,6 +216,9 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 			RopeClimbing = b;
 			UE_LOG(LogTemp, Log, TEXT("Player AnimInstane : RopeClimbing Set True"));
 		});
+		PC->JumpPointReady.BindUFunction(this, FName("JumpPoint_Ready"));
+		PC->JumpPointJump.BindUFunction(this, FName("JumpPoint_Jump"));
+		PC->JumpPointLand.BindUFunction(this, FName("JumpPoint_Land"));
 	}
 }
 

@@ -11,6 +11,8 @@ DECLARE_DELEGATE(FRoar)
 DECLARE_DELEGATE(FAttackHand)
 DECLARE_DELEGATE(FAttackHead)
 DECLARE_DELEGATE(FAttackFire)
+
+DECLARE_DELEGATE_OneParam(FbAttacking, bool)
 UCLASS()
 class MMB_API ACEnemyCharacter : public ACharacter
 {
@@ -24,6 +26,8 @@ public:
 	FAttackHand DoAttackHand;
 	FAttackHead DoAttackHead;
 	FAttackFire DoAttackFire;
+
+	FbAttacking SetBBAttacking;
 	UPROPERTY(EditAnyWhere)
 	class UDataTable* DropTable;
 	UPROPERTY(EditAnyWhere)
@@ -64,9 +68,11 @@ public:
 
 	void SetbHostile(bool e);
 	bool GetHostile() { return bHostile; }
-	void SetbAttacking(bool e) {
-		UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
-		bAttacking = e; }
+	void SetbAttacking(bool e);
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
+	//	bAttacking = e; 
+	//}
 	bool GetbAttacking() { return bAttacking; }
 	//void SetbAttackingFree() { bAttacking = false; }
 	bool AttackHitCheck(int AttackType = 0);

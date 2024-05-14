@@ -11,9 +11,6 @@
 #include "PCH.h"
 #include "CEnemyAIController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MMB_API ACEnemyAIController : public AAIController
 {
@@ -54,6 +51,7 @@ public:
 	static const FName PlayerPos;
 	static const FName bHostile;
 	static const FName bBusy;
+	static const FName bAttacking;
 	static const FName PlayerCharacter;
 
 	FTimerHandle RoarTimerHandle;
@@ -64,6 +62,8 @@ public:
 	FVector GetChasingPlayerPos();
 	void SetbBusy(bool e);
 	bool GetbBusy();
+	void SetbAttacking(bool e);
+	bool GetbAttacking();
 	bool GetCanRoar() { return CanRoar; }
 	void SetCanRoar(bool e) { CanRoar = e; }
 	float GetRoarCooldown() { return RoarCooldown; }

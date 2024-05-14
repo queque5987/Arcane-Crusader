@@ -42,6 +42,7 @@ public:
 	virtual void SetRequiredStamina(float e) { }
 	virtual class UParticleSystem* GetWeaponEffect(int e) { return nullptr; }
 	virtual TArray<class UParticleSystem*>* GetWeaponEffect() {return nullptr; }
+	virtual class USoundBase* GetWeaponSoundEffect(int e) { return nullptr; }
 	virtual class UStaticMeshSocket* GetSocket(FName e) { return nullptr; }
 	virtual class UStaticMeshComponent* GetStaticMeshComponent() { return nullptr; }
 	virtual void GetSocketTransform(FTransform& SocketTransform, FName SocketName) {}

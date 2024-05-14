@@ -3,6 +3,7 @@
 
 #include "CPlayerController.h"
 #include "CClimbableRope.h"
+#include "CJumpPoints.h"
 #include "Blueprint/UserWidget.h"
 
 ACPlayerController::ACPlayerController()
@@ -318,6 +319,9 @@ void ACPlayerController::OnInteract()
 	case(INTERACT_BUTTON_MODE_CLIMBROPE):
 		ClimbRopeInteract_Interact();
 		return;
+	case(INTERACT_BUTTON_MODE_JUMPPOINTS):
+		JumpPointsInteract_Interact();
+		return;
 	}
 }
 
@@ -380,7 +384,7 @@ void ACPlayerController::ClimbRopeInteract_Interact()
 
 	//PC->OnGraspRope(GraspingRope->GetIsUpWard() ? GraspingRope->GetDownLocation() : GraspingRope->GetUpLocation());
 	PC->OnGraspRope(GraspingRope->GetIsUpWard() ? GraspingRope->GetDownTransform() : GraspingRope->GetUpTransform());
-	UE_LOG(LogTemp, Log, TEXT("Player Contoller : Player Climbing State Set True"));
+	//UE_LOG(LogTemp, Log, TEXT("Player Contoller : Player Climbing State Set True"));
 }
 
 void ACPlayerController::ClimbRopeInteract_Move(FVector& NextTickClimbPos, bool& Result, bool IsUpWard)
@@ -388,4 +392,36 @@ void ACPlayerController::ClimbRopeInteract_Move(FVector& NextTickClimbPos, bool&
 	if (GraspingRope == nullptr) return;
 	if (IsUpWard) GraspingRope->ClimbUp(NextTickClimbPos, Result);
 	else GraspingRope->ClimbDown(NextTickClimbPos, Result);
+}
+
+void ACPlayerController::JumpPointsInteract_ShowAndInputReady(ACJumpPoints* Jumppoints, int JumpPoint)
+{
+	if (ButtonActionUI != nullptr) NPCInteract_UnShow();
+	ButtonActionUI = CreateWidget<UCButtonAction>(this, ButtonActionAsset);
+	if (IsValid(ButtonActionUI))
+	{
+		FVector MiddlePos = (GetCharacter()->GetActorLocation() + (GetCharacter()->GetActorRightVector() * 100.f + GetCharacter()->GetActorUpVector() * 100.f));
+		FVector2D ScreenLocation;
+		ProjectWorldLocationToScreen(MiddlePos, ScreenLocation);
+
+		ButtonActionUI->AddToViewport();
+		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_JUMPPOINTS);
+		ButtonActionUI->SetJumpPoints(Jumppoints);
+		ButtonActionUI->SetPositionInViewport(ScreenLocation);
+		JumpStartPoint = JumpPoint;
+	}
+}
+
+void ACPlayerController::JumpPointsInteract_Interact()
+{
+	if (ButtonActionUI == nullptr) return;
+	ACJumpPoints* JumpPoints = ButtonActionUI->GetJumpPoints();
+	if (JumpPoints == nullptr) return;
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetPawn());
+	if (PC == nullptr) return;
+	JumpPoints->TransferCharacter(PC, JumpStartPoint);
+	NPCInteract_UnShow();
+	//PC->GetCharacterMovement()->GravityScale = 0;
+	//PC->GetMovementComponent()->StopMovementImmediately();
+	//PC->GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
 }

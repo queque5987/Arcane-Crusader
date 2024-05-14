@@ -13,6 +13,7 @@ const FName ACEnemyAIController::bSeePlayer(TEXT("bSeePlayer"));
 const FName ACEnemyAIController::PlayerPos(TEXT("PlayerPos"));
 const FName ACEnemyAIController::bHostile(TEXT("bHostile"));
 const FName ACEnemyAIController::bBusy(TEXT("bBusy"));
+const FName ACEnemyAIController::bAttacking(TEXT("bAttacking"));
 const FName ACEnemyAIController::PlayerCharacter(TEXT("PlayerCharacter"));
 
 ACEnemyAIController::ACEnemyAIController(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -46,6 +47,11 @@ void ACEnemyAIController::OnPossess(APawn* InPawn)
 			EA->OnMontageStarted.AddDynamic(this, &ACEnemyAIController::SetbBusyUnFree);
 			EA->OnMontageEnded.AddDynamic(this, &ACEnemyAIController::SetbBusyFree);
 		}
+
+		EC->SetBBAttacking.BindLambda([&](bool e) {
+			SetbAttacking(e);
+			}
+		);
 	}
 }
 
@@ -128,6 +134,16 @@ void ACEnemyAIController::SetbBusy(bool e)
 bool ACEnemyAIController::GetbBusy()
 {
 	return Blackboard->GetValueAsBool(bBusy);
+}
+
+void ACEnemyAIController::SetbAttacking(bool e)
+{
+	Blackboard->SetValueAsBool(bAttacking, e);
+}
+
+bool ACEnemyAIController::GetbAttacking()
+{
+	return Blackboard->GetValueAsBool(bAttacking);
 }
 
 void ACEnemyAIController::SetRoarCooldownTimer()

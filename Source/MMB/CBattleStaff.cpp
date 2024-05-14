@@ -2,6 +2,7 @@
 
 
 #include "CBattleStaff.h"
+#include "Sound/SoundCue.h"
 
 ACBattleStaff::ACBattleStaff() : Super()
 {
@@ -23,8 +24,8 @@ ACBattleStaff::ACBattleStaff() : Super()
 	WeaponEffect.SetNum(MAX_E_WEAPONEFFECT);
 
 
-
-
+	ConstructorHelpers::FObjectFinder <USoundCue> MeleeHitSoundCueFinder(TEXT("/Game/Resources/Sound/Hit/Staff_Melee_Hit.Staff_Melee_Hit"));
+	StaffMeleeHitSoundCue = MeleeHitSoundCueFinder.Object;
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> BattleStaffMeshFinder(TEXT("/Game/BattleWizardPolyart/Meshes/MagicStaffs/Staff01SM.Staff01SM"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_ExplodeEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_Area_01.P_RBurst_Default_Burst_Area_01"));
@@ -38,13 +39,13 @@ ACBattleStaff::ACBattleStaff() : Super()
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo1AttackProjectileSpawnEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_Shout_Charge_00.P_Shout_Charge_00"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo2AttackProjectileEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_LineToPoint_Projectile_Untyped.P_LineToPoint_Projectile_Untyped"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackingEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Fire/P_Beam_Laser_Dot.P_Beam_Laser_Dot"));
-	//ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackingEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_WeaponThrow/P_Skill_Throw_Fire_Charge_01.P_Skill_Throw_Fire_Charge_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackTrail(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_WeaponThrow/P_Skill_Throw_Fire_Trail_Base.P_Skill_Throw_Fire_Trail_Base"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackHitEffect(TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_C.P_Sparks_C"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo2AttackProjectileHitEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Treasure/Resources/P_Resource_Impact_Rock.P_Resource_Impact_Rock"));
 
 
-	//ParticleSystemExplode = ExplodeFinder.Object;
 	StaticMeshComponent->SetStaticMesh(BattleStaffMeshFinder.Object);
 
-	//WeaponEffect[E_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_FinalAttackExplode.Object;
 	WeaponEffect[E_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_Combo2AttackExplode.Object;;
 	WeaponEffect[E_MELEEATTACKCOMBO_3_FINALATTACK_EXPLODE] = MeleeAttackCombo_ExplodeEffect.Object;
 	WeaponEffect[E_MELEEATTACKCOMBO_3_FINALATTACK_BONUS_EXPLODE] = MeleeAttackCombo_FinalAttackBonusExplode.Object;
@@ -56,20 +57,43 @@ ACBattleStaff::ACBattleStaff() : Super()
 	WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_SPAWN] = MeleeAttackCombo_Combo1AttackProjectileSpawnEffect.Object;
 	WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE] = MeleeAttackCombo_Combo2AttackProjectileEffect.Object;
 	WeaponEffect[E_MELLEWEAPON_ATTACKING_EFFECT] = WeaponAttackingEffect.Object;
+	WeaponEffect[E_MELLEWEAPON_ATTACK_TRAIL] = WeaponAttackTrail.Object;
+	WeaponEffect[E_MELLEWEAPON_ATTACK_HIT] = WeaponAttackHitEffect.Object;
+	WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE_HIT] = MeleeAttackCombo_Combo2AttackProjectileHitEffect.Object;
+
+	WeaponSoundEffect.SetNum(MAX_SE_WEAPON);
+
+	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_FinalAttack_ExplodeSE(TEXT("/Game/Resources/Sound/Rock/rock-destroy-6409.rock-destroy-6409"));
+	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE(TEXT("/Game/Resources/Sound/Rock/small-rock-break-194553.small-rock-break-194553"));
+	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo2AttackProjectile_LauncchSE(TEXT("/Game/Resources/Sound/Rock/stones-falling-6375.stones-falling-6375"));
+	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo1AttackProjectile_LauncchSE(TEXT("/Game/Resources/Sound/Rock/rocks-6129.rocks-6129"));
+
+	WeaponSoundEffect[SE_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_FinalAttack_ExplodeSE.Object;
+	WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Object;
+	WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_LAUNCH] = MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Object;
+	WeaponSoundEffect[SE_MELEEATTACKCOMBO_1_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Object;
+
+
+	
+
 
 	FireSocketEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("FireSocketEffet"));
 	FireSocketEffectComponent->SetupAttachment(StaticMeshComponent);
 	FireSocketEffectComponent->AttachToComponent(StaticMeshComponent, FAttachmentTransformRules::KeepRelativeTransform, "FireSocket");
-	FireSocketEffectComponent->SetTemplate(WeaponAttackingEffect.Object);
+	FireSocketEffectComponent->SetTemplate(WeaponAttackTrail.Object);
+
 	FireSocketEffectComponent->SetAutoActivate(false);
-	//StaticMeshComponent->GetStaticMesh()->FindSocket("FireSocket");
-	//FireSocketEffectComponent->SetRelativeTransform();
 
 	tempDamage0 = 2.8f;
 	tempDamage1 = 3.2f;
 	tempDamage2 = 3.5f;
 
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &ACBattleStaff::OnPickUp);
+
+	UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
+	if (SM != nullptr) FireSocket = SM->FindSocket("FireSocket");
+
+
 }
 
 void ACBattleStaff::LMB_Triggered(struct AttackResult& AttackResult)
@@ -93,38 +117,6 @@ void ACBattleStaff::LMB_Triggered(struct AttackResult& AttackResult)
 		DamageScale = 0.7f;
 	}
 	else DamageScale = 0.3f;
-	//AttackResult.StaminaUsed = Stamina;
-
-	//float Stamina = 0.f;
-
-	//ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
-	//if (!IsValid(PC)) return;
-
-	//if (PC->GetState(PLAYER_ATTACKING))
-	//{
-	//	PC->SetState(PLAYER_COMBO_CONTINUE, true);
-	//}
-
-	//if (!PC->GetState(PLAYER_ATTACKING) && !PC->GetState(PLAYER_ROLLING) && !PC->GetMovementComponent()->IsFalling())
-	//{
-	//	int CurrCombo = PC->GetState(PLAYER_COMBO_STACK_1) + PC->GetState(PLAYER_COMBO_STACK_2) + PC->GetState(PLAYER_COMBO_STACK_3);
-	//	switch (CurrCombo)
-	//	{
-	//	case(0):
-	//		PC->SetState(PLAYER_ATTACKING, true);
-	//		PC->SetState(PLAYER_COMBO_STACK_1, true);
-	//		PC->MeleeAttackCombo1.ExecuteIfBound();
-	//		break;
-	//	case(1):
-	//		if (PC->GetState(PLAYER_COMBO_CONTINUE))FComboContinue = &ACBattleStaff::Combo2;
-	//		break;
-	//	case(2):
-	//		if (PC->GetState(PLAYER_COMBO_CONTINUE)) FComboContinue = &ACBattleStaff::Combo3;
-	//		break;
-	//	}
-	//	Stamina = 6.f;
-	//}
-	//AttackResult.StaminaUsed = Stamina;
 }
 
 void ACBattleStaff::LMB_Completed(struct AttackResult& AttackResult)
@@ -175,20 +167,7 @@ void ACBattleStaff::RMB_Triggered(struct AttackResult& AttackResult)
 		}
 	}
 	AttackResult.StaminaUsed = Stamina;
-	//else
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("Combo 0 Stack"));
-	//}
-	//return AttackResult();
 }
-
-//void ACBattleStaff::ComboContinue()
-//{
-//	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
-//	if (!IsValid(PC)) return;
-//
-//	if (FComboContinue != nullptr) (this->*FComboContinue)(PC);
-//}
 
 float ACBattleStaff::GettempDamage0()
 {
@@ -232,7 +211,8 @@ void ACBattleStaff::OnPickUp(UPrimitiveComponent* OverlappedComp, AActor* OtherA
 
 void ACBattleStaff::SpawnEmitterAttachedToSocket()
 {
-	UStaticMeshSocket* FireSocket = StaticMeshComponent->GetStaticMesh()->FindSocket("FireSocket");
+	//UStaticMeshSocket* FireSocket = StaticMeshComponent->GetStaticMesh()->FindSocket("FireSocket");
+	if (FireSocket == nullptr) return;
 	FVector FireSocketLocation = GetActorLocation() + GetActorRotation().RotateVector(FireSocket->RelativeLocation);
 
 	//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_MELLEWEAPON_ATTACKING_EFFECT], FireSocketLocation);
@@ -263,6 +243,13 @@ void ACBattleStaff::Tick(float DeltaTime)
 	else {
 		FireSocketEffectComponent->SetActive(false);
 	}
+
+	if (FireSocket == nullptr) return;
+	FTransform FireSocketTransform;
+	FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
+	SwingingDirection = (FireSocketTransform.GetLocation() - PrevFireSocketPos);
+	//DrawDebugLine(GetWorld(), PrevFireSocketPos, PrevFireSocketPos + Direction * 300.f, FColor::Cyan, false, 0.1f, 0U, 3.f);
+	PrevFireSocketPos = FireSocketTransform.GetLocation();
 }
 
 bool ACBattleStaff::MeleeAttackHitCheck()
@@ -273,19 +260,9 @@ bool ACBattleStaff::MeleeAttackHitCheck()
 	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
 	//FVector FireSocketLocation = 
 	FTransform FireSocketTransform;
-	UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
-	UStaticMeshSocket* FireSocket = SM->FindSocket("FireSocket");
-	FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
-
-	/*bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult,
-		FireSocketTransform.GetLocation(),
-		FireSocketTransform.GetLocation(),
-		FQuat::Identity,
-		PlayerAttackChannel,
-		FCollisionShape::MakeSphere(30.f),
-		Params
-	);*/
+	//UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
+	//UStaticMeshSocket* FireSocket = SM->FindSocket("FireSocket");
+	if (FireSocket != nullptr) FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
 
 	bool bResult = GetWorld()->SweepSingleByObjectType(
 		HitResult,
@@ -310,9 +287,25 @@ bool ACBattleStaff::MeleeAttackHitCheck()
 			UE_LOG(LogTemp, Log, TEXT("AttachParentActor is not ACPlayerCharacter"));
 			return false;
 		}
+
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
+
 		UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, DamageScale);
 
 		EC->HitDamage(AttackDamage * DamageScale, *PC, HitResult.Location);
+
+		FTransform HitEffectSpawnTransform;
+		HitEffectSpawnTransform.SetLocation(HitResult.Location);
+		FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
+		HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
+		HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+		UParticleSystemComponent* tempParticle = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_MELLEWEAPON_ATTACK_HIT], HitEffectSpawnTransform);
+		if (tempParticle != nullptr)
+		{
+			HitParticleQueue.Enqueue(tempParticle);
+			GetWorld()->GetTimerManager().SetTimer(EffectSpawnTimerHandler, this, &ACBattleStaff::DequeueHitParticle, 0.5f);
+		}
 	}
 
 	return bResult;
@@ -321,6 +314,11 @@ bool ACBattleStaff::MeleeAttackHitCheck()
 UParticleSystem* ACBattleStaff::GetWeaponEffect(int e)
 {
 	return WeaponEffect.IsValidIndex(e) ? WeaponEffect[e] : WeaponEffect[0];
+}
+
+USoundBase* ACBattleStaff::GetWeaponSoundEffect(int e)
+{
+	return WeaponSoundEffect.IsValidIndex(e) ? WeaponSoundEffect[e] : nullptr;
 }
 
 TArray<UParticleSystem*>* ACBattleStaff::GetWeaponEffect()
@@ -368,6 +366,13 @@ UCInventoryItemData* ACBattleStaff::GetItemData(ACharacter* PC)
 	ID->SetstrName(WeaponName.ToString());
 	ID->SetItemClass(ACBattleStaff::StaticClass());
 	return ID;
+}
+
+void ACBattleStaff::DequeueHitParticle()
+{
+	UParticleSystemComponent* temp;
+	HitParticleQueue.Dequeue(temp);
+	if (temp != nullptr) temp->Deactivate();
 }
 
 void ACBattleStaff::CreateParticleSystem()

@@ -80,6 +80,7 @@ void UCEnemy_AnimInstance_TB::AttackHead()
 
 void UCEnemy_AnimInstance_TB::AttackFire()
 {
+	EnemyCharacter->SetbAttacking(true);
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceFire, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 

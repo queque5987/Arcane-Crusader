@@ -78,6 +78,7 @@ protected:
 	class UCButtonAction* ButtonActionUI;
 	//TArray<Quest> QuestArray;
 	class ACClimbableRope* GraspingRope;
+	int32 JumpStartPoint;
 	UFUNCTION()
 	void DequeueDamageUI();
 public:
@@ -104,4 +105,8 @@ public:
 	void ClimbRopeInteract_ShowAndInputReady(class ACClimbableRope* Rope);
 	void ClimbRopeInteract_Interact();
 	void ClimbRopeInteract_Move(FVector& NextTickClimbPos, bool& Result, bool IsUpWard);
+
+	void JumpPointsInteract_ShowAndInputReady(class ACJumpPoints* Jumppoints, int JumpPoint);
+	void JumpPointsInteract_Interact();
+
 };

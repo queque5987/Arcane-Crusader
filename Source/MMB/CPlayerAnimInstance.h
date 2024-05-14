@@ -51,6 +51,10 @@ protected:
 
 	UAnimSequenceBase* AnimSequenceRopeClimb;
 
+	UAnimSequenceBase* AnimSequenceJumpPointReady;
+	UAnimSequenceBase* AnimSequenceJumpPointJump;
+	UAnimSequenceBase* AnimSequenceJumpPointLand;
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
 	UFUNCTION()
@@ -83,4 +87,10 @@ protected:
 	void Dizzy();
 	UFUNCTION()
 	void RopeClimb();
+	UFUNCTION()
+	void JumpPoint_Ready();
+	UFUNCTION()
+	void JumpPoint_Jump(float e);
+	UFUNCTION()
+	void JumpPoint_Land();
 };
