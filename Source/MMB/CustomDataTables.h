@@ -89,6 +89,8 @@ public:
 	FString Level;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FVector Pos;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString PreviewSlateBrush;
 };
 
 UCLASS()

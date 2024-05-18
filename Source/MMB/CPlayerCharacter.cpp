@@ -36,6 +36,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ConstructorHelpers::FObjectFinder<UInputAction> OpenInventoryFinder(TEXT("/Game/Player/Input/IA_Inventory.IA_Inventory"));
 	ConstructorHelpers::FObjectFinder<UInputAction> ShiftFinder(TEXT("/Game/Player/Input/IA_Shift.IA_Shift"));
 	ConstructorHelpers::FObjectFinder<UInputAction> InteractFinder(TEXT("/Game/Player/Input/IA_Interact.IA_Interact"));
+	ConstructorHelpers::FObjectFinder<UInputAction> AnyKeyFinder(TEXT("/Game/Player/Input/IA_Any.IA_Any"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -46,6 +47,8 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (OpenInventoryFinder.Succeeded()) OpenInventory = OpenInventoryFinder.Object;
 	if (ShiftFinder.Succeeded()) ShiftAction = ShiftFinder.Object;
 	if (InteractFinder.Succeeded()) InteractAction = InteractFinder.Object;
+	if (AnyKeyFinder.Succeeded()) AnyKeyAction = AnyKeyFinder.Object;
+
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	//SpringArmComponent->SetUsingAbsoluteRotation(false);
@@ -121,7 +124,7 @@ void ACPlayerCharacter::SetCanGetup()
 {
 	SetState(PLAYER_RAGDOLL, true);
 	SetState(PLAYER_CANGETUP, true);
-	GetWorld()->GetTimerManager().SetTimer(HitDownRecoverHandle, this, &ACPlayerCharacter::LazyGetUp, 1.5f);
+	//GetWorld()->GetTimerManager().SetTimer(HitDownRecoverHandle, this, &ACPlayerCharacter::LazyGetUp, 1.5f);
 }
 
 void ACPlayerCharacter::Getup()
@@ -137,7 +140,7 @@ void ACPlayerCharacter::LazyGetUp()
 {
 	if (GetState(PLAYER_RAGDOLL) && GetState(PLAYER_CANGETUP))
 	{
-		OnHitDown(true);
+		OnHitDown();
 		SetState(PLAYER_GETTINGUP, true);
 		HitDownRecover.ExecuteIfBound();
 		GetWorld()->GetTimerManager().ClearTimer(HitDownRecoverHandle);
@@ -190,31 +193,49 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 	bool notGettingUp = !GetState(PLAYER_GETTINGUP);
 	bool notStaminaRunout = !GetState(PLAYER_STAMINA_RUNOUT);
 	bool notClimbing = !GetState(PLAYER_CLIMBING_ROPE) && !GetState(PLAYER_JUMPING_POINTS); // or jumping
+	bool notDead = !GetState(PLAYER_DIED);
 
 	switch (InputType)
 	{
 	case(PLAYER_INPUT_TYPE_SHIFT):
-		Getup();
-		return UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout && notClimbing;
+		if (notDead) Getup();
+		else Anykey_Triggered();
+		return notDead && UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout && notClimbing;
 		break;
 	case(PLAYER_INPUT_TYPE_LOOK):
 		return UICheck;
 		break;
 	case(PLAYER_INPUT_TYPE_CLICK):
-		LazyGetUp();
-		return UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
-		break;
+		//if (notDead) LazyGetUp();
+		//else Anykey_Triggered();
+		//return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
+		//break;
 	case(PLAYER_INPUT_TYPE_JUMP):
-		LazyGetUp();
-		return UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
-		break;
+		//if (notDead) LazyGetUp();
+		//else Anykey_Triggered();
+		//return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
+		//break;
 	case(PLAYER_INPUT_TYPE_MOVE):
-		LazyGetUp();
-		return UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
+		if (notDead) LazyGetUp();
+		else Anykey_Triggered();
+		return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
 		break;
 	default:
 		return false;
 	}
+}
+
+void ACPlayerCharacter::Revive(ACPlayerController* PC)
+{
+	GetWorld()->GetTimerManager().SetTimer(HitReactTimerHandle, FTimerDelegate::CreateLambda([&]() {
+		SetState(PLAYER_GETTINGUP, false);
+		}), 6.4f, false);
+	SetActorLocation(RevivalPos);
+	SetAnimPauseFree();
+	SetState(PLAYER_DIED, false);
+	SetState(PLAYER_GETTINGUP, true);
+	PC->CharacterDied(false);
+	HP = MaxHP;
 }
 
 void ACPlayerCharacter::UpdateHUDStates()
@@ -253,9 +274,29 @@ void ACPlayerCharacter::SetStaminaRegain()
 	SetState(PLAYER_STAMINA_REGAIN, true);
 }
 
+void ACPlayerCharacter::OnDie()
+{
+	//if (Die.ExecuteIfBound()) SetState(PLAYER_DIED, true);
+	SetState(PLAYER_DIED, true);
+	ACPlayerController* PC = Cast<ACPlayerController>(GetController());
+	if (!IsValid(PC)) return;
+	PC->CharacterDied(true);
+	//GetWorld()->GetTimerManager().ClearTimer(HitReactTimerHandle);
+	//GetWorld()->GetTimerManager().SetTimer(HitReactTimerHandle,
+	//	FTimerDelegate::CreateLambda([&]() {
+	//		GetMesh()->bPauseAnims = true;
+	//	}), 3.5f, false
+	//);
+}
+
 void ACPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!GetState(PLAYER_DIED) && HP <= 0.f)
+	{
+		OnDie();
+	}
 
 	if (CastingClock >= 0)
 	{
@@ -297,10 +338,6 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 		RT.SetLocation(GetMesh()->GetRelativeTransform().GetLocation() + FVector(0.f, 0.f, 80.f));
 		GetCapsuleComponent()->SetRelativeTransform(RT);
 	}
-
-// ROPE ACTION TEMP
-	//if (GetState(PLAYER_CLIMBING_ROPE_UP)) SetActorLocation(GetActorLocation() + FVector::UpVector * ClimbSpeed);
-	//else if (GetState(PLAYER_CLIMBING_ROPE_DOWN)) SetActorLocation(GetActorLocation() + FVector::DownVector * ClimbSpeed);
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -319,6 +356,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(OpenInventory, ETriggerEvent::Completed, this, &ACPlayerCharacter::InventoryOpened);
 		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::ShiftTriggered);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::E_Triggered);
+		//EnhancedInputComponent->BindAction(AnyKeyAction, ETriggerEvent::, this, &ACPlayerCharacter::Anykey_Triggered);
 	}
 }
 
@@ -512,8 +550,7 @@ void ACPlayerCharacter::ShiftTriggered()
 		return;
 	}
 	
-	if (Stamina > ShiftStamina * 0.4f) Stamina -= ShiftStamina;
-	else return;
+	if (Stamina <= ShiftStamina * 0.4f) return;
 
 	if (
 		(GetState(PLAYER_ATTACKING) && GetState(PLAYER_ATTACK_CANCLE_UNLOCK)) ||
@@ -525,6 +562,7 @@ void ACPlayerCharacter::ShiftTriggered()
 		if (StandToRoll.ExecuteIfBound())
 		{
 			SetState(PLAYER_ROLLING, true);
+			Stamina -= ShiftStamina;
 		}
 	}
 }
@@ -533,6 +571,20 @@ void ACPlayerCharacter::E_Triggered()
 	ACPlayerController* PC = Cast<ACPlayerController>(GetController());
 	if (!IsValid(PC)) return;
 	PC->OnInteract();
+}
+
+void ACPlayerCharacter::Anykey_Triggered()
+{
+	//Revive
+	if (GetState(PLAYER_DIED))
+	{
+		ACPlayerController* PC = Cast<ACPlayerController>(GetController());
+		if (!IsValid(PC)) return;
+		if (PC->HUDOverlay != nullptr && PC->HUDOverlay->GetContinueRevive())
+		{
+			Revive(PC);
+		}
+	}
 }
 
 
@@ -611,7 +663,6 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 	SetLastDealingEnemy(Attacker);
 	
 	ShowDamageUI(e, HitLocation, true);
-	//OnHitDown();
 
 	switch (Power)
 	{
@@ -625,6 +676,7 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 		SetState(PLAYER_RAGDOLL, false);
 		SetState(PLAYER_CANGETUP, true);
 		HitDown.ExecuteIfBound();
+		OnHitDown();
 		break;
 	}
 	return true;
@@ -709,7 +761,7 @@ void ACPlayerCharacter::AxisAdjustOnScreenRotation(float DeltaTime)
 	
 }
 
-void ACPlayerCharacter::OnHitDown(bool OnLazyGetUp)
+void ACPlayerCharacter::OnHitDown()
 {
 	if (!GetState(PLAYER_RAGDOLL)) //DOWN(RAGDOLL)
 	{
@@ -812,4 +864,9 @@ void ACPlayerCharacter::OnLooseRope()
 	GetCharacterMovement()->GravityScale = 1;
 	GetMovementComponent()->StopMovementImmediately();
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+}
+
+void ACPlayerCharacter::SetRevivalPoint(FVector Pos)
+{
+	RevivalPos = Pos;
 }

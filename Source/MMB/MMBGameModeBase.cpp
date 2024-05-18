@@ -13,13 +13,9 @@ AMMBGameModeBase::AMMBGameModeBase()
 	DefaultPawnClass = ACPlayerCharacter::StaticClass();
 	PlayerControllerClass = ACPlayerController::StaticClass();
 
-	/*ConstructorHelpers::FObjectFinder<UWorld> testlevelFinder(TEXT("/Game/TestLevel1.TestLevel1"));
-	if (testlevelFinder.Succeeded())
-	{
-		LevelToLoad = testlevelFinder.Object;
-	}*/
 	PreLoadedTextures.SetNum(MAX_PRELOADED_TEXTURES_NUM);
 	DropItemMaterialsRarity.SetNum(MAX_ITEM_RARITY_NUM);
+	SlateBrushArr.SetNum(MAX_SB_NUM);
 
 	ConstructorHelpers::FObjectFinder<UTexture2D>StaffIconFinder(TEXT("/Game/Resources/staff.staff"));
 	ConstructorHelpers::FObjectFinder<UTexture2D>BattleStaffIconFinder(TEXT("/Game/Resources/Textrue_BattleStaff.Textrue_BattleStaff"));
@@ -38,6 +34,10 @@ AMMBGameModeBase::AMMBGameModeBase()
 	if (RareMat.Succeeded())		DropItemMaterialsRarity[ITEM_RARE] = RareMat.Object;
 	if (EpicMat.Succeeded())		DropItemMaterialsRarity[ITEM_EPIC] = EpicMat.Object;
 	if (LegendaryMat.Succeeded())	DropItemMaterialsRarity[ITEM_LEGENDARY] = LegendaryMat.Object;
+
+	ConstructorHelpers::FObjectFinder<USlateBrushAsset>SB_DesertFinder(TEXT("/Game/Resources/Image/SB_Desert.SB_Desert"));
+	if (SB_DesertFinder.Succeeded())	SlateBrushArr[SB_DESERT] = SB_DesertFinder.Object;
+
 
 	FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
 	TSoftObjectPtr<UWorld> testlevel(path);
@@ -86,4 +86,9 @@ UClass* AMMBGameModeBase::GetItemClass(int32 e)
 UMaterialInstance* AMMBGameModeBase::GetDropItemMaterial(int32 Rarity)
 {
 	return DropItemMaterialsRarity.Num() > Rarity? DropItemMaterialsRarity[Rarity] : nullptr;
+}
+
+FSlateBrush* AMMBGameModeBase::GetSlateBrush(int32 e)
+{
+	return SlateBrushArr.IsValidIndex(e) ? &(SlateBrushArr[e]->Brush) : nullptr;
 }

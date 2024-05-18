@@ -4,6 +4,7 @@
 #include "CPlayerController.h"
 #include "CClimbableRope.h"
 #include "CJumpPoints.h"
+#include "IPlayerState.h"
 #include "Blueprint/UserWidget.h"
 
 ACPlayerController::ACPlayerController()
@@ -27,6 +28,15 @@ ACPlayerController::ACPlayerController()
 	if (DamageAssetFinder.Succeeded())			DamageAsset = DamageAssetFinder.Class;
 	if (DroppedItemListAssetFinder.Succeeded()) DroppedItemListAsset = DroppedItemListAssetFinder.Class;
 	if (ButtonActionAssetFinder.Succeeded())	ButtonActionAsset = ButtonActionAssetFinder.Class;
+}
+
+void ACPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+
+	IIPlayerState* PS = Cast<IIPlayerState>(GetCharacter());
+	if (PS == nullptr) return;
+	if (PS->GetState(PLAYER_DIED)) HUDOverlay->Tick_DieUIAnim(DeltaTime);
 }
 
 void ACPlayerController::BeginPlay()
@@ -424,4 +434,15 @@ void ACPlayerController::JumpPointsInteract_Interact()
 	//PC->GetCharacterMovement()->GravityScale = 0;
 	//PC->GetMovementComponent()->StopMovementImmediately();
 	//PC->GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
+}
+
+void ACPlayerController::CharacterDied(bool b)
+{
+	HUDOverlay->ShowDieUI(b);
+}
+
+void ACPlayerController::SetSelectedPortal(int ArrIndex)
+{
+	if (NPCConversation == nullptr) return;
+	NPCConversation->SetLoadedMapIndex(ArrIndex);
 }

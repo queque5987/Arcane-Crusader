@@ -20,6 +20,7 @@
 #include "IWeapon.h"
 #include "CMonsterSpawner.h"
 #include "Kismet/GameplayStatics.h"
+#include "IPlayerState.h"
 #include "CPlayerCharacter.generated.h"
 
 DECLARE_DELEGATE(FLMBAttack);
@@ -42,8 +43,9 @@ DECLARE_DELEGATE_OneParam(FJumpPointJump, float);
 DECLARE_DELEGATE(FJumpPointLand);
 
 DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
+DECLARE_DELEGATE(FDie);
 UCLASS()
-class MMB_API ACPlayerCharacter : public ACharacter
+class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState
 {
 	GENERATED_BODY()
 
@@ -66,6 +68,8 @@ public:
 	class UInputAction* InteractAction;
 	UPROPERTY()
 	class UInputAction* ShiftAction;
+	UPROPERTY()
+	class UInputAction* AnyKeyAction;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmComponent;
@@ -96,6 +100,7 @@ public:
 	FJumpPointReady JumpPointReady;
 	FJumpPointJump JumpPointJump;
 	FJumpPointLand JumpPointLand;
+	FDie Die;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;
@@ -115,6 +120,7 @@ protected:
 	UPROPERTY()
 	float StaminaRegain;
 
+	UPROPERTY(EditAnyWhere)
 	float HP;
 	float MaxHP;
 	float Stamina;
@@ -152,11 +158,14 @@ protected:
 
 	//bool PlayerInputCheck(bool bBtn = true);
 	bool PlayerInputCheck(int InputType = 0);
-
+	UPROPERTY(VisibleAnywhere)
+	FVector RevivalPos;
+	void Revive(class ACPlayerController* PC);
 private:
 	void UpdateHUDStates();
 	bool CheckIsActing();
 	void SetStaminaRegain();
+	void OnDie();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -175,6 +184,7 @@ public:
 	void InventoryOpened();
 	void ShiftTriggered();
 	void E_Triggered();
+	void Anykey_Triggered();
 
 	void Equip(class ACWeapon& ActorToEquip);
 	void Equip(class AActor& ActorToEquip);
@@ -186,8 +196,8 @@ public:
 
 	/*void SetIsAttacking(bool b) { IsAttacking = b; }
 	bool GetIsAttacking() { return IsAttacking; }*/
-	bool GetState(UINT StateType);
-	void SetState(UINT StateType, bool b);
+	virtual bool GetState(UINT StateType) override;
+	virtual void SetState(UINT StateType, bool b) override;
 	UINT32 GetPlayerGold() { return PlayerGold; }
 	void SetPlayerGold(UINT32 e);
 	bool GetContinueCombo() { return ContinueCombo; }
@@ -211,9 +221,11 @@ public:
 
 	void AxisAdjustOnScreenRotation(float DeltaTime = 1/60);
 
-	void OnHitDown(bool OnLazyGetUp = false);
+	void OnHitDown();
 	void StaminaSpend(float RequiredStamina);
 	void MonsterKilledCount(TSubclassOf<class ACEnemyCharacter> MonsterClass);
 	void OnGraspRope(FTransform GraspLocation);
 	void OnLooseRope();
+
+	virtual void SetRevivalPoint(FVector Pos) override;
 };

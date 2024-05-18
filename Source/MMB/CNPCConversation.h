@@ -18,34 +18,13 @@ class MMB_API UCNPCConversation : public UUserWidget //, public IUserObjectListE
 
 	class ACStaticNPC* NPC;
 public:
-	//FSimpleDelegate DELEGATE_BUTTON_NEXT;
-	//FSimpleDelegate DELEGATE_BUTTON_YES;
-	//FSimpleDelegate DELEGATE_BUTTON_NO;
-	//FSimpleDelegate DELEGATE_BUTTON_SHOP;
-	//FSimpleDelegate DELEGATE_BUTTON_QUEST;
-	//FSimpleDelegate DELEGATE_BUTTON_LEAVE;
-	//FSimpleDelegate DELEGATE_BUTTON_TELEPORT;
-
-	//TArray<FSimpleDelegate*> ButtonDelegates = {
-	//	nullptr,
-	//	&DELEGATE_BUTTON_NEXT,
-	//	&DELEGATE_BUTTON_YES,
-	//	&DELEGATE_BUTTON_NO,
-	//	&DELEGATE_BUTTON_SHOP,
-	//	&DELEGATE_BUTTON_QUEST,
-	//	&DELEGATE_BUTTON_LEAVE,
-	//	&DELEGATE_BUTTON_TELEPORT
-	//};
 
 	void SetNPCName(FText e) { NPCName->SetText(e); }
 	void SetNPCLine(FText e) { NPCLine->SetText(e); }
 	
-	//UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface", meta = (Keywords = "Begin Play"))
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	//UClass* ButtonClass;
-	//UCNPCConversation(const FObjectInitializer& ObjectInitializer);
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> NPCLineBox;
 	UPROPERTY(meta = (BindWidget))
@@ -90,9 +69,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnShopClose;
 
-	//UPROPERTY(meta = (BindWidget))
-	//TObjectPtr<UButton> BtnTeleport;
-	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> SwingbyAlertBox;
 	UPROPERTY(meta = (BindWidget))
@@ -107,22 +83,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnTeleportSend;
 
-	//UPROPERTY(meta = (BindWidget))
-	//TObjectPtr<UTileView> ButtonsBox;
-
 	virtual void SetVisibility(ESlateVisibility InVisibility) override;
 
 	void SetNPC(class ACStaticNPC* e) { NPC = e; }
 	class ACStaticNPC* GetNPC() { return NPC; }
 	void SetItemList(class ACStaticNPC** e);
-
-	//typedef void (UCNPCConversation::* YesFunction)(void);
-	//typedef void (UCNPCConversation::* NoFunction)(void);
-	//YesFunction BtnYesPtr;
-	//NoFunction BtnNoPtr;
-
-	//void (*BtnYesPtr)();
-	//void (*BtnNoPtr)();
+	void SetLoadedMapIndex(int e) { LoadedMapIndex = e; }
 
 	UFUNCTION()
 	void OnButtonYesClicked();
@@ -176,18 +142,8 @@ private:
 
 	bool IsQuest_NotTeleport = true;
 
-	//TArray<int*> ButtonPostlines = {
-	//	nullptr,
-	//	&BUTTON_NEXT_POSTLINE,
-	//	&BUTTON_YES_POSTLINE,
-	//	&BUTTON_NO_POSTLINE,
-	//	&BUTTON_SHOP_POSTLINE,
-	//	&BUTTON_QUEST_POSTLINE,
-	//	&BUTTON_LEAVE_POSTLINE,
-	//	&BUTTON_TELEPORT_POSTLINE
-	//};
-
 	FQuestsRow* LoadedQuest;
+	int LoadedMapIndex = -1;
 
 	TArray<FWidgetTransform> BtnTransforms;
 

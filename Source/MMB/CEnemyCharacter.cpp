@@ -260,23 +260,6 @@ void ACEnemyCharacter::Die()
 					DI->SetPossessingItem(D);
 				}
 			}
-
-			//UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), TEXT("Drop Test Item"));
-			//ACDroppedItem* DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
-
-			//FDropTableRow* DropTableRow = DropTable->FindRow<FDropTableRow>(DropTableName, FString(""));
-			//TArray<FNPCDialoguesRow*> Dialogues;
-			//for (int i : DialogueIndex) Dialogues.Add(DialogueTable->FindRow<FNPCDialoguesRow>(FName(FString::FormatAsNumber(i)), FString("")));
-
-			//D->SetIndex(1);
-			//D->SetIconTexture(TEXTURE_BATTLESTAFF);
-			//D->SetItemClass(ACBattleStaff::StaticClass());
-			//D->SetItemCount(1);
-			//D->SetstrName("Battle Staff D");
-			//D->SetAttackDamage(50);
-			//D->SetPrice(100);
-
-			//DI->SetPossessingItem(D);
 		}
 	}
 

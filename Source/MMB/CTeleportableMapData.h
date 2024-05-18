@@ -19,6 +19,12 @@ class MMB_API UCTeleportableMapData : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FVector DestLocation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int ArrIndex;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	FString PreviewSlateBrush;
+
 public:
 	UWorld* GetDestLevel() { return DestLevel; }
 	void SetDestLevel(UWorld* e) { DestLevel = e; }
@@ -26,4 +32,9 @@ public:
 	void SetDestLocation(FVector e) { DestLocation = e; }
 	FName GetDestLevelName() { return DestLevelName; }
 	void SetDestLevelName(FName e) { DestLevelName = e; }
+	int GetArrIndex() { return ArrIndex; }
+	void SetArrIndex(int e) { ArrIndex = e; }
+	FString GetPreviewSlateBrush() { return PreviewSlateBrush; }
+	void SetPreviewSlateBrush(FString e) { PreviewSlateBrush = e; }
+
 };

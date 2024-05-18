@@ -53,7 +53,7 @@
 
 #define PLAYER_GETTINGUP			UINT(1) << 20
 #define PLAYER_STAMINA_REGAIN		UINT(1) << 21
-//#define UINT(1) << 22
+#define PLAYER_DIED					UINT(1) << 22
 //#define UINT(1) << 23
 
 #define PLAYER_CLIMBING_ROPE		UINT(1) << 24
@@ -105,6 +105,9 @@
 #define TEXTURE_BATTLESTAFF			1
 #define TEXTURE_DROPPEDITEM			2
 #define MAX_PRELOADED_TEXTURES_NUM	3
+
+#define SB_DESERT	0
+#define MAX_SB_NUM	1
 
 #define ITEM_NORMAL			0
 #define ITEM_RARE			1

@@ -2,13 +2,31 @@
 
 
 #include "CTeleportableMap.h"
+#include "IPlayerUIController.h"
 #include "GameFramework/Character.h"
+#include "Styling/SlateWidgetStyleAsset.h"
 
 void UCTeleportableMap::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 	MapData = Cast<UCTeleportableMapData>(ListItemObject);
 	if (MapData != nullptr) MapName->SetText(FText::FromName(MapData->GetDestLevelName()));
+
+	//UObject* Style = StaticLoadObject(USlateWidgetStyleAsset::StaticClass(), nullptr, *MapData->GetPreviewSlateBrush());
+	//UObject* L = StaticLoadObject(USlateBrushAsset::StaticClass(), nullptr, *MapData->GetPreviewSlateBrush());
+	USlateWidgetStyleAsset* Style = LoadObject<USlateWidgetStyleAsset>(nullptr, *MapData->GetPreviewSlateBrush());
+	const FButtonStyle* btnStyle = Style->GetStyle<FButtonStyle>();
+	if (USlateWidgetStyleAsset* ST = Cast<USlateWidgetStyleAsset>(Style))
+	{
+		//ST->GetStyle()
+		BtnMapPreview->WidgetStyle = *btnStyle;
+		//BtnMapPreview->WidgetStyle.SetNormal(SB->Brush);
+		//BtnMapPreview->WidgetStyle.SetHovered(SB->Brush);
+		//BtnMapPreview->WidgetStyle.SetPressed(SB->Brush);
+		SB_Normal = &btnStyle->Normal;
+		SB_Pressed = &btnStyle->Pressed;
+	}
+	Pressed = false;
 }
 
 void UCTeleportableMap::NativeOnInitialized()
@@ -19,26 +37,19 @@ void UCTeleportableMap::NativeOnInitialized()
 void UCTeleportableMap::OnButtonClicked()
 {
 	if (MapData == nullptr) return;
-	UE_LOG(LogTemp, Log, TEXT("Current Level : %s"), *GetWorld()->GetName());
 
-	if (GetWorld()->GetName() == MapData->GetDestLevel()->GetMapName())
+	IIPlayerUIController* IAC = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (IAC == nullptr) return;
+	if (!Pressed)
 	{
-		//Just Location
-		UE_LOG(LogTemp, Log, TEXT("Teleporting to %s At %s"),
-			*MapData->GetDestLevel()->GetMapName(),
-			*MapData->GetDestLocation().ToString()
-		);
-
-		AController* ACC = GetOwningPlayer();
-		if (ACC == nullptr) return;
-		ACharacter* AC = ACC->GetCharacter();
-		if (AC != nullptr) AC->SetActorLocation(MapData->GetDestLocation());
+		Pressed = true;
+		IAC->SetSelectedPortal(MapData->GetArrIndex());
+		BtnMapPreview->WidgetStyle.SetNormal(*SB_Pressed);
 	}
 	else
 	{
-		//Load Level
-		//Move to Pos
+		Pressed = false;
+		IAC->SetSelectedPortal(-1);
+		BtnMapPreview->WidgetStyle.SetNormal(*SB_Normal);
 	}
-
-	
 }

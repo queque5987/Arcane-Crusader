@@ -10,6 +10,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/Texture2D.h"
 #include "Materials/Material.h"
+#include "Slate/SlateBrushAsset.h"
 #include "MMBGameModeBase.generated.h"
 
 /**
@@ -26,14 +27,12 @@ class MMB_API AMMBGameModeBase : public AGameModeBase
 private:
 	TArray<UTexture2D*> PreLoadedTextures;
 	TArray<UMaterialInstance*> DropItemMaterialsRarity;
+	TArray<USlateBrushAsset*> SlateBrushArr;
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Zone)
 	TSoftObjectPtr<UWorld> LevelToLoad;
 
-	//UWorld* testlevel;
-	/*UFUNCTION()
-	void OnEntranced0();*/
 	UTexture2D* GetPreLoadedTexture(int32 e);
 
 	UTexture2D* IconStaff;
@@ -42,5 +41,6 @@ public:
 
 	UClass* GetItemClass(int32 e);
 	UMaterialInstance* GetDropItemMaterial(int32 Rarity);
+	FSlateBrush* GetSlateBrush(int32 e);
 	
 };

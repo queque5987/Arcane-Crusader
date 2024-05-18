@@ -120,7 +120,7 @@ void UCAnimNotify_BS_FinishAttackBurst::test()
 		);
 		UGameplayStatics::PlaySoundAtLocation(PC->GetWorld(),
 			Weapon->GetWeaponSoundEffect(SE_MELEEATTACKCOMBO_3_EXPLODE),
-			SL, 0.8f, 0.65f
+			SL, 0.6f, 0.65f
 		);
 		if (bResult)
 		{

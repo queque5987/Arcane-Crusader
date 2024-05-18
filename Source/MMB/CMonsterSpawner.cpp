@@ -25,6 +25,13 @@ void ACMonsterSpawner::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandler, this, &ACMonsterSpawner::SpawnTick, SpawnCounter, true);
 }
 
+void ACMonsterSpawner::OnMonsterDied(AActor* Act)
+{
+	UE_LOG(LogTemp, Log, TEXT("Monster has Died %s"), *Act->GetName());
+	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(Act);
+	if (IsValid(EC)) SpawnedMonsters.Remove(EC);
+}
+
 void ACMonsterSpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -78,6 +85,7 @@ void ACMonsterSpawner::SpawnTick()
 			if (EC != nullptr)
 			{
 				SpawnedMonsters.Add(EC);
+				EC->OnDestroyed.AddDynamic(this, &ACMonsterSpawner::OnMonsterDied);
 				UE_LOG(LogTemp, Log, TEXT("Spawning %d th Monster"), (i + 1));
 			}
 			else

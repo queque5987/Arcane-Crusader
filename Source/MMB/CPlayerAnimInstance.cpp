@@ -34,8 +34,8 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointReadyFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/JumpReady.JumpReady"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointJumpFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Mutant_Jumping.Mutant_Jumping"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointLandFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Hard_Landing.Hard_Landing"));
-
 	
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DieAnimFinder(TEXT("/Game/Player/Guard/Animation/Sword_And_Shield_Death.Sword_And_Shield_Death"));
 
 	//Knithe Version
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
@@ -98,6 +98,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if (JumpPointJumpFinder.Succeeded()) AnimSequenceJumpPointJump = JumpPointJumpFinder.Object;
 	if (JumpPointLandFinder.Succeeded()) AnimSequenceJumpPointLand = JumpPointLandFinder.Object;
 
+	if (DieAnimFinder.Succeeded()) AnimSequenceDie = DieAnimFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -192,6 +193,11 @@ void UCPlayerAnimInstance::JumpPoint_Land()
 	float e = AnimSequenceJumpPointLand->GetPlayLength();
 }
 
+void UCPlayerAnimInstance::Die()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceDie, "DefaultSlot", 0.25f, 0.25f, 1.f);
+}
+
 void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
 	//Super::NativeInitializeAnimation();
@@ -219,6 +225,9 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->JumpPointReady.BindUFunction(this, FName("JumpPoint_Ready"));
 		PC->JumpPointJump.BindUFunction(this, FName("JumpPoint_Jump"));
 		PC->JumpPointLand.BindUFunction(this, FName("JumpPoint_Land"));
+		PC->Die.BindUFunction(this, FName("Die"));
+
+		PlayerCharacterStateInterface = Cast<IIPlayerState>(PC);
 	}
 }
 
@@ -238,5 +247,8 @@ void UCPlayerAnimInstance::UpdateProperties(float Delta)
 		FRotator ViewRotatorYaw = FRotator(0.f, Pawn->GetViewRotation().Yaw, 0.f);
 		FVector RelativeVelocityNormalizedVector = ViewRotatorYaw.UnrotateVector(Pawn->GetVelocity().GetSafeNormal());
 		PawnAnimRadian = FMath::RoundToFloat(FMath::Atan2(RelativeVelocityNormalizedVector.Y, RelativeVelocityNormalizedVector.X) * 100.f) / 100.f;
+
+
+		Died = PlayerCharacterStateInterface->GetState(PLAYER_DIED);
 	}
 }

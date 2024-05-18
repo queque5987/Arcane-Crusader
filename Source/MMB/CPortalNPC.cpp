@@ -7,9 +7,4 @@ void ACPortalNPC::GetTeleportableMaps(TArray<struct FTeleportableMapTableRow*>& 
 {
 	if (MapTable == nullptr) return;
 	MapTable->GetAllRows<FTeleportableMapTableRow>(TEXT("GetAllRows"), Arr);
-	//Arr.Empty();
-	//for (FText t : ReachableMaps)
-	//{
-	//	MapTable->FindRow()
-	//}
 }

@@ -27,6 +27,8 @@ class MMB_API ACMonsterSpawner : public AActor
 public:	
 	ACMonsterSpawner();
 
+	UFUNCTION()
+	void OnMonsterDied(AActor* Act);
 protected:
 	virtual void BeginPlay() override;
 

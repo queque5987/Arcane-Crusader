@@ -17,10 +17,11 @@
 #include "CWidgetDroppedItemList.h"
 #include "CButtonAction.h"
 #include "CDroppedItem.h"
+#include "IPlayerUIController.h"
 #include "CPlayerController.generated.h"
 
 UCLASS()
-class MMB_API ACPlayerController : public APlayerController
+class MMB_API ACPlayerController : public APlayerController, public IIPlayerUIController
 {
 	GENERATED_BODY()
 	ACPlayerController();
@@ -68,6 +69,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	class UCWidgetDroppedItemList* DroppedItemList;
 
+	virtual void PlayerTick(float DeltaTime) override;
 protected:
 	virtual void BeginPlay() override;
 
@@ -76,7 +78,6 @@ protected:
 	TQueue<class UCDamageUI*> DamageUIQueue;
 
 	class UCButtonAction* ButtonActionUI;
-	//TArray<Quest> QuestArray;
 	class ACClimbableRope* GraspingRope;
 	int32 JumpStartPoint;
 	UFUNCTION()
@@ -109,4 +110,9 @@ public:
 	void JumpPointsInteract_ShowAndInputReady(class ACJumpPoints* Jumppoints, int JumpPoint);
 	void JumpPointsInteract_Interact();
 
+	//Die UI On
+	void CharacterDied(bool b);
+
+	//Teleport Map Select
+	virtual void SetSelectedPortal(int ArrIndex) override;
 };

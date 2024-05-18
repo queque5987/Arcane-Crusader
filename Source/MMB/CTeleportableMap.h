@@ -24,8 +24,14 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> MapName;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnMapPreview;
+
 	UFUNCTION(BlueprintCallable)
 	void OnButtonClicked();
+
+	const FSlateBrush* SB_Normal;
+	const FSlateBrush* SB_Pressed;
+	bool Pressed;
 };

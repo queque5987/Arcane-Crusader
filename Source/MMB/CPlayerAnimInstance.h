@@ -31,6 +31,10 @@ protected:
 	float PawnAnimRadian;
 	UPROPERTY(BlueprintReadOnly)
 	bool RopeClimbing;
+	UPROPERTY(BlueprintReadOnly)
+	bool Died;
+
+	class IIPlayerState* PlayerCharacterStateInterface;
 
 	UAnimSequenceBase* AnimSequenceLMBAttack;
 	UAnimSequenceBase* AnimSequenceRMBCastStart;
@@ -54,6 +58,7 @@ protected:
 	UAnimSequenceBase* AnimSequenceJumpPointReady;
 	UAnimSequenceBase* AnimSequenceJumpPointJump;
 	UAnimSequenceBase* AnimSequenceJumpPointLand;
+	UAnimSequenceBase* AnimSequenceDie;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -93,4 +98,6 @@ protected:
 	void JumpPoint_Jump(float e);
 	UFUNCTION()
 	void JumpPoint_Land();
+	UFUNCTION()
+	void Die();
 };

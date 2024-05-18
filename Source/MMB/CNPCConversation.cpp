@@ -12,91 +12,6 @@ void UCNPCConversation::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	//ButtonsArr.SetNum(MAX_BUTTON_NUM);
-
-	//UCNPCConversationButtonData* Dat;
-	//UUserWidget* U;
-	//FSimpleDelegate TempDele;
-
-	
-	//TESTBUTTONCLICKED.BindUFunction(this, TEXT("OnButtonLeaveClicked"));
-	//FName F = TEXT("OnButtonNextClicked");
-	//for (int i = 1; i < MAX_BUTTON_NUM; i++)
-	//{
-	//	FSimpleDelegate* tempDele = ButtonDelegates[i];
-	//	switch (i)
-	//	{
-	//	case(1)://BUTTON_NEXT
-	//		F = TEXT("OnButtonNextClicked");
-	//		break;
-	//	case(2)://BUTTON_YES
-	//		F = TEXT("OnButtonYesClicked");
-	//		break;
-	//	case(3)://BUTTON_NO
-	//		F = TEXT("OnButtonNoClicked");
-	//		break;
-	//	case(4)://BUTTON_SHOP
-	//		F = TEXT("OnButtonShopInClicked");
-	//		break;
-	//	case(5)://BUTTON_QUEST
-	//		F = TEXT("OnButtonQuestClicked");
-	//		break;
-	//	case(6)://BUTTON_LEAVE
-	//		F = TEXT("OnButtonLeaveClicked");
-	//		break;
-	//	case(7)://BUTTON_TELEPORT
-	//		F = TEXT("OnButtonLeaveClicked");
-	//		break;
-	//	}
-	//	tempDele->BindUFunction(this, F);
-
-	//	Dat = NewObject<UCNPCConversationButtonData>(this, UCNPCConversationButtonData::StaticClass(), FName((TEXT("Button_") + FString::FromInt(i))));
-	//	//Dat->SetBtnName(FName((TEXT("Button_") + FString::FromInt(i))));
-	//	Dat->SetBtnName(F);
-	//	Dat->SetClickDele(tempDele);
-	//	//TempDele.BindUFunction(this, TEXT("OnButtonLeaveClicked"));
-	//	//Dat->SetClickEvent(&UCNPCConversation::OnButtonLeaveClicked);
-
-	//	ButtonsBox->AddItem(Dat);
-
-	//	//U = ButtonsBox->GetEntryWidgetFromItem(Dat);
-	//	//if (U != nullptr)
-	//	//{
-	//	//	UE_LOG(LogTemp, Log, TEXT("Button Created: %s"), *U->GetName());
-	//	//}
-	//	//else
-	//	//{
-	//	//	UE_LOG(LogTemp, Log, TEXT("Button Created Failed : %s"), *Dat->GetName());
-	//	//}
-	//}
-
-	//TArray<UUserWidget*> A = ButtonsBox->GetDisplayedEntryWidgets();
-	//UE_LOG(LogTemp, Log, TEXT("Buttons : %d"), A.Num());
-	//for (UUserWidget* Button : A)
-	//{
-	//	if (UCNPCConversationButton* CButton = Cast<UCNPCConversationButton>(Button))
-	//	{
-	//		UE_LOG(LogTemp, Log, TEXT("%s"), *CButton->GetName());
-	//		//WQ->RefreshQuestRecap(ToCheckClass);
-	//	}
-	//}
-
-	//int i = 0;
-	//UCNPCConversationButton* B;
-	//TArray<UUserWidget*> Btns = ButtonsBox->GetDisplayedEntryWidgets();
-	//for (auto& w : Btns)
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("Setting Up Btns"));
-	//	B = Cast<UCNPCConversationButton>(w);
-	//	if (B != nullptr)
-	//	{
-	//		B->BtnText->SetText(FText::FromString(FString::FromInt(i)));
-	//		//B->Btn->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonLeaveClicked);
-	//		ButtonsArr.Add(B);
-	//	}
-	//	else UE_LOG(LogTemp, Log, TEXT("NPC Button Setting Failed"));
-	//}
-
 	BtnYes->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonYesClicked);
 	BtnNo->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonNoClicked);
 	BtnShopIn->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonShopInClicked);
@@ -116,9 +31,6 @@ void UCNPCConversation::NativeConstruct()
 	InSwingbyClock = 0.f;
 
 	TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
-
-	//BtnYesPtr = &UCNPCConversation::BtnYes_Normal;
-	//BtnNoPtr = &UCNPCConversation::BtnNo_Normal;
 }
 
 void UCNPCConversation::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -136,7 +48,6 @@ void UCNPCConversation::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 		}
 	}
 
-	//UE_LOG(LogTemp, Log, TEXT("Curr Opacity : %f"), SwingbyAlertBox->GetRenderOpacity());
 	if (InSwingbyTime > 0.f)
 	{
 		float CurrOpacity = SwingbyAlertBox->GetRenderOpacity();
@@ -202,35 +113,33 @@ void UCNPCConversation::SetItemList(ACStaticNPC** e)
 
 void UCNPCConversation::OnButtonYesClicked()
 {
-	//(this->*BtnYesPtr)();
-	//if (IsQuest_NotTeleport)
+	//Quest Select Mode
 	if (LoadedQuest != nullptr)
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
 		{
-			/*if (LoadedQuest != nullptr)
-			{*/
-				PCC->AddQuest(LoadedQuest);
-				LoadedQuest = nullptr;
+			PCC->AddQuest(LoadedQuest);
+			LoadedQuest = nullptr;
 
-				SetLineFromDialogues(BUTTON_YES_POSTLINE);
-				return;
-			//}
+			SetLineFromDialogues(BUTTON_YES_POSTLINE);
+			return;
 		}
 		UE_LOG(LogTemp, Log, TEXT("QUEST NOT SELECTED ERORR"));
 		OnButtonLeaveClicked();
 	}
-	else
+	else // Teleport Map Select Mode
 	{
 		TeleportableMapList->ClearListItems();
 		SetLineFromDialogues(BUTTON_YES_POSTLINE);
 
 		if (IIPortalNPC* TNPC = Cast<IIPortalNPC>(NPC))
 		{
+			Arr.Empty();
 			TNPC->GetTeleportableMaps(Arr);
 			UCTeleportableMapData* ID;
 			if (Arr.Num() > 0)
 			{
+				int temp = 0;
 				for (FTeleportableMapTableRow* R : Arr)
 				{
 					ID = NewObject<UCTeleportableMapData>(this, UCTeleportableMapData::StaticClass(), R->LevelName);
@@ -244,6 +153,8 @@ void UCNPCConversation::OnButtonYesClicked()
 						}
 						ID->SetDestLevelName(R->LevelName);
 						ID->SetDestLocation(R->Pos);
+						ID->SetArrIndex(temp++);
+						ID->SetPreviewSlateBrush(R->PreviewSlateBrush);
 						TeleportableMapList->AddItem(ID);
 					}
 				}
@@ -324,6 +235,34 @@ void UCNPCConversation::OnButtonTeleportCloseClicked()
 void UCNPCConversation::OnButtonTeleportSendClicked()
 {
 	UE_LOG(LogTemp, Log, TEXT("Player Teleport To : Somewhere"), );
+	if (TeleportableMapList->GetNumItems() > LoadedMapIndex && LoadedMapIndex >= 0)
+	{
+		UCTeleportableMapData* LoadedMap = Cast<UCTeleportableMapData>(TeleportableMapList->GetItemAt(LoadedMapIndex));
+		//LoadedMap->GetDestLevel();
+		//LoadedMap->GetDestLocation();
+		//LoadedMap->GetPreviewSlateBrush();
+		
+		if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevel()->GetMapName())
+		{
+			//Just Location
+			UE_LOG(LogTemp, Log, TEXT("Teleporting to %s At %s"),
+				*LoadedMap->GetDestLevel()->GetMapName(),
+				*LoadedMap->GetDestLocation().ToString()
+			);
+
+			AController* ACC = GetOwningPlayer();
+			if (ACC == nullptr) return;
+			ACharacter* AC = ACC->GetCharacter();
+			if (AC == nullptr) return;
+			AC->SetActorLocation(LoadedMap->GetDestLocation());
+			OnButtonLeaveClicked();
+		}
+		else
+		{
+			//Load Level
+			//Move to Pos
+		}
+	}
 	// TO Do : Move to Selected Map
 }
 
