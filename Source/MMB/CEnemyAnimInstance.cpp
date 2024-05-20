@@ -87,6 +87,10 @@ void UCEnemyAnimInstance::AttackHead()
 	//PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHead, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
+void UCEnemyAnimInstance::AttackMouth()
+{
+}
+
 void UCEnemyAnimInstance::SetbAttackingFree(UAnimMontage* Montage, bool bInterrupted)
 {
 	EnemyCharacter->SetbAttacking(false);

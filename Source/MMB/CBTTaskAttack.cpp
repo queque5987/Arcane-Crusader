@@ -4,6 +4,7 @@
 #include "CBTTaskAttack.h"
 #include "CEnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "CEnemyCharacter.h"
 
 UCBTTaskAttack::UCBTTaskAttack()
 {

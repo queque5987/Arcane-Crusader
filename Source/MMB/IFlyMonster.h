@@ -22,8 +22,9 @@ public:
 	virtual void SetIsFlying(bool e) {}
 	virtual bool GetIsFlying() { return false; }
 	virtual float GetRotationSpeed() { return 0.f; }
-	virtual bool FlyTo(FVector Destination, float DeltaSeconds, float AcceptableRadius) { return false; }
+	virtual bool FlyTo(FVector Destination, float DeltaSeconds, float AcceptableRadius, float AccWeight = 1.f) { return false; }
 	virtual bool FlyTo(FRotator DestinedRotation, float DeltaSeconds, float AccWeight = 1.f) { return false; }
+	virtual bool RotateTo(FVector Destination, float DeltaSeconds, float AccWeight = 1.f) { return false; }
 
 	virtual class UParticleSystem* GetParticleSystem(int e) { return nullptr; }
 };

@@ -3,6 +3,7 @@
 
 #include "CBTTaskFindPatrolPosFlyAtk.h"
 #include "CEnemy_TerrorBringer.h"
+#include "IEnemyBBState.h"
 
 UCBTTaskFindPatrolPosFlyAtk::UCBTTaskFindPatrolPosFlyAtk()
 {
@@ -18,6 +19,9 @@ EBTNodeResult::Type UCBTTaskFindPatrolPosFlyAtk::ExecuteTask(UBehaviorTreeCompon
 	if (ControllingPawn == nullptr) return EBTNodeResult::Failed;
 	ACEnemy_TerrorBringer* TB = Cast<ACEnemy_TerrorBringer>(ControllingPawn);
 	if (!IsValid(TB)) return EBTNodeResult::Failed;
+
+	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(TB->GetController());
+	//if (AIController->GetbBusy()) return EBTNodeResult::Failed;
 	return TB->DoFlyFireAttack.ExecuteIfBound() ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
 
 

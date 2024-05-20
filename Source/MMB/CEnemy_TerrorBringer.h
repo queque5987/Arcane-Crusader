@@ -46,8 +46,9 @@ public:
 	virtual void SetIsFlying(bool e) override;
 	virtual bool GetIsFlying() override { return IsFlying; }
 	virtual float GetRotationSpeed() override { return RotationSpeed; }
-	virtual bool FlyTo(FVector Destination, float DeltaSeconds, float AcceptableRadius) override;
+	virtual bool FlyTo(FVector Destination, float DeltaSeconds, float AcceptableRadius, float AccWeight = 1.f) override;
 	virtual bool FlyTo(FRotator DestinedRotation, float DeltaSeconds, float AccWeight) override;
+	virtual bool RotateTo(FVector Destination, float DeltaSeconds, float AccWeight = 1.f) override;
 
 	virtual class UParticleSystem* GetParticleSystem(int e) override;
 };

@@ -2,6 +2,7 @@
 
 
 #include "CEnemyCharacter.h"
+#include "IEnemyBBState.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -29,7 +30,7 @@ ACEnemyCharacter::ACEnemyCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetMesh()->SetCollisionObjectType(PlayerAttackChannel);
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	GetMesh()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
 
@@ -176,7 +177,7 @@ bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 		if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(HitResult.GetActor()))
 		{
 			UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
-			PC->HitDamage(AttackDamage * DamageScale, this);
+			PC->HitDamage(AttackDamage * DamageScale, this, HitResult.Location, AttackPower);
 		}
 		//return true;
 	}
@@ -196,6 +197,9 @@ void ACEnemyCharacter::HitDamage(float e, ACharacter& Attacker, FVector HitLocat
 		PC->MonsterKilledCount(this->StaticClass());
 		Die();
 	}
+
+	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(GetController());
+	AIController->SetTargetDetected(&Attacker);
 }
 
 void ACEnemyCharacter::Die()
@@ -286,6 +290,6 @@ void ACEnemyCharacter::Die()
 void ACEnemyCharacter::SetbAttacking(bool e)
 {
 	SetBBAttacking.ExecuteIfBound(e);
-	UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
+	//UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
 	bAttacking = e;
 }

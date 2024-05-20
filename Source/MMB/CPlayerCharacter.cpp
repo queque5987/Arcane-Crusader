@@ -37,6 +37,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ConstructorHelpers::FObjectFinder<UInputAction> ShiftFinder(TEXT("/Game/Player/Input/IA_Shift.IA_Shift"));
 	ConstructorHelpers::FObjectFinder<UInputAction> InteractFinder(TEXT("/Game/Player/Input/IA_Interact.IA_Interact"));
 	ConstructorHelpers::FObjectFinder<UInputAction> AnyKeyFinder(TEXT("/Game/Player/Input/IA_Any.IA_Any"));
+	ConstructorHelpers::FObjectFinder<UInputAction> ScrollFinder(TEXT("/Game/Player/Input/IA_Scroll.IA_Scroll"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -48,7 +49,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (ShiftFinder.Succeeded()) ShiftAction = ShiftFinder.Object;
 	if (InteractFinder.Succeeded()) InteractAction = InteractFinder.Object;
 	if (AnyKeyFinder.Succeeded()) AnyKeyAction = AnyKeyFinder.Object;
-
+	if (ScrollFinder.Succeeded()) ScrollAction = ScrollFinder.Object;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	//SpringArmComponent->SetUsingAbsoluteRotation(false);
@@ -92,6 +93,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	GetCharacterMovement()->bEnablePhysicsInteraction = 0;
 	GetCharacterMovement()->MaxStepHeight = 80.f;
 	GetCharacterMovement()->JumpZVelocity = 550.f;
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMovementSpeed;
 
 	ParticleSystemAimCircle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleAim"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> ParticleFinder(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Fire/combat/P_AuraCircle_Fire_00.P_AuraCircle_Fire_00"));
@@ -277,6 +279,7 @@ void ACPlayerCharacter::SetStaminaRegain()
 void ACPlayerCharacter::OnDie()
 {
 	//if (Die.ExecuteIfBound()) SetState(PLAYER_DIED, true);
+	StopAnimMontage();
 	SetState(PLAYER_DIED, true);
 	ACPlayerController* PC = Cast<ACPlayerController>(GetController());
 	if (!IsValid(PC)) return;
@@ -356,7 +359,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(OpenInventory, ETriggerEvent::Completed, this, &ACPlayerCharacter::InventoryOpened);
 		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::ShiftTriggered);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::E_Triggered);
-		//EnhancedInputComponent->BindAction(AnyKeyAction, ETriggerEvent::, this, &ACPlayerCharacter::Anykey_Triggered);
+		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::Scroll);
 	}
 }
 
@@ -418,6 +421,9 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		float TempSpeed = GetCharacterMovement()->MaxWalkSpeed * (1 + AccMovementSpeedAcc);
+		if (MaxMoveMentSpeed >= TempSpeed) GetCharacterMovement()->MaxWalkSpeed = TempSpeed;
 	}
 }
 
@@ -434,6 +440,8 @@ void ACPlayerCharacter::StopMove(const FInputActionValue& Value)
 	{
 		GetMesh()->bPauseAnims = true;
 	}
+
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMovementSpeed;
 }
 
 void ACPlayerCharacter::Look(const FInputActionValue& Value)
@@ -587,6 +595,17 @@ void ACPlayerCharacter::Anykey_Triggered()
 	}
 }
 
+void ACPlayerCharacter::Scroll(const FInputActionValue& Value)
+{
+	float ScrollAxis = Value.Get<float>();
+	float TempTargetLength = SpringArmComponent->TargetArmLength - 10.f * ScrollAxis;
+
+	if (ScrollAxis > 0.f && 80 > TempTargetLength) return;
+	if (ScrollAxis < 0.f && 1200 < TempTargetLength) return;
+	
+	SpringArmComponent->TargetArmLength = TempTargetLength;
+}
+
 
 void ACPlayerCharacter::Equip(ACWeapon& ActorToEquip)
 {
@@ -653,7 +672,7 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 		UE_LOG(LogTemp, Log, TEXT("Player Roll Dodged"));
 		return false;
 	}
-	else if (GetState(PLAYER_RAGDOLL))
+	else if (GetState(PLAYER_RAGDOLL) || GetState(PLAYER_GETTINGUP))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Player in Ragdoll"));
 		return false;
@@ -664,19 +683,23 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 	
 	ShowDamageUI(e, HitLocation, true);
 
+	if (HP <= 0.f) return true;
 	switch (Power)
 	{
 	case(PLAYER_HIT_REACT_STAND):
 		break;
 	case(PLAYER_HIT_REACT_FLINCH):
+		StopAnimMontage();
+		SetState(PLAYER_ATTACKING, true);
+		HitReact.ExecuteIfBound();
 		break;
 	case(PLAYER_HIT_REACT_HITDOWN):
 		StopAnimMontage();
-
+		
 		SetState(PLAYER_RAGDOLL, false);
 		SetState(PLAYER_CANGETUP, true);
 		HitDown.ExecuteIfBound();
-		OnHitDown();
+		//OnHitDown();
 		break;
 	}
 	return true;
@@ -792,8 +815,16 @@ void ACPlayerCharacter::OnHitDown()
 	{
 		SetState(PLAYER_RAGDOLL, false);
 		SetState(PLAYER_CANGETUP, false);
-
-
+		//FHitResult SweepResult;
+		//FCollisionShape CS;
+		//CS.SetCapsule(34.f, 88.f);
+		//if (GetWorld()->SweepSingleByChannel(SweepResult, GetActorLocation(), GetActorLocation(), FQuat::Identity, DefaultCollisionChannel, CS))
+		//{
+		//	if (Cast<ACharacter>(SweepResult.GetActor()))
+		//	{
+		//		UE_LOG(LogTemp, Log, TEXT("Sweep Result : %s"), *SweepResult.GetActor()->GetName());
+		//	}
+		//}
 		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 
 		GetMesh()->SetCollisionProfileName(TEXT("CharacterMesh"));

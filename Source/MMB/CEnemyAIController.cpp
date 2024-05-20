@@ -66,7 +66,7 @@ void ACEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 	{
 		Blackboard->SetValueAsBool(bSeePlayer, Stimulus.WasSuccessfullySensed());
 		Blackboard->SetValueAsVector(PlayerPos, player->GetActorLocation());
-		UE_LOG(LogTemp, Log, TEXT("Update Player %s Vector"), *player->GetName());
+		//UE_LOG(LogTemp, Log, TEXT("Update Player %s Vector"), *player->GetName());
 		if (Stimulus.WasSuccessfullySensed())
 		{
 			GetWorld()->GetTimerManager().ClearTimer(PlayerLoseTimerHandle);
@@ -77,6 +77,7 @@ void ACEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 				EC->SetbHostile(true);
 				Blackboard->SetValueAsBool(bHostile, true);
 				Blackboard->SetValueAsObject(PlayerCharacter, player);
+				Blackboard->SetValueAsVector(PatrolPosKey, EC->GetActorLocation());
 			}
 		}
 		else
@@ -149,6 +150,42 @@ bool ACEnemyAIController::GetbAttacking()
 void ACEnemyAIController::SetRoarCooldownTimer()
 {
 	GetWorld()->GetTimerManager().SetTimer(RoarTimerHandle, this, &ACEnemyAIController::RoarCooldownTimer, RoarCooldown);
+}
+
+bool ACEnemyAIController::GetbSeePlayer()
+{
+	return Blackboard->GetValueAsBool(bSeePlayer);
+}
+
+void ACEnemyAIController::SetRNG(float e)
+{
+	Blackboard->SetValueAsFloat(TEXT("RNG"), e);
+}
+
+FVector ACEnemyAIController::GetPlayerPos()
+{
+	AActor* temp = Cast<AActor>(Blackboard->GetValueAsObject(PlayerCharacter));
+	if (temp == nullptr) return FVector();
+	return temp->GetActorLocation();
+}
+
+void ACEnemyAIController::SetTargetDetected(ACharacter* actor)
+{
+	if (auto const player = Cast<ACPlayerCharacter>(actor))
+	{
+		Blackboard->SetValueAsBool(bSeePlayer, true);
+		Blackboard->SetValueAsVector(PlayerPos, player->GetActorLocation());
+		GetWorld()->GetTimerManager().ClearTimer(PlayerLoseTimerHandle);
+		ChasingPlayer = player;
+
+		if (ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(GetPawn()))
+		{
+			EC->SetbHostile(true);
+			Blackboard->SetValueAsBool(bHostile, true);
+			Blackboard->SetValueAsObject(PlayerCharacter, player);
+			Blackboard->SetValueAsVector(PatrolPosKey, EC->GetActorLocation());
+		}
+	}
 }
 
 void ACEnemyAIController::OnPlayerLoseTimer()

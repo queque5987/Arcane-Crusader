@@ -4,6 +4,7 @@
 #include "CAnimNotifyState_EnemyAtk_FlyF.h"
 #include "CEnemyAIController.h"
 #include "IFlyMonster.h"
+#include "PCH.h"
 
 void UCAnimNotifyState_EnemyAtk_FlyF::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
@@ -33,15 +34,41 @@ void UCAnimNotifyState_EnemyAtk_FlyF::NotifyTick(USkeletalMeshComponent* MeshCom
 	IIFlyMonster* IFly = Cast<IIFlyMonster>(EC);
 	if (IFly == nullptr) return;
 
+	FVector tempVector = EC->GetActorLocation();
+	FVector DesiredFireDirection = tempVector + (EC->GetActorForwardVector() * IFly->GetCurrentAltitude()*3);
+	FVector DesiredFireLocation = ECC->GetChasingPlayerPos() - (EC->GetActorForwardVector() * IFly->GetCurrentAltitude() * 3);
+	//DrawDebugLine(MeshComp->GetWorld(), tempVector, tempDrawVector, FColor::Cyan, false, 0.1f, 0U, 50.f);
 
-	if (RotationAcc < MaxRotAcc)
+	//DrawDebugSphere(MeshComp->GetWorld(), tempDrawVector, 120.f, 32.f, FColor::Cyan, false, 0.4f);
+
+
+	FHitResult HitResult;
+	FCollisionObjectQueryParams OQP(EC->GetMesh()->GetCollisionObjectType());
+	FCollisionShape CS = FCollisionShape();
+	CS.SetSphere(120.f);
+	bool bResult = MeshComp->GetWorld()->SweepSingleByChannel(
+		HitResult, tempVector, DesiredFireDirection, FQuat::Identity, EC->GetMesh()->GetCollisionObjectType(), CS
+	);
+
+	if (bResult && Cast<ACPlayerCharacter>(HitResult.GetActor()))
 	{
-		FVector TargetDirection = ECC->GetChasingPlayerPos() - EC->GetActorLocation();
-		TargetDirection = TargetDirection.GetSafeNormal();
-		FRotator CurrTargetRot = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
-		RotationAcc += IFly->GetRotationSpeed() * FrameDeltaTime;
-		TargetRot = FMath::RInterpTo(TargetRot, CurrTargetRot, FrameDeltaTime, IFly->GetRotationSpeed());
+		UE_LOG(LogTemp, Log, TEXT("Hit Actor : %s"), *HitResult.GetActor()->GetName());
+		IFly->FlyTo(DesiredFireLocation, FrameDeltaTime, 50.f, 1.f);
 	}
-	//UE_LOG(LogTemp, Log, TEXT("Rotation Accumulation : %f"), RotationAcc);
-	IFly->FlyTo(TargetRot, FrameDeltaTime, (RotationAcc < MaxRotAcc) ? 1.f : 0.2f);
+	else
+	{
+		IFly->FlyTo(DesiredFireLocation, FrameDeltaTime, 50.f, 5.f);
+		IFly->RotateTo(ECC->GetChasingPlayerPos(), FrameDeltaTime, 1.f);
+		return;
+		if (RotationAcc < MaxRotAcc)
+		{
+			FVector TargetDirection = DesiredFireLocation - EC->GetActorLocation();
+			TargetDirection = TargetDirection.GetSafeNormal();
+			FRotator CurrTargetRot = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
+			RotationAcc += IFly->GetRotationSpeed() * FrameDeltaTime;
+			TargetRot = FMath::RInterpTo(TargetRot, CurrTargetRot, FrameDeltaTime, IFly->GetRotationSpeed());
+		}
+		//UE_LOG(LogTemp, Log, TEXT("Rotation Accumulation : %f"), RotationAcc);
+		IFly->FlyTo(TargetRot, FrameDeltaTime, (RotationAcc < MaxRotAcc) ? 1.f : 0.2f);
+	}
 }

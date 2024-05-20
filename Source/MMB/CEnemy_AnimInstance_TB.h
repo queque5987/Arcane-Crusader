@@ -21,6 +21,9 @@ protected:
 
 	UAnimSequenceBase* AnimSequenceFire;
 	UAnimSequenceBase* AnimSequenceFlyFire;
+	UAnimSequenceBase* AnimSequenceLand;
+	UAnimSequenceBase* AnimSequenceTakeOff;
+
 
 public:
 	virtual void NativeInitializeAnimation() override;
@@ -28,12 +31,16 @@ public:
 	virtual void UpdateProperties(float Delta) override;
 	virtual void Roar() override;
 	virtual void AttackHand() override;
-	virtual void AttackHead() override;
+	virtual void AttackMouth() override;
 
 	UFUNCTION()
 	void AttackFire();
 	UFUNCTION()
 	void AttackFlyFire();
+	UFUNCTION()
+	void Land();
+	UFUNCTION()
+	void TakeOff();
 
 	bool GetIsOnAir() { return IsOnAir; }
 	void SetIsOnAir(bool e) { IsOnAir = e; }

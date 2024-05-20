@@ -22,4 +22,5 @@ public:
 	virtual void Roar() override;
 	virtual void AttackHand() override;
 	virtual void AttackHead() override;
+	virtual void AttackMouth() override;
 };

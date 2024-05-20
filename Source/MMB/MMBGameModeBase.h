@@ -27,7 +27,7 @@ class MMB_API AMMBGameModeBase : public AGameModeBase
 private:
 	TArray<UTexture2D*> PreLoadedTextures;
 	TArray<UMaterialInstance*> DropItemMaterialsRarity;
-	TArray<USlateBrushAsset*> SlateBrushArr;
+	//TArray<USlateBrushAsset*> SlateBrushArr;
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Zone)
@@ -41,6 +41,6 @@ public:
 
 	UClass* GetItemClass(int32 e);
 	UMaterialInstance* GetDropItemMaterial(int32 Rarity);
-	FSlateBrush* GetSlateBrush(int32 e);
+	//FSlateBrush* GetSlateBrush(int32 e);
 	
 };

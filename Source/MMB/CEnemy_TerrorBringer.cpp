@@ -4,6 +4,7 @@
 #include "CEnemy_TerrorBringer.h"
 #include "CEnemyAIController_TB.h"
 #include "CEnemy_AnimInstance_TB.h"
+#include "IEnemyBBState.h"
 
 ACEnemy_TerrorBringer::ACEnemy_TerrorBringer() : Super()
 {
@@ -22,7 +23,6 @@ ACEnemy_TerrorBringer::ACEnemy_TerrorBringer() : Super()
 		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 	}
 	if (AnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(AnimBPFinder.Object->GeneratedClass);
-	//AIControllerClass = ACEnemyAIController::StaticClass();
 	AIControllerClass = ACEnemyAIController_TB::StaticClass();
 
 	MaxAltitude = 200.f;
@@ -37,6 +37,8 @@ void ACEnemy_TerrorBringer::Tick(float DeltaTime)
 	//return;
 	UCEnemy_AnimInstance_TB* EA = Cast<UCEnemy_AnimInstance_TB>(GetMesh()->GetAnimInstance());
 	if (EA == nullptr) return;
+	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(GetController());
+	if (AIController == nullptr) return;
 	//FVector CurrLoc = GetActorLocation();
 	FVector CurrLoc = GetMesh()->GetRelativeLocation();
 	if (IsFlying)
@@ -50,8 +52,6 @@ void ACEnemy_TerrorBringer::Tick(float DeltaTime)
 					FVector::UpVector * (CurrentAltitude - MaxAltitude) : 
 					FVector::UpVector * VirtialAcc * DeltaTime)
 			);
-			//SetActorLocation(CurrLoc + (CurrentAltitude > MaxAltitude ? FVector::UpVector * (CurrentAltitude - MaxAltitude) : FVector::UpVector * VirtialAcc * DeltaTime));
-			//UE_LOG(LogTemp, Log, TEXT("Getting Up : %f"), CurrentAltitude);
 		}
 	}
 	else
@@ -88,23 +88,27 @@ void ACEnemy_TerrorBringer::SetIsFlying(bool e)
 	IsFlying = e;
 }
 
-bool ACEnemy_TerrorBringer::FlyTo(FVector Destination, float DeltaSeconds, float AcceptableRadius)
+bool ACEnemy_TerrorBringer::FlyTo(FVector Destination, float DeltaSeconds, float AcceptableRadius, float AccWeight)
 {
-	FVector Dest = FMath::Lerp(GetActorLocation(), Destination, FlyAcc * DeltaSeconds);
+	FVector Dest = FMath::Lerp(GetActorLocation(), Destination, FlyAcc * DeltaSeconds * AccWeight);
 
-	FVector Direction = Destination - GetActorLocation();
-	FRotator DestHeadingRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	//FVector Direction = Destination - GetActorLocation();
+	//FRotator DestHeadingRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 
-	FRotator TurnRotation = FMath::RInterpTo(GetActorRotation(), DestHeadingRotation, DeltaSeconds, RotationSpeed*3.f);
-	
-	SetActorRotation(FRotator(GetActorRotation().Pitch,
-		(FMath::Abs(GetActorRotation().Yaw - DestHeadingRotation.Yaw) > 1.f) ? TurnRotation.Yaw : DestHeadingRotation.Yaw,
-		GetActorRotation().Roll)
-	);
+	//FRotator TurnRotation = FMath::RInterpTo(GetActorRotation(), DestHeadingRotation, DeltaSeconds, RotationSpeed*3.f);
+	//
+	//SetActorRotation(FRotator(GetActorRotation().Pitch,
+	//	(FMath::Abs(GetActorRotation().Yaw - DestHeadingRotation.Yaw) > 1.f) ? TurnRotation.Yaw : DestHeadingRotation.Yaw,
+	//	GetActorRotation().Roll)
+	//);
 
 	//SetActorRotation(FRotationMatrix::MakeFromX(
 	//	(Destination - GetActorLocation()).GetSafeNormal()).Rotator()
 	//);
+
+	DrawDebugSphere(GetWorld(), GetActorLocation(), 60.f, 32.f, FColor::Cyan, false, 0.2f);
+	DrawDebugSphere(GetWorld(), Destination, 60.f, 32.f, FColor::Black, false, 0.2f);
+
 	SetActorLocation(Dest);
 	return FVector::Distance(Dest, Destination) < AcceptableRadius ? true : false;
 }
@@ -122,6 +126,22 @@ bool ACEnemy_TerrorBringer::FlyTo(FRotator DestinedRotation, float DeltaSeconds,
 
 	SetActorLocation(Dest);
 
+	return true;
+}
+
+bool ACEnemy_TerrorBringer::RotateTo(FVector Destination, float DeltaSeconds, float AccWeight)
+{
+	FVector Direction = (Destination - GetActorLocation()).GetSafeNormal();
+	FRotator DirectRot = FRotationMatrix::MakeFromX(Direction).Rotator();
+	FRotator CurrRot = GetActorRotation();
+	FRotator ToTurnRotation = FMath::RInterpTo(CurrRot, DirectRot, DeltaSeconds, RotationSpeed * AccWeight);
+	
+	SetActorRotation(FRotator(
+		CurrRot.Pitch,
+		(FMath::Abs(CurrRot.Yaw - DirectRot.Yaw) > 1.f) ? ToTurnRotation.Yaw : DirectRot.Yaw,
+		CurrRot.Roll
+	)
+	);
 	return true;
 }
 

@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "IEnemyBBState.h"
 
 const FName ACEnemyAIController_TB::bIsOnAir(TEXT("IsOnAir"));
 
@@ -58,6 +59,9 @@ void ACEnemyAIController_TB::SwitchFlyMode()
 		GetCharacter()->GetMesh()->GetAnimInstance()
 	);
 	if (Anim == nullptr) return;
+	
+	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(EC->GetController());
+	if (AIController == nullptr) return;
 
 	bool IsOnAir = Anim->GetIsOnAir();
 	if (IsOnAir)
@@ -66,6 +70,8 @@ void ACEnemyAIController_TB::SwitchFlyMode()
 		//Anim->SetIsOnAir(false);
 		Blackboard->SetValueAsBool(bIsOnAir, false);
 		EC->SetIsFlying(false);
+		AIController->SetbBusy(true);
+		Anim->Land();
 
 		SightConfig->SightRadius = 3000.f;
 		SightConfig->LoseSightRadius = 500.f;
@@ -82,6 +88,8 @@ void ACEnemyAIController_TB::SwitchFlyMode()
 		Anim->SetIsOnAir(true);
 		Blackboard->SetValueAsBool(bIsOnAir, true);
 		EC->SetIsFlying(true);
+		AIController->SetbBusy(true);
+		Anim->TakeOff();
 
 		SightConfig->SightRadius = 9000.f;
 		SightConfig->LoseSightRadius = 1500.f;

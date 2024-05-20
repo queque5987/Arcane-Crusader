@@ -39,6 +39,8 @@ protected:
 	UAnimSequenceBase* AnimSequenceRoar;
 	UAnimSequenceBase* AnimSequenceAttackHand;
 	UAnimSequenceBase* AnimSequenceAttackHead;
+	UAnimSequenceBase* AnimSequenceAttackMouth;
+
 	//UAnimSequenceBase* AnimSequenceRMBCastOngoing;
 
 	UFUNCTION(BlueprintCallable)
@@ -52,7 +54,8 @@ public:
 	virtual void AttackHand();
 	UFUNCTION()
 	virtual void AttackHead();
-
+	UFUNCTION()
+	virtual void AttackMouth();
 	void SetIsHostile(bool e) { IsHostile = e; }
 	bool GetIsHostile() { return IsHostile; }
 

@@ -9,10 +9,11 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "PCH.h"
+#include "IEnemyBBState.h"
 #include "CEnemyAIController.generated.h"
 
 UCLASS()
-class MMB_API ACEnemyAIController : public AAIController
+class MMB_API ACEnemyAIController : public AAIController, public IIEnemyBBState
 {
 	GENERATED_BODY()
 	
@@ -60,8 +61,8 @@ public:
 	//void SetPerceptionComponent(UAIPerceptionComponent& InPerceptionComponent);
 	ACharacter* GetChasingPlayer() { return ChasingPlayer; }
 	FVector GetChasingPlayerPos();
-	void SetbBusy(bool e);
-	bool GetbBusy();
+	virtual void SetbBusy(bool e) override;
+	virtual bool GetbBusy() override;
 	void SetbAttacking(bool e);
 	bool GetbAttacking();
 	bool GetCanRoar() { return CanRoar; }
@@ -70,6 +71,11 @@ public:
 	void SetRoarCooldown(float e) { RoarCooldown = e; }
 	void SetRoarCooldownTimer();
 
+
+	virtual bool GetbSeePlayer() override;
+	virtual void SetRNG(float e) override;
+	virtual FVector GetPlayerPos() override;
+	virtual void SetTargetDetected(ACharacter* actor) override;
 protected:
 	void OnPlayerLoseTimer();
 	bool CanRoar : true;

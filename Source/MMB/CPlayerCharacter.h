@@ -44,6 +44,7 @@ DECLARE_DELEGATE(FJumpPointLand);
 
 DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
 DECLARE_DELEGATE(FDie);
+DECLARE_DELEGATE(FHitReact);
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState
 {
@@ -70,6 +71,8 @@ public:
 	class UInputAction* ShiftAction;
 	UPROPERTY()
 	class UInputAction* AnyKeyAction;
+	UPROPERTY()
+	class UInputAction* ScrollAction;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmComponent;
@@ -100,6 +103,7 @@ public:
 	FJumpPointReady JumpPointReady;
 	FJumpPointJump JumpPointJump;
 	FJumpPointLand JumpPointLand;
+	FHitReact HitReact;
 	FDie Die;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
@@ -140,8 +144,13 @@ protected:
 	void SetAnimPauseFree() {
 		GetMesh()->bPauseAnims = false;
 	}
+	UPROPERTY(EditAnyWhere)
+	float DefaultMovementSpeed = 500.f;
+	UPROPERTY(EditAnyWhere)
+	float AccMovementSpeedAcc = 0.05f;
+	UPROPERTY(EditAnyWhere)
+	float MaxMoveMentSpeed = 800.f;
 
-	//bool IsAttacking;
 	bool bSecondDimentionalLocator;
 	bool bUIControlling;
 	float CastingClock;
@@ -185,6 +194,9 @@ public:
 	void ShiftTriggered();
 	void E_Triggered();
 	void Anykey_Triggered();
+	UFUNCTION()
+	void Scroll(const FInputActionValue& Value);
+
 
 	void Equip(class ACWeapon& ActorToEquip);
 	void Equip(class AActor& ActorToEquip);

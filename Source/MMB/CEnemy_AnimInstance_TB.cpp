@@ -10,17 +10,17 @@ UCEnemy_AnimInstance_TB::UCEnemy_AnimInstance_TB()
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder	(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackWingClawAnim.AttackWingClawAnim"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FireFinder (TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackFlameAnim.AttackFlameAnim"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FlyFireFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/FlyAttackAnim.FlyAttackAnim"));
-
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/LandingAnim.LandingAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> TakeOffFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/TakeOffAnim.TakeOffAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackMouthFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackMouthAnim.AttackMouthAnim"));
+	
 	if (RoarFinder.Succeeded())			AnimSequenceRoar = RoarFinder.Object;
 	if (AttackHandFinder.Succeeded())	AnimSequenceAttackHand = AttackHandFinder.Object;
 	if (FireFinder.Succeeded())			AnimSequenceFire = FireFinder.Object;
 	if (FlyFireFinder.Succeeded())		AnimSequenceFlyFire = FlyFireFinder.Object;
-
-	//AnimSequenceFire = ;
-	//if (AttackHeadFinder.Succeeded())
-	//{
-	//	AnimSequenceAttackHead = AttackHeadFinder.Object;
-	//}
+	if (LandFinder.Succeeded())			AnimSequenceLand = LandFinder.Object;
+	if (TakeOffFinder.Succeeded())		AnimSequenceTakeOff = TakeOffFinder.Object;
+	if (AttackMouthFinder.Succeeded())	AnimSequenceAttackMouth = AttackMouthFinder.Object;
 }
 
 void UCEnemy_AnimInstance_TB::NativeInitializeAnimation()
@@ -37,6 +37,7 @@ void UCEnemy_AnimInstance_TB::NativeInitializeAnimation()
 		{
 			TB->DoFlyFireAttack.BindUFunction(this, TEXT("AttackFlyFire"));
 		}
+		EnemyCharacter->DoAttackMouth.BindUFunction(this, TEXT("AttackMouth"));
 	}
 }
 
@@ -66,26 +67,40 @@ void UCEnemy_AnimInstance_TB::Roar()
 void UCEnemy_AnimInstance_TB::AttackHand()
 {
 	EnemyCharacter->SetDamageScale(0.3f);
+	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_FLINCH);
 	EnemyCharacter->SetbAttacking(true);
 	UE_LOG(LogTemp, Log, TEXT("Attack Hand"));
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHand, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
-void UCEnemy_AnimInstance_TB::AttackHead()
+void UCEnemy_AnimInstance_TB::AttackMouth()
 {
-	//EnemyCharacter->SetDamageScale(0.8f);
-	//EnemyCharacter->SetbAttacking(true);
-	//PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHead, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	EnemyCharacter->SetDamageScale(0.8f);
+	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_HITDOWN);
+	EnemyCharacter->SetbAttacking(true);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackMouth, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
 void UCEnemy_AnimInstance_TB::AttackFire()
 {
 	EnemyCharacter->SetbAttacking(true);
+	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_STAND);
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceFire, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
 void UCEnemy_AnimInstance_TB::AttackFlyFire()
 {
+	EnemyCharacter->SetbAttacking(true);
+	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_STAND);
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceFlyFire, "DefaultSlot", 0.25f, 0.25f, 1.f);
+}
 
+void UCEnemy_AnimInstance_TB::Land()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceLand, "DefaultSlot", 0.25f, 0.25f, 1.f);
+}
+
+void UCEnemy_AnimInstance_TB::TakeOff()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceTakeOff, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }

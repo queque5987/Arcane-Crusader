@@ -46,6 +46,7 @@ void ACEthereal::BeginPlay()
 	//Collider->OnComponentEndOverlap.AddDynamic(this, &ACEthereal::OnEndOverlap);
 
 	FString CurrentLevel = GetWorld()->GetName();
+	Initialize();
 }
 
 //void ACEthereal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

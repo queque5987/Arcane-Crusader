@@ -32,6 +32,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool RopeClimbing;
 	UPROPERTY(BlueprintReadOnly)
+	bool bHitDown;
+	UPROPERTY(BlueprintReadOnly)
 	bool Died;
 
 	class IIPlayerState* PlayerCharacterStateInterface;
@@ -59,6 +61,7 @@ protected:
 	UAnimSequenceBase* AnimSequenceJumpPointJump;
 	UAnimSequenceBase* AnimSequenceJumpPointLand;
 	UAnimSequenceBase* AnimSequenceDie;
+	UAnimSequenceBase* AnimSequenceHitReact;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -100,4 +103,6 @@ protected:
 	void JumpPoint_Land();
 	UFUNCTION()
 	void Die();
+	UFUNCTION()
+	void HitReact();
 };

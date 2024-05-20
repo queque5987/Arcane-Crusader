@@ -18,5 +18,5 @@ public:
 	UCBTTaskAttack();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 protected:
-	virtual void DoAttack(ACEnemyCharacter* EC);
+	virtual void DoAttack(class ACEnemyCharacter* EC);
 };

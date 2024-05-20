@@ -11,6 +11,7 @@ DECLARE_DELEGATE(FRoar)
 DECLARE_DELEGATE(FAttackHand)
 DECLARE_DELEGATE(FAttackHead)
 DECLARE_DELEGATE(FAttackFire)
+DECLARE_DELEGATE(FAttackMouth)
 
 DECLARE_DELEGATE_OneParam(FbAttacking, bool)
 UCLASS()
@@ -26,7 +27,7 @@ public:
 	FAttackHand DoAttackHand;
 	FAttackHead DoAttackHead;
 	FAttackFire DoAttackFire;
-
+	FAttackMouth DoAttackMouth;
 	FbAttacking SetBBAttacking;
 	UPROPERTY(EditAnyWhere)
 	class UDataTable* DropTable;
@@ -45,6 +46,9 @@ public:
 	UPROPERTY(EditAnyWhere)
 	float WingClawRadius = 30.f;
 
+	//UPROPERTY(EditAnyWhere)
+	//float tempFloat;
+
 	UPROPERTY(EditAnyWhere)
 	float HP = 500;
 	UPROPERTY(EditAnyWhere)
@@ -57,6 +61,7 @@ protected:
 	float RotationSpeed;
 	float AttackDamage = 20.f;
 	float DamageScale;
+	int AttackPower;
 	bool bIsDying = false;
 	bool bIsRagdoll = false;
 public:	
@@ -83,5 +88,7 @@ public:
 	void SetMaxHP(float e) { MaxHP = e; }
 	float GetDamageScale() { return DamageScale; }
 	void SetDamageScale(float e) { DamageScale = e; }
+	int GetAttackPower() { return AttackPower; }
+	void SetAttackPower(int e) { AttackPower = e; }
 	void Die();
 };

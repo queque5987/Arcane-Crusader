@@ -37,6 +37,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DieAnimFinder(TEXT("/Game/Player/Guard/Animation/Sword_And_Shield_Death.Sword_And_Shield_Death"));
 
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitReactFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_React_Large_Gut.Standing_React_Large_Gut"));
 	//Knithe Version
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim.Attack03StartAnim"));
@@ -99,6 +100,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if (JumpPointLandFinder.Succeeded()) AnimSequenceJumpPointLand = JumpPointLandFinder.Object;
 
 	if (DieAnimFinder.Succeeded()) AnimSequenceDie = DieAnimFinder.Object;
+	if (HitReactFinder.Succeeded()) AnimSequenceHitReact = HitReactFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -198,6 +200,11 @@ void UCPlayerAnimInstance::Die()
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceDie, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
+void UCPlayerAnimInstance::HitReact()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceHitReact, "DefaultSlot", 0.25f, 0.25f, 1.f);
+}
+
 void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
 	//Super::NativeInitializeAnimation();
@@ -226,7 +233,7 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->JumpPointJump.BindUFunction(this, FName("JumpPoint_Jump"));
 		PC->JumpPointLand.BindUFunction(this, FName("JumpPoint_Land"));
 		PC->Die.BindUFunction(this, FName("Die"));
-
+		PC->HitReact.BindUFunction(this, FName("HitReact"));
 		PlayerCharacterStateInterface = Cast<IIPlayerState>(PC);
 	}
 }
@@ -250,5 +257,7 @@ void UCPlayerAnimInstance::UpdateProperties(float Delta)
 
 
 		Died = PlayerCharacterStateInterface->GetState(PLAYER_DIED);
+		bHitDown = PlayerCharacterStateInterface->GetState(PLAYER_RAGDOLL) ||
+			PlayerCharacterStateInterface->GetState(PLAYER_CANGETUP);
 	}
 }
