@@ -47,6 +47,7 @@ DECLARE_DELEGATE(FJumpPointLand);
 DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
 DECLARE_DELEGATE(FDie);
 DECLARE_DELEGATE(FHitReact);
+DECLARE_DELEGATE(FPickUp);
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
 {
@@ -106,6 +107,7 @@ public:
 	FJumpPointLand JumpPointLand;
 	FHitReact HitReact;
 	FDie Die;
+	FPickUp PickUp;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;

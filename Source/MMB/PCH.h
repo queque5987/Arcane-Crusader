@@ -122,6 +122,7 @@
 #define INTERACT_BUTTON_MODE_NPCDIALOGUE	0
 #define INTERACT_BUTTON_MODE_CLIMBROPE		1
 #define INTERACT_BUTTON_MODE_JUMPPOINTS		2
+#define INTERACT_BUTTON_MODE_PICKUPITEM		3
 
 
 struct AttackResult
@@ -134,4 +135,9 @@ struct DELAY_START_PROJECTILE_CONFIGURE
 	float AccCoefficient;
 	float LaunchClock;
 	float MaxSpeedCoefficient;
+};
+
+struct MonsterConfigure
+{
+	class UDataTable* DropTable;
 };

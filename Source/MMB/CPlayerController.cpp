@@ -315,15 +315,24 @@ bool ACPlayerController::CheckQuest_Cleared(FString QuestName)
 
 void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem* Dropped, UCInventoryItemData* ItemData)
 {
+	if (DroppedItemList == nullptr) return;
 	if (e)
 	{
 		DroppedItemList->SetVisibility(ESlateVisibility::Visible);
 		DroppedItemList->ItemList->AddItem(ItemData);
+		DroppedItemPtrArr.Add(Dropped);
+		PickUpItemInteract_ShowAndInputReady();
 	}
 	else
 	{
 		DroppedItemList->ItemList->RemoveItem(ItemData);
-		if (DroppedItemList->ItemList->GetNumItems() == 0) DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
+		DroppedItemPtrArr.Remove(Dropped);
+		if (DroppedItemList->ItemList->GetNumItems() == 0)
+		{
+			DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
+			DroppedItemPtrArr.Empty();
+			NPCInteract_UnShow();
+		}
 	}
 }
 
@@ -340,6 +349,9 @@ void ACPlayerController::OnInteract()
 		return;
 	case(INTERACT_BUTTON_MODE_JUMPPOINTS):
 		JumpPointsInteract_Interact();
+		return;
+	case(INTERACT_BUTTON_MODE_PICKUPITEM):
+		PickUpItemInteract_Interact();
 		return;
 	}
 }
@@ -443,6 +455,45 @@ void ACPlayerController::JumpPointsInteract_Interact()
 	//PC->GetCharacterMovement()->GravityScale = 0;
 	//PC->GetMovementComponent()->StopMovementImmediately();
 	//PC->GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
+}
+
+void ACPlayerController::PickUpItemInteract_ShowAndInputReady()
+{
+	if (ButtonActionUI != nullptr) NPCInteract_UnShow();
+	ButtonActionUI = CreateWidget<UCButtonAction>(this, ButtonActionAsset);
+	if (IsValid(ButtonActionUI))
+	{
+		FVector MiddlePos = (GetCharacter()->GetActorLocation() + (GetCharacter()->GetActorRightVector() * -100.f + GetCharacter()->GetActorUpVector() * 100.f));
+		FVector2D ScreenLocation;
+		ProjectWorldLocationToScreen(MiddlePos, ScreenLocation);
+
+		ButtonActionUI->AddToViewport();
+		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_PICKUPITEM);
+		ButtonActionUI->SetPositionInViewport(ScreenLocation);
+	}
+}
+
+void ACPlayerController::PickUpItemInteract_Interact()
+{
+	TArray<UObject*> tempArr = DroppedItemList->ItemList->GetListItems();
+	UCInventoryItemData* tempItem;
+	ACDroppedItem* tempDroppedItem;
+	for (auto& temp : tempArr)
+	{
+		tempItem = Cast<UCInventoryItemData>(temp);
+		if (tempItem == nullptr) continue;
+		AddInventoryItem(tempItem);
+		//UE_LOG(LogTemp, Log, TEXT("PickUpItem : %s"), *tempItem->GetstrName())
+	}
+	for (auto& temp : DroppedItemPtrArr)
+	{
+		tempDroppedItem = Cast<ACDroppedItem>(temp);
+		if (tempDroppedItem == nullptr) continue;
+		tempDroppedItem->Destroy();
+	}
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
+	if (PC == nullptr) return;
+	PC->PickUp.ExecuteIfBound();
 }
 
 void ACPlayerController::CharacterDied(bool b)

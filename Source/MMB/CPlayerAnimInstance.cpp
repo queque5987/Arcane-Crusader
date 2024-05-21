@@ -38,6 +38,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DieAnimFinder(TEXT("/Game/Player/Guard/Animation/Sword_And_Shield_Death.Sword_And_Shield_Death"));
 
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitReactFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_React_Large_Gut.Standing_React_Large_Gut"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PickUpFinder(TEXT("/Game/Player/Guard/Animation/Picking_Up.Picking_Up"));
 	//Knithe Version
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim.Attack03StartAnim"));
@@ -101,6 +102,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 
 	if (DieAnimFinder.Succeeded()) AnimSequenceDie = DieAnimFinder.Object;
 	if (HitReactFinder.Succeeded()) AnimSequenceHitReact = HitReactFinder.Object;
+	if (PickUpFinder.Succeeded()) AnimSequencePickUp = PickUpFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -205,6 +207,11 @@ void UCPlayerAnimInstance::HitReact()
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceHitReact, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
+void UCPlayerAnimInstance::PickUp()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequencePickUp, "UpperBody", 0.25f, 0.25f, 1.f);
+}
+
 void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
 	//Super::NativeInitializeAnimation();
@@ -234,6 +241,7 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->JumpPointLand.BindUFunction(this, FName("JumpPoint_Land"));
 		PC->Die.BindUFunction(this, FName("Die"));
 		PC->HitReact.BindUFunction(this, FName("HitReact"));
+		PC->PickUp.BindUFunction(this, FName("PickUp"));
 		PlayerCharacterStateInterface = Cast<IIPlayerState>(PC);
 	}
 }
@@ -255,7 +263,7 @@ void UCPlayerAnimInstance::UpdateProperties(float Delta)
 		FVector RelativeVelocityNormalizedVector = ViewRotatorYaw.UnrotateVector(Pawn->GetVelocity().GetSafeNormal());
 		PawnAnimRadian = FMath::RoundToFloat(FMath::Atan2(RelativeVelocityNormalizedVector.Y, RelativeVelocityNormalizedVector.X) * 100.f) / 100.f;
 
-
+		if (PlayerCharacterStateInterface == nullptr) return;
 		Died = PlayerCharacterStateInterface->GetState(PLAYER_DIED);
 		bHitDown = PlayerCharacterStateInterface->GetState(PLAYER_RAGDOLL) ||
 			PlayerCharacterStateInterface->GetState(PLAYER_CANGETUP);

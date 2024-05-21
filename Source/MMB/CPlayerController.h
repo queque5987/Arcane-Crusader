@@ -77,6 +77,8 @@ protected:
 	FTimerHandle DamageShowTimer;
 	TQueue<class UCDamageUI*> DamageUIQueue;
 
+	TArray<class ACDroppedItem*> DroppedItemPtrArr;
+
 	class UCButtonAction* ButtonActionUI;
 	class ACClimbableRope* GraspingRope;
 	int32 JumpStartPoint;
@@ -110,6 +112,8 @@ public:
 	void JumpPointsInteract_ShowAndInputReady(class ACJumpPoints* Jumppoints, int JumpPoint);
 	void JumpPointsInteract_Interact();
 
+	void PickUpItemInteract_ShowAndInputReady();
+	void PickUpItemInteract_Interact();
 	//Die UI On
 	void CharacterDied(bool b);
 

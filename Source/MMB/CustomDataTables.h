@@ -59,7 +59,7 @@ struct FDropTableRow : public FTableRowBase
 
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	int ItemClass;
+	FString ItemClass;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FText ItemName;
