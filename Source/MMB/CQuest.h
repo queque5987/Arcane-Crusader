@@ -11,9 +11,6 @@
 #include "PCH.h"
 #include "CQuest.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MMB_API UCQuest : public UUserWidget, public IUserObjectListEntry
 {
@@ -27,9 +24,11 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> QuestBG;
 
-	void RefreshQuestRecap(UClass* AchievedClass = nullptr);
+	bool RefreshQuestRecap(UObject* AchievedObject = nullptr);
 	FString GetQuestName() { return QuestNameString; }
 	bool IsCleared() { return bCleared; };
+	int GetQuestRewardIndex() { return QuestRewardIndex; }
+	int GetQuestInitializeIndex() { return QuestInitializeIndex; }
 protected:
 	UObject* QuestData;
 	FString QuestRecapString;
@@ -38,6 +37,8 @@ protected:
 	TArray<UClass*> RequiredClasses;
 	TArray<int> AcquiredQuantities;
 	TArray<int> RequiredQuantities;
+	int QuestRewardIndex;
+	int QuestInitializeIndex;
 private:
 	FLinearColor QualifiedColor;
 };

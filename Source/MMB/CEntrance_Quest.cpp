@@ -46,6 +46,9 @@ ACEntrance_Quest::ACEntrance_Quest()
 
 	EnterCollider->SetupAttachment(Collider);
 	SetActorEnableCollision(true);
+
+	CinematicCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CinematicCameraComponent"));
+	CinematicCameraComponent->SetupAttachment(Collider);
 }
 
 void ACEntrance_Quest::BeginPlay()
@@ -59,7 +62,6 @@ void ACEntrance_Quest::BeginPlay()
 void ACEntrance_Quest::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//UE_LOG(LogTemp, Log, TEXT("Ticking"));
 	for (int i = 0; i < StaticMeshComponents.Num(); i++)
 	{
 		UStaticMeshComponent* SM = StaticMeshComponents[i];
@@ -77,6 +79,29 @@ void ACEntrance_Quest::Tick(float DeltaTime)
 		L += FVector(0.f, 0.f, DeltaTime * Speed * (OpenGate ? -1 : 1));
 		T.SetLocation(L);
 		SM->SetRelativeTransform(T);
+	}
+
+	if (DoCinematic)
+	{
+		FTransform CameraTransform = CinematicCameraComponent->GetComponentTransform();
+
+		CameraTransform.SetLocation(
+			FMath::Lerp(CameraTransform.GetLocation(), CinematicCameraFixedTransform.GetLocation(), CameraMoveSpeed)
+		);
+		CameraTransform.SetRotation(
+			FMath::Lerp(CameraTransform.GetRotation(), CinematicCameraFixedTransform.GetRotation(), CameraMoveSpeed)
+		);
+
+		CinematicCameraComponent->SetWorldTransform(CameraTransform);
+
+		if (
+			FMath::IsNearlyEqual(CameraTransform.GetLocation().X, CinematicCameraFixedTransform.GetLocation().X, 100.f) &&
+			FMath::IsNearlyEqual(CameraTransform.GetLocation().Y, CinematicCameraFixedTransform.GetLocation().Y, 100.f) &&
+			FMath::IsNearlyEqual(CameraTransform.GetLocation().Z, CinematicCameraFixedTransform.GetLocation().Z, 100.f)
+			)
+		{
+			DoCinematic = false;
+		}
 	}
 }
 
@@ -120,7 +145,27 @@ void ACEntrance_Quest::SetOpenGate(bool e)
 	}
 }
 
-//void ACEntrance_Quest::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-//{
-	//SetOpenGate(false);
-//}
+void ACEntrance_Quest::FocusToGate(ACPlayerCharacter* PC)
+{
+	if (PC == nullptr) return;
+
+	SetOpenGate(true);
+	tempCharacter = PC;
+	tempController = Cast<ACPlayerController>(PC->GetController());
+	if (!IsValid(tempController)) return;
+
+	FTransform PlayerCameraTransform = tempCharacter->CameraComponent->GetComponentTransform();
+	CinematicCameraFixedTransform = CinematicCameraComponent->GetComponentTransform();
+	CinematicCameraComponent->SetWorldTransform(PlayerCameraTransform);
+	tempController->SetViewTargetWithBlend(CinematicCameraComponent->GetOwner());
+	DoCinematic = true;
+
+	GetWorld()->GetTimerManager().SetTimer(CinematicTimerHandle, FTimerDelegate::CreateLambda([&]() {
+		if (IsValid(tempController))
+		{
+			DoCinematic = false;
+			tempController->SetViewTargetWithBlend(tempCharacter->CameraComponent->GetOwner());
+		}
+		}), 1.5f, false);
+	
+}

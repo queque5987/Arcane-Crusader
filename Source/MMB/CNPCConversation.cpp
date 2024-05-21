@@ -155,6 +155,7 @@ void UCNPCConversation::OnButtonYesClicked()
 						ID->SetDestLocation(R->Pos);
 						ID->SetArrIndex(temp++);
 						ID->SetPreviewSlateBrush(R->PreviewSlateBrush);
+						ID->SetRelatedQuestIndex(R->RelatedQuestIndex);
 						TeleportableMapList->AddItem(ID);
 					}
 				}
@@ -220,6 +221,7 @@ void UCNPCConversation::OnButtonLeaveClicked()
 	}
 }
 
+//Depreated?
 void UCNPCConversation::OnButtonTeleportClicked()
 {
 	SetLineFromDialogues(BUTTON_TELEPORT_POSTLINE);
@@ -238,9 +240,6 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 	if (TeleportableMapList->GetNumItems() > LoadedMapIndex && LoadedMapIndex >= 0)
 	{
 		UCTeleportableMapData* LoadedMap = Cast<UCTeleportableMapData>(TeleportableMapList->GetItemAt(LoadedMapIndex));
-		//LoadedMap->GetDestLevel();
-		//LoadedMap->GetDestLocation();
-		//LoadedMap->GetPreviewSlateBrush();
 		
 		if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevel()->GetMapName())
 		{
@@ -255,6 +254,29 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 			ACharacter* AC = ACC->GetCharacter();
 			if (AC == nullptr) return;
 			AC->SetActorLocation(LoadedMap->GetDestLocation());
+
+			int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
+			if (RelatedQuestIndex < 0)
+			{
+				OnButtonLeaveClicked();
+				return;
+			}
+			//If With Quest
+			TArray<FQuestsRow*> Quests = NPC->GetQuest();
+			if (!Quests.IsValidIndex(RelatedQuestIndex))
+			{
+				OnButtonLeaveClicked();
+				return;
+			}
+			if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
+			{
+				FQuestsRow* Quest = Quests[RelatedQuestIndex];
+				if (Quest != nullptr)
+				{
+					PCC->AddQuest(Quest);
+				}
+			}
+
 			OnButtonLeaveClicked();
 		}
 		else

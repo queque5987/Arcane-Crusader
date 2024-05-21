@@ -21,6 +21,8 @@
 #include "CMonsterSpawner.h"
 #include "Kismet/GameplayStatics.h"
 #include "IPlayerState.h"
+#include "IPlayerQuest.h"
+#include "QuestComponent.h"
 #include "CPlayerCharacter.generated.h"
 
 DECLARE_DELEGATE(FLMBAttack);
@@ -46,7 +48,7 @@ DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
 DECLARE_DELEGATE(FDie);
 DECLARE_DELEGATE(FHitReact);
 UCLASS()
-class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState
+class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
 {
 	GENERATED_BODY()
 
@@ -80,7 +82,6 @@ public:
 	class UCameraComponent* CameraComponent;
 	UPROPERTY()
 	class UInputMappingContext* DefaultMappingContext;
-	//UPROPERTY(BlueprintReadOnly)
 	AActor* WeaponEquipped;
 
 	virtual void StopAnimMontage(class UAnimMontage* AnimMontage = nullptr);
@@ -118,8 +119,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool IsWeaponEquiped = false;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	UQuestComponent* QuestComponent;
 
 	UPROPERTY()
 	float StaminaRegain;
@@ -235,9 +236,12 @@ public:
 
 	void OnHitDown();
 	void StaminaSpend(float RequiredStamina);
-	void MonsterKilledCount(TSubclassOf<class ACEnemyCharacter> MonsterClass);
+	void MonsterKilledCount(class ACEnemyCharacter* MonsterKilled);
 	void OnGraspRope(FTransform GraspLocation);
 	void OnLooseRope();
 
 	virtual void SetRevivalPoint(FVector Pos) override;
+
+	virtual void QuestClear(int e) override;
+	virtual void QuestInitialize(int e) override;
 };

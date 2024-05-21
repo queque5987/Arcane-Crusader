@@ -194,11 +194,13 @@ void ACEnemyCharacter::HitDamage(float e, ACharacter& Attacker, FVector HitLocat
 	PC->ShowDamageUI(e, HitLocation);
 	if (!bIsDying && HP < 0.f)
 	{
-		PC->MonsterKilledCount(this->StaticClass());
+		//PC->MonsterKilledCount(this->StaticClass());
+		PC->MonsterKilledCount(this);
 		Die();
 	}
 
 	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(GetController());
+	if (AIController == nullptr) return;
 	AIController->SetTargetDetected(&Attacker);
 }
 

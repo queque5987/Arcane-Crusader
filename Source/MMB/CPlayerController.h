@@ -92,7 +92,7 @@ public:
 	void ShowDamageUI(float Damage, FVector Location, FColor C = FColor::White, bool IsAttacked = false);
 	void AlertSwingby(float e, FText Line);
 	void AddQuest(struct FQuestsRow* Q);
-	void CheckQuest(UClass* ToCheckClass);
+	void CheckQuest(class ACPlayerCharacter* PC, UObject* ToCheckObject);
 	bool CheckQuest_Cleared(FString QuestName);
 	void ShowDroppedItemList(bool e, class ACDroppedItem* Dropped, class UCInventoryItemData* ItemData);
 

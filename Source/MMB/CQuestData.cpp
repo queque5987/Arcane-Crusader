@@ -12,7 +12,7 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 {
 	QuestName = Row->QuestName;
 	QuestRecap = Row->QuestRecap;
-	QuestReward = nullptr; //Row->QuestReward;
+	QuestRewardIndex = Row->QuestRewardIndex;
 	QuestType = Row->QuestType;
 	RMonsterClass = TArray<UClass*>();
 	for (FString ClassPath : Row->QuestRequiredClass)
@@ -20,6 +20,7 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 		RMonsterClass.Add(GetClassFromPath(ClassPath));
 	}
 	RQuantity = Row->QuestRequiredQuantity;
+	QuestInitializeIndex = Row->QuestInitializeIndex;
 }
 
 UClass* UCQuestData::GetClassFromPath(FString ClassPath)

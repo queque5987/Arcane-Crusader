@@ -5,6 +5,7 @@
 #include "CClimbableRope.h"
 #include "CJumpPoints.h"
 #include "IPlayerState.h"
+#include "IPlayerQuest.h"
 #include "Blueprint/UserWidget.h"
 
 ACPlayerController::ACPlayerController()
@@ -264,22 +265,32 @@ void ACPlayerController::AddQuest(FQuestsRow* Q)
 {
 	int QT = Q->QuestType;
 	FString QN = Q->QuestName;
-	UCQuestData* QuestData = NewObject<UCQuestData>(this, UCQuestData::StaticClass(), "Quest0");
+	UCQuestData* QuestData = NewObject<UCQuestData>(this, UCQuestData::StaticClass(), FName(QN));
 	QuestData->SetDetails(Q);
 	HUDOverlay->QuestList->AddItem(QuestData);
 
-	UE_LOG(LogTemp, Log, TEXT("PLAYER CONTROLLER :: Adding Quest %s"), *QuestData->GetQuestName());
+	// If With Initializer
+	int QuestInitializer = QuestData->GetQuestInitializeIndex();
+	if (QuestInitializer < 0) return;
+	IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+	if (QuestManage == nullptr) return;
+	QuestManage->QuestInitialize(QuestInitializer);
+
+	//UE_LOG(LogTemp, Log, TEXT("PLAYER CONTROLLER :: Adding Quest %s"), *QuestData->GetQuestName());
 }
 
-void ACPlayerController::CheckQuest(UClass* ToCheckClass)
+void ACPlayerController::CheckQuest(ACPlayerCharacter* PC, UObject* ToCheckObject)
 {
-	//TArray<UObject*> Quests = HUDOverlay->QuestList->GetListItems();
 	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
 	for (UUserWidget* QuestWidget : QuestWidgets)
 	{
-		if (UCQuest* WQ = Cast<UCQuest>(QuestWidget))
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+		if (WQ->RefreshQuestRecap(ToCheckObject))
 		{
-			WQ->RefreshQuestRecap(ToCheckClass);
+			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			if (QuestManage == nullptr) continue;
+			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
 		}
 	}
 	HUDOverlay->QuestList->RequestRefresh();
@@ -287,8 +298,6 @@ void ACPlayerController::CheckQuest(UClass* ToCheckClass)
 
 bool ACPlayerController::CheckQuest_Cleared(FString QuestName)
 {
-	//TArray<UObject*> Quests = HUDOverlay->QuestList->GetListItems();
-	UE_LOG(LogTemp, Log, TEXT("Checking Quest Name : %s"), *QuestName);
 	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
 	for (UUserWidget* QuestWidget : QuestWidgets)
 	{
@@ -300,7 +309,7 @@ bool ACPlayerController::CheckQuest_Cleared(FString QuestName)
 			}
 		}
 	}
-	UE_LOG(LogTemp, Log, TEXT("Quest Check Failed"));
+	//UE_LOG(LogTemp, Log, TEXT("Quest Check Failed"));
 	return false;
 }
 

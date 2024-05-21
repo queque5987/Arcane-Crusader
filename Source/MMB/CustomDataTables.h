@@ -23,7 +23,10 @@ public:
 	FString QuestRecap;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	FString QuestReward;
+	int QuestInitializeIndex;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int QuestRewardIndex;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<FString> QuestRequiredClass;
@@ -91,6 +94,8 @@ public:
 	FVector Pos;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString PreviewSlateBrush;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int RelatedQuestIndex;
 };
 
 UCLASS()

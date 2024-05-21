@@ -19,21 +19,26 @@ void UCQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 		AcquiredQuantities.Init(0, RequiredClasses.Num());
 		RequiredQuantities = QD->GetRQuantity();
 		QuestRecapString = QD->GetQuestRecap();
+		QuestRewardIndex = QD->GetQuestRewardIndex();
+		QuestInitializeIndex = QD->GetQuestInitializeIndex();
 		RefreshQuestRecap();
 	}
 
 	//UE_LOG(LogTemp, Log, TEXT("QuestData Loaded"));
 }
 
-void UCQuest::RefreshQuestRecap(UClass* AchievedClass)
+bool UCQuest::RefreshQuestRecap(UObject* AchievedObject)
 {
 	FString Recap = QuestRecapString + "\n";
 	int Achieved = RequiredClasses.Num();
 	for (int i = 0; i < RequiredClasses.Num(); i++)
 	{
-		if (AchievedClass != nullptr && RequiredClasses[i] == AchievedClass)
+		if (AchievedObject != nullptr)
 		{
-			AcquiredQuantities[i] += 1;
+			if (AchievedObject->IsA(RequiredClasses[i]))
+			{
+				AcquiredQuantities[i] += 1;
+			}
 		}
 
 		Recap += "\n" + RequiredClasses[i]->GetName() +
@@ -47,4 +52,5 @@ void UCQuest::RefreshQuestRecap(UClass* AchievedClass)
 		QuestBG->SetColorAndOpacity(QualifiedColor);
 		bCleared = true;
 	}
+	return bCleared;
 }

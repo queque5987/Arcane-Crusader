@@ -7,7 +7,6 @@
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
 
-// Sets default values
 ACPlayerCharacter::ACPlayerCharacter()
 {
 	WeaponEquipped = nullptr;
@@ -106,7 +105,8 @@ ACPlayerCharacter::ACPlayerCharacter()
 	//LMBPressedPointer = &ACPlayerCharacter::testLMB;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(EnemyAttackChannel, ECollisionResponse::ECR_Overlap);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Block);
-	
+
+	QuestComponent = CreateDefaultSubobject<UQuestComponent>(TEXT("QuestComponent"));
 }
 
 void ACPlayerCharacter::BeginPlay()
@@ -862,13 +862,14 @@ void ACPlayerCharacter::StaminaSpend(float RequiredStamina)
 	else Stamina -= RequiredStamina;
 }
 
-void ACPlayerCharacter::MonsterKilledCount(TSubclassOf<ACEnemyCharacter> MonsterClass)
+void ACPlayerCharacter::MonsterKilledCount(ACEnemyCharacter* MonsterKilled)
 {
-	UE_LOG(LogTemp, Log, TEXT("Killed Monster Class : %s"), MonsterClass->GetFName());
+	//UE_LOG(LogTemp, Log, TEXT("Killed Monster Class : %s"), MonsterKilled->GetFName());
 
 	if (ACPlayerController* PC = Cast<ACPlayerController>(GetController()))
 	{
-		PC->CheckQuest(MonsterClass);
+		PC->CheckQuest(this, MonsterKilled);
+		//PC->CheckQuest(this, MonsterClass);
 	}
 	
 }
@@ -900,4 +901,14 @@ void ACPlayerCharacter::OnLooseRope()
 void ACPlayerCharacter::SetRevivalPoint(FVector Pos)
 {
 	RevivalPos = Pos;
+}
+
+void ACPlayerCharacter::QuestClear(int e)
+{
+	QuestComponent->OnQuestCleared(e);
+}
+
+void ACPlayerCharacter::QuestInitialize(int e)
+{
+	QuestComponent->OnQuestInitialize(e);
 }

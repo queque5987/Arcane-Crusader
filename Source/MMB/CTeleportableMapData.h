@@ -25,6 +25,9 @@ class MMB_API UCTeleportableMapData : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FString PreviewSlateBrush;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int RelatedQuestIndex;
+
 public:
 	UWorld* GetDestLevel() { return DestLevel; }
 	void SetDestLevel(UWorld* e) { DestLevel = e; }
@@ -36,5 +39,6 @@ public:
 	void SetArrIndex(int e) { ArrIndex = e; }
 	FString GetPreviewSlateBrush() { return PreviewSlateBrush; }
 	void SetPreviewSlateBrush(FString e) { PreviewSlateBrush = e; }
-
+	int GetRelatedQuestIndex() { return RelatedQuestIndex; }
+	void SetRelatedQuestIndex(int e) { RelatedQuestIndex = e; }
 };

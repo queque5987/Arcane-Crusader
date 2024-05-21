@@ -22,7 +22,9 @@ class MMB_API UCQuestData : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int QuestType;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	UObject* QuestReward;
+	int QuestInitializeIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int QuestRewardIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	TArray<UClass*> RMonsterClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
@@ -35,9 +37,11 @@ public:
 	FString GetQuestRecap() { return QuestRecap; }
 	void SetQuestRecap(FString e) { QuestRecap = e; }
 	int GetQuestType() { return QuestType; }
-	void SetQuestType(int e) { QuestType = e; }
-	UObject* GetQuestReward() { return QuestReward; }
-	void SetQuestReward(UObject* e) { QuestReward = e; }
+	void SetQuestType(int e) { QuestRewardIndex = e; }
+	int GetQuestInitializeIndex() { return QuestInitializeIndex; }
+	void SetQuestInitializeIndex(int e) { QuestInitializeIndex = e; }
+	int GetQuestRewardIndex() { return QuestRewardIndex; }
+	void SetQuestRewardIndex(int e) { QuestRewardIndex = e; }
 	TArray<UClass*> GetRMonsterClass() { return RMonsterClass; }
 	void SetRMonsterClass(TArray<UClass*> e) { RMonsterClass = e; }
 	TArray<int> GetRQuantity() { return RQuantity; }

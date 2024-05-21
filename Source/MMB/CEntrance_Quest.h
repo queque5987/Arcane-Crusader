@@ -22,6 +22,8 @@ class MMB_API ACEntrance_Quest : public AActor, public IIEntrance
 	UPROPERTY(EditAnywhere)
 	FString CheckQuest;
 
+	UPROPERTY(EditAnywhere)
+	class UCameraComponent* CinematicCameraComponent;
 public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -50,7 +52,15 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float OpenGateSpeed;
 	float GateWidth;
+	bool DoCinematic;
 	int GateNum;
+	FTimerHandle CinematicTimerHandle;
+	FTransform CinematicCameraFixedTransform;
+	UPROPERTY(EditAnywhere)
+	float CameraMoveSpeed;
+
+	class ACPlayerCharacter* tempCharacter;
+	class ACPlayerController* tempController;
 public:
 
 	UFUNCTION()
@@ -58,6 +68,6 @@ public:
 
 	virtual void SetOpenGate(bool e) override;
 	virtual bool GetOpenGate() override { return OpenGate; }
-	//UFUNCTION()
-	//void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void FocusToGate(class ACPlayerCharacter* PC);
 };
