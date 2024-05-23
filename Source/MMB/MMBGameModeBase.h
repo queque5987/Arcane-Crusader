@@ -27,6 +27,7 @@ class MMB_API AMMBGameModeBase : public AGameModeBase
 private:
 	TArray<UTexture2D*> PreLoadedTextures;
 	TArray<UMaterialInstance*> DropItemMaterialsRarity;
+	TMap<FString, UTexture2D*> PreLoadedTextureMap;
 	//TArray<USlateBrushAsset*> SlateBrushArr;
 public:
 
@@ -36,11 +37,12 @@ public:
 	UTexture2D* GetPreLoadedTexture(int32 e);
 
 	UTexture2D* IconStaff;
-	UTexture2D* IconBattleStaff;
-	UTexture2D* IconDroppedItem;
+	UTexture2D* DefaultIconDroppedItem;
 
 	UClass* GetItemClass(int32 e);
 	UMaterialInstance* GetDropItemMaterial(int32 Rarity);
 	//FSlateBrush* GetSlateBrush(int32 e);
 	
+	UTexture2D* IconGetter(FString IconAssetName);
+
 };

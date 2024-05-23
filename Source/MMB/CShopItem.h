@@ -23,12 +23,20 @@ public:
 	TObjectPtr<UTextBlock> ItemATK;
 	//UPROPERTY(meta = (BindWidget))
 	//TObjectPtr<UTextBlock> ItemName;
+	virtual void OnRightClicked() override;
+	virtual void SwitchPressed(bool Pressed) override;
+	virtual bool GetbPressed() override { return bPressed; }
 
+	void BuyItem();
+	void SellItem();
 protected:
 	virtual void NativeOnInitialized() override;
-
+	bool IsShopItem;
+	bool bPressed;
 private:
 	UFUNCTION(BlueprintCallable)
 	void OnShopButtonClicked();
 
+	const FSlateBrush* SB_Normal;
+	const FSlateBrush* SB_Pressed;
 };

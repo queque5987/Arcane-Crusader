@@ -6,6 +6,7 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "Components/TextBlock.h"
 #include "Components/TileView.h"
+#include "Components/ListView.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Button.h"
 #include "ITeleportNPC.h"
@@ -68,6 +69,14 @@ public:
 	TObjectPtr<UTileView> ItemList;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnShopClose;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> ShoppingBox_Inventory;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTileView> ItemList_Inventory;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BtnShopBuy;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BtnShopSell;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> SwingbyAlertBox;
@@ -82,6 +91,16 @@ public:
 	TObjectPtr<UButton> BtnTeleportClose;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnTeleportSend;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> QuestListBox;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> QuestList;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BtnQuestLeave;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BtnQuestAccept;
+	
 
 	virtual void SetVisibility(ESlateVisibility InVisibility) override;
 
@@ -110,6 +129,14 @@ public:
 	void OnButtonTeleportCloseClicked();
 	UFUNCTION()
 	void OnButtonTeleportSendClicked();
+	UFUNCTION()
+	void OnButtonBuyClicked();
+	UFUNCTION()
+	void OnButtonSellClicked();
+	UFUNCTION()
+	void OnButtonQuestLeaveClicked();
+	UFUNCTION()
+	void OnButtonQuestAcceptClicked();
 
 	void AlertSwingby(float e, FText Line);
 	UFUNCTION()
@@ -118,6 +145,11 @@ public:
 
 	TArray<FTeleportableMapTableRow*> Arr;
 
+	bool IsOnShop();
+	void ShoppingBox_LoadPlayerInventory();
+	void QuestBox_LoadNPCQuest();
+
+	void SetSelectedButton(UUserWidget* SelectedButton);
 private:
 
 	bool AllowInput;
@@ -143,6 +175,7 @@ private:
 	bool IsQuest_NotTeleport = true;
 
 	FQuestsRow* LoadedQuest;
+	//FQuestsRow* LoadedQuestData;
 	int LoadedMapIndex = -1;
 
 	TArray<FWidgetTransform> BtnTransforms;
@@ -154,4 +187,11 @@ private:
 	TArray<struct FNPCDialoguesRow*> Dialogues;
 	void SetLineFromDialogues(int e);
 	void SwitchQuestMode(bool e);
+
+	UUserWidget* SelectedButton_ToBuy;
+	UUserWidget* SelectedButton_ToSell;
+	UUserWidget* SelectedButton_Quest;
+
+	void SetSelectedShopItem(UUserWidget* SelectedButton);
+	void SetSelectedQuest(UUserWidget* SelectedButton);
 };

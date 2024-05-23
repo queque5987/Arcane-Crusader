@@ -13,7 +13,7 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 	QuestName = Row->QuestName;
 	QuestRecap = Row->QuestRecap;
 	QuestRewardIndex = Row->QuestRewardIndex;
-	QuestType = Row->QuestType;
+	QuestDialogueIndex = Row->QuestDialogueIndex;
 	RMonsterClass = TArray<UClass*>();
 	for (FString ClassPath : Row->QuestRequiredClass)
 	{

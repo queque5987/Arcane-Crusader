@@ -7,6 +7,8 @@
 #include "CWeapon.h"
 #include "CStaff.h"
 #include "CBattleStaff.h"
+#include "Modules/ModuleManager.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 AMMBGameModeBase::AMMBGameModeBase()
 {
@@ -25,6 +27,8 @@ AMMBGameModeBase::AMMBGameModeBase()
 	if (BattleStaffIconFinder.Succeeded())	PreLoadedTextures[TEXTURE_BATTLESTAFF]	= (BattleStaffIconFinder.Object);
 	if (DroppedItemIconFinder.Succeeded())	PreLoadedTextures[TEXTURE_DROPPEDITEM]	= (DroppedItemIconFinder.Object);
 
+	DefaultIconDroppedItem = DroppedItemIconFinder.Object;
+
 	ConstructorHelpers::FObjectFinder<UMaterialInstance> NormalMat(TEXT("/Game/Resources/Material/MI_Normal.MI_Normal"));
 	ConstructorHelpers::FObjectFinder<UMaterialInstance> RareMat(TEXT("/Game/Resources/Material/MI_Rare.MI_Rare"));
 	ConstructorHelpers::FObjectFinder<UMaterialInstance> EpicMat(TEXT("/Game/Resources/Material/MI_Epic.MI_Epic"));
@@ -38,6 +42,18 @@ AMMBGameModeBase::AMMBGameModeBase()
 	//ConstructorHelpers::FObjectFinder<USlateBrushAsset>SB_DesertFinder(TEXT("/Game/Resources/Image/SB_Desert.SB_Desert"));
 	//if (SB_DesertFinder.Succeeded())	SlateBrushArr[SB_DESERT] = SB_DesertFinder.Object;
 
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	TArray<FAssetData> AssetData;
+	FARFilter Filter;
+	Filter.PackagePaths.Add("/Game/CraftResourcesIcons/Textures/");
+	AssetRegistryModule.Get().GetAssets(Filter, AssetData);
+	UTexture2D* tempTexture;
+	for (FAssetData Dat : AssetData)
+	{
+		tempTexture = Cast<UTexture2D>(Dat.GetAsset());
+		if (tempTexture == nullptr) continue;
+		PreLoadedTextureMap.Add(Dat.AssetName.ToString(), tempTexture);
+	}
 
 	FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
 	TSoftObjectPtr<UWorld> testlevel(path);
@@ -86,6 +102,12 @@ UClass* AMMBGameModeBase::GetItemClass(int32 e)
 UMaterialInstance* AMMBGameModeBase::GetDropItemMaterial(int32 Rarity)
 {
 	return DropItemMaterialsRarity.Num() > Rarity? DropItemMaterialsRarity[Rarity] : nullptr;
+}
+
+UTexture2D* AMMBGameModeBase::IconGetter(FString IconAssetName)
+{
+	//return PreLoadedTextureMap.Find(IconAssetName);
+	return PreLoadedTextureMap.Contains(IconAssetName) ? PreLoadedTextureMap[IconAssetName] : DefaultIconDroppedItem;
 }
 
 //FSlateBrush* AMMBGameModeBase::GetSlateBrush(int32 e)

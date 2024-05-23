@@ -85,16 +85,25 @@ protected:
 	UFUNCTION()
 	void DequeueDamageUI();
 public:
-	bool SetInventoryVisibility();
-	void AddInventoryItem(UClass* ItemClass);
-	void AddInventoryItem(class UCInventoryItemData* ItemData);
+	virtual bool SetInventoryVisibility() override;
+	virtual void AddInventoryItem(UClass* ItemClass) override;
+	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) override;
+	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) override;
+	virtual bool IsOnShop() override;
+	virtual void SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList) override;
+	virtual void ResumeShopInventoryItems() override;
+
+	virtual void SetPressedButton(UUserWidget* SelectedButton) override;
+
 	void SetNPCConversationVisibility(bool e, class ACStaticNPC* npc = nullptr);
 	void ResetNPCConversation(class ACStaticNPC* npc);
-	void AddAlert(FText e);
+	virtual void AddAlert(FText e) override;
 	void ShowDamageUI(float Damage, FVector Location, FColor C = FColor::White, bool IsAttacked = false);
 	void AlertSwingby(float e, FText Line);
 	void AddQuest(struct FQuestsRow* Q);
-	void CheckQuest(class ACPlayerCharacter* PC, UObject* ToCheckObject);
+	void AddQuest(class UCQuestData* QuestData);
+	void CheckQuest(UObject* ToCheckObject);
+	void CheckQuest(UClass* ToCheckObjectClass);
 	bool CheckQuest_Cleared(FString QuestName);
 	void ShowDroppedItemList(bool e, class ACDroppedItem* Dropped, class UCInventoryItemData* ItemData);
 

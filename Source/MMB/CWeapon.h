@@ -41,7 +41,7 @@ public:
 	FName WeaponMesh;
 
 	UPROPERTY(EditAnywhere)
-	int32 ItemData_IconTexture;
+	FString ItemData_IconTexture;
 	UPROPERTY(EditAnywhere)
 	int32 ItemData_ItemPrice;
 	UPROPERTY(EditAnywhere)

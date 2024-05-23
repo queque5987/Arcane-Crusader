@@ -10,7 +10,8 @@ void UCWidgetDroppedItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 		ItemName->SetText(FText::FromString(D->GetstrName()));
 		if (AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode()))
 		{
-			UTexture2D* T = GM->GetPreLoadedTexture(D->GetIconTexture());
+			UTexture2D* T = GM->IconGetter(D->GetIconTexture());
+			//UTexture2D* T = GM->GetPreLoadedTexture(D->GetIconTexture());
 			ItemImage->SetBrushFromTexture(T);
 		}
 	}	

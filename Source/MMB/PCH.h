@@ -60,7 +60,8 @@
 #define PLAYER_JUMPING_POINTS		UINT(1) << 25
 //#define UINT(1) << 26
 //#define UINT(1) << 27
-//#define UINT(1) << 28
+
+//#define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
 //#define UINT(1) << 29
 //#define UINT(1) << 30
 //#define UINT(1) << 31

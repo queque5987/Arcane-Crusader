@@ -17,7 +17,7 @@ public:
 	FString QuestName;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	int QuestType;
+	int QuestDialogueIndex;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString QuestRecap;
@@ -71,7 +71,7 @@ public:
 	int ItemPrice;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	int ItemTexture;
+	FString ItemTexture;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float ItemDropRate;

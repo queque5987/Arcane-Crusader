@@ -19,5 +19,11 @@ class MMB_API IIPlayerState
 public:
 	virtual bool GetState(UINT StateType) { return false; };
 	virtual void SetState(UINT StateType, bool b) {};
+
+	virtual UINT32 GetPlayerGold() { return 0; };
+	virtual void SetPlayerGold(UINT32 e) {};
+	virtual void GainPlayerGold(UINT32 e) {};
+
 	virtual void SetRevivalPoint(FVector Pos) {};
+	virtual void SetHoverringUI(UUserWidget* UI) {};
 };

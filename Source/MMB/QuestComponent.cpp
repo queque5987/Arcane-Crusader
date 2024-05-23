@@ -29,38 +29,22 @@ void UQuestComponent::Quest0()
 	ACEntrance_Quest* TutorialGate = Cast<ACEntrance_Quest>(tempActor);
 	if (TutorialGate == nullptr) return;
 	TutorialGate->FocusToGate(PC);
-
-	/*TArray<AActor*> arrOut;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACEntrance_Quest::StaticClass(), arrOut);
-	if (arrOut.Num() < 0)
-	{
-		UE_LOG(LogTemp, Log, TEXT("ERROR In QuestComponent : No Gate Found"));
-		return;
-	}
-	ACEntrance_Quest* TutorialGate;
-	for (auto& A : arrOut)
-	{
-		TutorialGate = Cast<ACEntrance_Quest>(A);
-		if (TutorialGate == nullptr) continue;
-		if (TutorialGate->GetActorLabel() == "TutorialZoneOutGate")
-		{
-			ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
-			if (PC == nullptr) return;
-			UE_LOG(LogTemp, Log, TEXT("Quest Reward : Opening Gate Named = %s"), *TutorialGate->GetActorLabel());
-			TutorialGate->FocusToGate(PC);
-			return;
-		}
-	}*/
 }
 
 void UQuestComponent::Init_Quest0()
 {
-	UE_LOG(LogTemp, Log, TEXT("QuestComponent : Quest0 initializer"));
+	AActor* tempActor = FindActorByLabel(ACEntrance_Quest::StaticClass(), "TutorialZoneInGate");
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+	ACEntrance_Quest* TutorialGate = Cast<ACEntrance_Quest>(tempActor);
+	if (TutorialGate == nullptr) return;
+	TutorialGate->SetOpenGate(true);
 }
 
 void UQuestComponent::Init_Quest1()
 {
-	AActor* tempActor = FindActorByLabel(ACMonsterSpawner_Manual::StaticClass(), "TutorialZoneOutGate");
+	AActor* tempActor = FindActorByLabel(ACMonsterSpawner_Manual::StaticClass(), "RockMountain_MonsterSpawner");
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -85,6 +69,10 @@ void UQuestComponent::Init_Quest1()
 	//RockMountain_MonsterSpawner
 }
 
+//void UQuestComponent::Init_Quest2()
+//{
+//}
+
 AActor* UQuestComponent::FindActorByLabel(TSubclassOf<AActor> FindClass, FString Label)
 {
 	TArray<AActor*> arrOut;
@@ -96,7 +84,8 @@ AActor* UQuestComponent::FindActorByLabel(TSubclassOf<AActor> FindClass, FString
 	}
 	for (AActor* A : arrOut)
 	{
-		if (A->IsA(FindClass)) return A;
+		if (A->GetActorLabel() == Label) return A;
+		//if (A->IsA(FindClass)) return A;
 	}
 	return nullptr;
 }
@@ -128,6 +117,9 @@ void UQuestComponent::OnQuestInitialize(int InitIndex)
 	case(1):
 		Init_Quest1();
 		return;
+	//case(2):
+	//	Init_Quest2();
+	//	return;
 	default:
 		return;
 	}

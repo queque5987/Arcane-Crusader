@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "PCH.h"
+#include "CNPCConversation.h"
 #include "CInventoryItemData.generated.h"
 
 UCLASS()
@@ -27,7 +28,7 @@ protected:
 	FString strName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	int32 IconTexture;
+	FString IconTexture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int32 ItemPrice;
@@ -41,9 +42,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int32 Rarity = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	bool IsShopItem = false;
 
 	class ACStaticNPC* Owner;
-
 public:
 	int32 GetIndex() { return Index; }
 	void SetIndex(int32 e) { Index = e; }
@@ -53,8 +55,8 @@ public:
 	void SetItemCount(int32 e) { Index = e; }
 	FString GetstrName() { return strName; }
 	void SetstrName(FString e) { strName = e; }
-	int32 GetIconTexture() { return IconTexture; }
-	void SetIconTexture(int32 e) { IconTexture = e; }
+	FString GetIconTexture() { return IconTexture; }
+	void SetIconTexture(FString e) { IconTexture = e; }
 	ACStaticNPC* GetOwner() { return Owner; }
 	void SetOwner(ACStaticNPC* e) { Owner = e; }
 	int32 GetPrice() { return ItemPrice; }
@@ -65,4 +67,6 @@ public:
 	void SetAttackType(FString e) { AttackType = e; }
 	int32 GetRarity() { return Rarity; }
 	void SetRarity(int32 e) { Rarity = e; }
+	bool GetIsShopItem() { return IsShopItem; }
+	void SetIsShopItem(bool e) { IsShopItem = e; }
 };

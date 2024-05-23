@@ -8,13 +8,11 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "IWidgetInteract.h"
 #include "CInventoryItem.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class MMB_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry
+class MMB_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry, public IIWidgetInteract
 {
 	GENERATED_BODY()
 public:
@@ -26,14 +24,23 @@ protected:
 	double ClickedSec;
 	bool IsInShop;
 
+	void Equip();
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnButtonClicked();
+	UFUNCTION()
+	void OnHovered();
+	UFUNCTION()
+	void OnUnHovered();
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemName;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ItemButton;
+	
+	FTimerHandle UnHoverTimerHandler;
+
+	virtual void OnRightClicked() override;
 
 };

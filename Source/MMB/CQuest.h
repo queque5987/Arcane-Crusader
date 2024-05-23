@@ -25,15 +25,19 @@ public:
 	TObjectPtr<UImage> QuestBG;
 
 	bool RefreshQuestRecap(UObject* AchievedObject = nullptr);
+	bool RefreshQuestRecap(UClass* AchievedObjectClass);
 	FString GetQuestName() { return QuestNameString; }
 	bool IsCleared() { return bCleared; };
 	int GetQuestRewardIndex() { return QuestRewardIndex; }
 	int GetQuestInitializeIndex() { return QuestInitializeIndex; }
+	class ACStaticNPC* GetGivenNPC() { return GivenNPC; };
+	void SetGivenNPC(class ACStaticNPC* NPC) { GivenNPC = NPC; };
 protected:
 	UObject* QuestData;
 	FString QuestRecapString;
 	FString QuestNameString;
 	bool bCleared;
+	class ACStaticNPC* GivenNPC;
 	TArray<UClass*> RequiredClasses;
 	TArray<int> AcquiredQuantities;
 	TArray<int> RequiredQuantities;

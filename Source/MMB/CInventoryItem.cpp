@@ -5,19 +5,21 @@
 #include "CPlayerCharacter.h"
 #include "CWeapon.h"
 #include "IWeapon.h"
+#include "IPlayerUIController.h"
+#include "IPlayerState.h"
 #include "GenericPlatform/GenericPlatformTime.h"
 
 void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 	ItemData = ListItemObject;
-	ItemName->SetText(FText::FromString(TEXT("ItemName")));
+	//ItemName->SetText(FText::FromString(TEXT("ItemName")));
 
 	if (UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData))
 	{
 		if (AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode()))
 		{
-			UTexture2D* T = GM->GetPreLoadedTexture(ID->GetIconTexture());
+			UTexture2D* T = GM->IconGetter(ID->GetIconTexture());
 			ItemImage->SetBrushFromTexture(T);
 		}
 
@@ -29,50 +31,72 @@ void UCInventoryItem::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	ItemButton->OnClicked.AddDynamic(this, &UCInventoryItem::OnButtonClicked);
+	ItemButton->OnHovered.AddDynamic(this, &UCInventoryItem::OnHovered);
+	ItemButton->OnUnhovered.AddDynamic(this, &UCInventoryItem::OnUnHovered);
 	ClickedSec = 0.f;
+}
+
+void UCInventoryItem::Equip()
+{
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(this->GetOwningPlayer()->GetCharacter());
+	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+	if (!IsValid(ID)) return;
+
+	AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(ID->GetItemClass(), PC->GetActorLocation(), FRotator::ZeroRotator);
+	IIWeapon* isWeapon = Cast<IIWeapon>(spawnedActor);
+	if (isWeapon == nullptr) return;
+
+	isWeapon->SetIsEquiped(true);
+	isWeapon->SetWeaponName(FName(ID->GetstrName()));
+	isWeapon->SetAttackDamage(ID->GetAttackDamage());
+
+	PC->Equip(*spawnedActor);
+
+	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(PC->GetController());
+
+	if (PCC == nullptr) return;
+	PCC->RemoveInventoryItem(ID);
 }
 
 void UCInventoryItem::OnButtonClicked()
 {
 	if (FPlatformTime::Seconds() - ClickedSec <= 0.35f)
 	{
-		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(this->GetOwningPlayer()->GetCharacter());
-		//UE_LOG(LogTemp, Log, TEXT("Double Clicked %s"), *PC->GetName());
-		UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
-
-		if (IsValid(ID))
-		{
-			//if (ID->GetItemClass()->GetSuperClass() == ACWeapon::StaticClass())
-			//{
-			AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(ID->GetItemClass(), PC->GetActorLocation(), FRotator::ZeroRotator);
-			
-			//ACWeapon* isWeapon = Cast<ACWeapon>(spawnedActor);
-
-			//if (IsValid(isWeapon))
-			if (IIWeapon* isWeapon = Cast<IIWeapon>(spawnedActor))
-			{
-				isWeapon->SetIsEquiped(true);
-
-				isWeapon->SetWeaponName(FName(ID->GetstrName()));
-				isWeapon->SetAttackDamage(ID->GetAttackDamage());
-
-				//SetActorRelativeRotation(FRotator::ZeroRotator);
-				PC->Equip(*spawnedActor);
-				ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController());
-				if (IsValid(PCC))
-				{
-					PCC->ItemInventory->ItemList->RemoveItem(ItemData);
-				}
-			}
-			//}
-			//else if (ID->GetItemClass() == nullptr)
-			//{
-
-			//}
-		}
+		Equip();
 	}
 	ClickedSec = FPlatformTime::Seconds();
-	//int64 Milliseconds = static_cast<int64>(Seconds * 1000);
-	//UE_LOG(LogTemp, Log, TEXT("Item Button Clicked Event : %f"), ClickedSec);
+}
 
+void UCInventoryItem::OnHovered()
+{
+	IIPlayerState* PlayerState = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	//PlayerState->SetState(PLAYER_INVENTORY_HOVERRING, true);
+	if (PlayerState == nullptr) return;
+	PlayerState->SetHoverringUI(this);
+}
+
+void UCInventoryItem::OnUnHovered()
+{
+	GetOwningPlayer()->GetWorld()->GetTimerManager().ClearTimer(UnHoverTimerHandler);
+	GetOwningPlayer()->GetWorld()->GetTimerManager().SetTimer(UnHoverTimerHandler, FTimerDelegate::CreateLambda([&]() {
+		IIPlayerState* PlayerState = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+		//PlayerState->SetState(PLAYER_INVENTORY_HOVERRING, false);
+		if (PlayerState == nullptr) return;
+		PlayerState->SetHoverringUI(false);
+		}), 0.5f, false
+	);
+}
+
+void UCInventoryItem::OnRightClicked()
+{
+	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+	IIPlayerState* PC = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+	if ((PCC == nullptr || ID == nullptr) || !PCC->IsOnShop()) return;
+	int ItemPrice = ID->GetPrice();
+	PCC->RemoveInventoryItem(ID);
+	PCC->ResumeShopInventoryItems();
+	PC->GainPlayerGold(ItemPrice);
+
+	//Equip();
 }

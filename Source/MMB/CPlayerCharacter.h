@@ -144,6 +144,8 @@ protected:
 	void Getup();
 	void LazyGetUp();
 
+	UUserWidget* HoverringUI;
+
 	void SetAnimPauseFree() {
 		GetMesh()->bPauseAnims = false;
 	}
@@ -213,8 +215,11 @@ public:
 	bool GetIsAttacking() { return IsAttacking; }*/
 	virtual bool GetState(UINT StateType) override;
 	virtual void SetState(UINT StateType, bool b) override;
-	UINT32 GetPlayerGold() { return PlayerGold; }
-	void SetPlayerGold(UINT32 e);
+	virtual void SetHoverringUI(UUserWidget* UI) override;
+
+	virtual UINT32 GetPlayerGold() override { return PlayerGold; }
+	virtual void SetPlayerGold(UINT32 e) override;
+	virtual void GainPlayerGold(UINT32 e) override;
 	bool GetContinueCombo() { return ContinueCombo; }
 	void SetContinueCombo(bool e) { ContinueCombo = e; }
 

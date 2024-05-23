@@ -2,6 +2,7 @@
 
 
 #include "CAnimNotifyState_PlayerComboWait.h"
+#include "PCH.h"
 
 void UCAnimNotifyState_PlayerComboWait::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {

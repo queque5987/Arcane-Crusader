@@ -20,7 +20,7 @@ class MMB_API UCQuestData : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FString QuestRecap;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	int QuestType;
+	int QuestDialogueIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int QuestInitializeIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
@@ -29,6 +29,8 @@ class MMB_API UCQuestData : public UObject
 	TArray<UClass*> RMonsterClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	TArray<int> RQuantity;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	class ACStaticNPC* GivenNPC;
 public:
 	void SetDetails(FQuestsRow* Row);
 
@@ -36,8 +38,8 @@ public:
 	void SetQuestName(FString e) { QuestName = e; }
 	FString GetQuestRecap() { return QuestRecap; }
 	void SetQuestRecap(FString e) { QuestRecap = e; }
-	int GetQuestType() { return QuestType; }
-	void SetQuestType(int e) { QuestRewardIndex = e; }
+	int GetQuestDialogueIndex() { return QuestDialogueIndex; }
+	void SetQuestDialogueIndex(int e) { QuestDialogueIndex = e; }
 	int GetQuestInitializeIndex() { return QuestInitializeIndex; }
 	void SetQuestInitializeIndex(int e) { QuestInitializeIndex = e; }
 	int GetQuestRewardIndex() { return QuestRewardIndex; }
@@ -46,6 +48,8 @@ public:
 	void SetRMonsterClass(TArray<UClass*> e) { RMonsterClass = e; }
 	TArray<int> GetRQuantity() { return RQuantity; }
 	void SetRQuantity(TArray<int> e) { RQuantity = e; }
+	class ACStaticNPC* GetGivenNPC() { return GivenNPC; }
+	void SetGivenNPC(class ACStaticNPC* e) { GivenNPC = e; }
 
 private:
 	UClass* GetClassFromPath(FString ClassPath);

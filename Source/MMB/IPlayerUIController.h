@@ -19,5 +19,17 @@ class MMB_API IIPlayerUIController
 public:
 	//virtual void SetSelectedPortal(UWorld* Level, FVector Location) {};
 	virtual void SetSelectedPortal(int ArrIndex) {};
+	virtual bool SetInventoryVisibility() { return false; };
+	virtual void AddInventoryItem(UClass* ItemClass) {};
+	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) {};
+	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) {};
+	virtual bool IsOnShop() { return false; };
+//DEPRECATED
+	virtual TArray<UObject*> GetInventoryItems() { return TArray<UObject*>(); };
+	virtual void SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList) {};
+	virtual void ResumeShopInventoryItems() {};
+	virtual void AddAlert(FText e) {};
 
+	virtual void SetPressedButton(UUserWidget* SelectedButton) {};
+	//virtual void SetPressedQuest(UUserWidget* SelectedQuest) {};
 };

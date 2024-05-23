@@ -2,6 +2,7 @@
 
 
 #include "CPlayerCharacter.h"
+#include "IWidgetInteract.h"
 #include "PCH.h"
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
@@ -532,6 +533,13 @@ void ACPlayerCharacter::RMBCompleted()
 			//Stamina -= AR.StaminaUsed;
 		}
 	}
+	if (GetState(PLAYER_UI_INTERACTING))
+	{
+		if (HoverringUI == nullptr) return;
+		IIWidgetInteract* IWidget = Cast<IIWidgetInteract>(HoverringUI);
+		if (IWidget == nullptr) return;
+		IWidget->OnRightClicked();
+	}
 }
 
 void ACPlayerCharacter::InventoryOpened()
@@ -545,6 +553,7 @@ void ACPlayerCharacter::InventoryOpened()
 		}
 		else
 		{
+			if (ESlateVisibility::Visible == PC->NPCConversation->GetVisibility()) return;
 			SetState(PLAYER_UI_INTERACTING, false);
 			//bUIControlling = false;
 		}
@@ -642,6 +651,16 @@ void ACPlayerCharacter::SetState(UINT StateType, bool b)
 	}
 }
 
+void ACPlayerCharacter::SetHoverringUI(UUserWidget* UI)
+{
+	HoverringUI = UI;
+	if (UI != nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Set Hoverring UI : %s"), *UI->GetName());
+	}
+	else UE_LOG(LogTemp, Log, TEXT("Set Hoverring UI : nullptr"));
+}
+
 void ACPlayerCharacter::SetPlayerGold(UINT32 e)
 {
 	PlayerGold = e;
@@ -649,6 +668,11 @@ void ACPlayerCharacter::SetPlayerGold(UINT32 e)
 	{
 		PC->ItemInventory->PlayerGold->SetText(FText::FromString(FString::FromInt(e)));
 	}
+}
+
+void ACPlayerCharacter::GainPlayerGold(UINT32 e)
+{
+	SetPlayerGold(PlayerGold + e);
 }
 
 void ACPlayerCharacter::ShowDamageUI(float Damage, FVector Location, bool IsAttacked)
@@ -868,7 +892,7 @@ void ACPlayerCharacter::MonsterKilledCount(ACEnemyCharacter* MonsterKilled)
 
 	if (ACPlayerController* PC = Cast<ACPlayerController>(GetController()))
 	{
-		PC->CheckQuest(this, MonsterKilled);
+		PC->CheckQuest(MonsterKilled);
 		//PC->CheckQuest(this, MonsterClass);
 	}
 	

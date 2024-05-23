@@ -19,6 +19,7 @@ protected:
 	void Quest0();
 	void Init_Quest0();
 	void Init_Quest1();
+	//void Init_Quest2();
 
 private:
 	AActor* FindActorByLabel(TSubclassOf<AActor> FindClass, FString Label);

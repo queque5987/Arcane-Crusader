@@ -150,7 +150,44 @@ void ACPlayerController::AddInventoryItem(UClass* ItemClass)
 
 void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 {
-	if (ItemData != nullptr) ItemInventory->ItemList->AddItem(ItemData);
+	if (ItemData == nullptr) return;
+	ItemInventory->ItemList->AddItem(ItemData);
+	CheckQuest(ItemData->GetItemClass());
+}
+
+void ACPlayerController::RemoveInventoryItem(UCInventoryItemData* ItemData)
+{
+	if (ItemData != nullptr) ItemInventory->ItemList->RemoveItem(ItemData);
+}
+
+bool ACPlayerController::IsOnShop()
+{
+	return NPCConversation->IsOnShop();
+}
+
+//TArray<UObject*> ACPlayerController::GetInventoryItems()
+//{
+//	return ItemInventory->ItemList->GetListItems();
+//}
+
+void ACPlayerController::SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList)
+{
+	ShopTileList->ClearListItems();
+	if (ItemInventory->ItemList->GetNumItems() <= 0) return;
+	for (UObject* Item : ItemInventory->ItemList->GetListItems())
+	{
+		ShopTileList->AddItem(Item);
+	}
+}
+
+void ACPlayerController::ResumeShopInventoryItems()
+{
+	SetShopInventoryItems(NPCConversation->ItemList_Inventory);
+}
+
+void ACPlayerController::SetPressedButton(UUserWidget* SelectedButton)
+{
+	NPCConversation->SetSelectedButton(SelectedButton);
 }
 
 void ACPlayerController::SetNPCConversationVisibility(bool e, ACStaticNPC* npc)
@@ -261,9 +298,9 @@ void ACPlayerController::AlertSwingby(float e, FText Line)
 	NPCConversation->AlertSwingby(e, Line);
 }
 
+//Deprecated 20240523 1312
 void ACPlayerController::AddQuest(FQuestsRow* Q)
 {
-	int QT = Q->QuestType;
 	FString QN = Q->QuestName;
 	UCQuestData* QuestData = NewObject<UCQuestData>(this, UCQuestData::StaticClass(), FName(QN));
 	QuestData->SetDetails(Q);
@@ -279,7 +316,19 @@ void ACPlayerController::AddQuest(FQuestsRow* Q)
 	//UE_LOG(LogTemp, Log, TEXT("PLAYER CONTROLLER :: Adding Quest %s"), *QuestData->GetQuestName());
 }
 
-void ACPlayerController::CheckQuest(ACPlayerCharacter* PC, UObject* ToCheckObject)
+void ACPlayerController::AddQuest(UCQuestData* QuestData)
+{
+	HUDOverlay->QuestList->AddItem(QuestData);
+
+	// If With Initializer
+	int QuestInitializer = QuestData->GetQuestInitializeIndex();
+	if (QuestInitializer < 0) return;
+	IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+	if (QuestManage == nullptr) return;
+	QuestManage->QuestInitialize(QuestInitializer);
+}
+
+void ACPlayerController::CheckQuest(UObject* ToCheckObject)
 {
 	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
 	for (UUserWidget* QuestWidget : QuestWidgets)
@@ -288,9 +337,26 @@ void ACPlayerController::CheckQuest(ACPlayerCharacter* PC, UObject* ToCheckObjec
 		if (WQ == nullptr) continue;
 		if (WQ->RefreshQuestRecap(ToCheckObject))
 		{
-			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
-			if (QuestManage == nullptr) continue;
-			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+			//IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			//if (QuestManage == nullptr) continue;
+			//QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+		}
+	}
+	HUDOverlay->QuestList->RequestRefresh();
+}
+
+void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass)
+{
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	for (UUserWidget* QuestWidget : QuestWidgets)
+	{
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+		if (WQ->RefreshQuestRecap(ToCheckObjectClass))
+		{
+			//IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			//if (QuestManage == nullptr) continue;
+			//QuestManage->QuestClear(WQ->GetQuestRewardIndex());
 		}
 	}
 	HUDOverlay->QuestList->RequestRefresh();
@@ -376,6 +442,32 @@ void ACPlayerController::NPCInteract_ShowAndInputReady(ACStaticNPC* NPC)
 void ACPlayerController::NPCInteract_Interact()
 {
 	if (ButtonActionUI == nullptr) return;
+	bool flag = false;
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	for (UUserWidget* QuestWidget : QuestWidgets)
+	{
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+		if (WQ->IsCleared() && WQ->GetGivenNPC() == ButtonActionUI->GetNPC())
+		{
+			flag = true;
+			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			if (QuestManage == nullptr) continue;
+			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+			HUDOverlay->QuestList->RemoveItem(WQ->GetListItem());
+			WQ->Destruct();
+
+			UE_LOG(LogTemp, Log, TEXT("Quest Reward"));
+
+			// TO DO
+			// Data Table =+ Reward Dialogue Post Line
+			// PostLine -> Reward() Bind
+			//
+		}
+	}
+	HUDOverlay->QuestList->RequestRefresh();
+	if (flag) return;
+
 	SetNPCConversationVisibility(true, ButtonActionUI->GetNPC());
 	NPCInteract_UnShow();
 }
@@ -470,6 +562,7 @@ void ACPlayerController::PickUpItemInteract_ShowAndInputReady()
 		ButtonActionUI->AddToViewport();
 		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_PICKUPITEM);
 		ButtonActionUI->SetPositionInViewport(ScreenLocation);
+		//ButtonActionUI->
 	}
 }
 

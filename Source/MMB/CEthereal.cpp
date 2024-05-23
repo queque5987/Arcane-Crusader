@@ -14,29 +14,29 @@ ACEthereal::ACEthereal() : Super()
 	}
 	StaticMeshComponent->SetRelativeScale3D(FVector(3.f, 3.f, 3.f));
 
-	UCInventoryItemData* Item0 = UObject::CreateDefaultSubobject<UCInventoryItemData>(TEXT("Start Weapon0"));
-	Item0->SetIndex(0);
-	Item0->SetIconTexture(TEXTURE_STAFF);
-	Item0->SetItemClass(ACStaff::StaticClass());
-	Item0->SetItemCount(1);
-	Item0->SetstrName("Fire Staff");
-	Item0->SetAttackDamage(5);
-	Item0->SetOwner(this);
-	Item0->SetPrice(100);
-	//Item0->SetAttackType("Trying to do better");
-	ItemList.Add(Item0);
+	//UCInventoryItemData* Item0 = UObject::CreateDefaultSubobject<UCInventoryItemData>(TEXT("Start Weapon0"));
+	//Item0->SetIndex(0);
+	//Item0->SetIconTexture("Tex_gemstone_11_b");
+	//Item0->SetItemClass(ACStaff::StaticClass());
+	//Item0->SetItemCount(1);
+	//Item0->SetstrName("Fire Staff");
+	//Item0->SetAttackDamage(5);
+	//Item0->SetOwner(this);
+	//Item0->SetPrice(100);
+	////Item0->SetAttackType("Trying to do better");
+	//ItemList.Add(Item0);
 
-	UCInventoryItemData* Item1 = UObject::CreateDefaultSubobject<UCInventoryItemData>(TEXT("Start Weapon1"));
-	Item1->SetIndex(1);
-	Item1->SetIconTexture(TEXTURE_BATTLESTAFF);
-	Item1->SetItemClass(ACBattleStaff::StaticClass());
-	Item1->SetItemCount(1);
-	Item1->SetstrName("Battle Staff");
-	Item1->SetAttackDamage(5);
-	Item1->SetOwner(this);
-	Item1->SetPrice(100);
-	//Item1->SetAttackType("Physical");
-	ItemList.Add(Item1);
+	//UCInventoryItemData* Item1 = UObject::CreateDefaultSubobject<UCInventoryItemData>(TEXT("Start Weapon1"));
+	//Item1->SetIndex(1);
+	//Item1->SetIconTexture("Tex_gemstone_11_b");
+	//Item1->SetItemClass(ACBattleStaff::StaticClass());
+	//Item1->SetItemCount(1);
+	//Item1->SetstrName("Battle Staff");
+	//Item1->SetAttackDamage(5);
+	//Item1->SetOwner(this);
+	//Item1->SetPrice(100);
+	////Item1->SetAttackType("Physical");
+	//ItemList.Add(Item1);
 }
 
 void ACEthereal::BeginPlay()
@@ -82,10 +82,12 @@ void ACEthereal::Initialize()
 		//UCInventoryItemData* T = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(ItemList->GetListItems().Num())));
 		UCInventoryItemData* T = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(i)));
 		T->SetIndex(i);
+		T->SetIconTexture("Tex_gemstone_11_b");
 		T->SetItemClass(ACStaff::StaticClass());
 		T->SetItemCount(1);
 		T->SetstrName(FString::FString(TEXT("Staff_")) + FString::FromInt(i));
 		T->SetOwner(this);
+		T->SetIsShopItem(true);
 		ItemList.Add(T);
 	}
 }
