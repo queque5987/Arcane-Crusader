@@ -10,10 +10,10 @@ void UCQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 	bCleared = false;
 	QuestBG->SetColorAndOpacity(FLinearColor(1.f, 0.0f, 0.f, 0.4f));
 	QualifiedColor = FLinearColor(0.f, 1.0f, 0.f, 0.4f);
-	QuestData = ListItemObject;
 
-	if (UCQuestData* QD = Cast<UCQuestData>(QuestData))
+	if (UCQuestData* QD = Cast<UCQuestData>(ListItemObject))
 	{
+		QuestData = QD;
 		QuestNameString = QD->GetQuestName();
 		QuestName->SetText(FText::FromString(QuestNameString));
 		RequiredClasses = QD->GetRMonsterClass();
@@ -22,6 +22,7 @@ void UCQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 		QuestRecapString = QD->GetQuestRecap();
 		QuestRewardIndex = QD->GetQuestRewardIndex();
 		QuestInitializeIndex = QD->GetQuestInitializeIndex();
+		QuestRewardDialogueIndex = QD->GetQuestRewardDialogueIndex();
 		GivenNPC = QD->GetGivenNPC();
 		RefreshQuestRecap();
 	}
@@ -53,6 +54,7 @@ bool UCQuest::RefreshQuestRecap(UObject* AchievedObject)
 	{
 		QuestBG->SetColorAndOpacity(QualifiedColor);
 		bCleared = true;
+		//if (QuestData != nullptr) QuestData->SetbCleared(bCleared);
 	}
 	return bCleared;
 }
@@ -81,6 +83,7 @@ bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass)
 	{
 		QuestBG->SetColorAndOpacity(QualifiedColor);
 		bCleared = true;
+		//if (QuestData != nullptr) QuestData->SetbCleared(bCleared);
 	}
 	return bCleared;
 }

@@ -442,31 +442,31 @@ void ACPlayerController::NPCInteract_ShowAndInputReady(ACStaticNPC* NPC)
 void ACPlayerController::NPCInteract_Interact()
 {
 	if (ButtonActionUI == nullptr) return;
-	bool flag = false;
-	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
-	for (UUserWidget* QuestWidget : QuestWidgets)
-	{
-		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
-		if (WQ == nullptr) continue;
-		if (WQ->IsCleared() && WQ->GetGivenNPC() == ButtonActionUI->GetNPC())
-		{
-			flag = true;
-			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
-			if (QuestManage == nullptr) continue;
-			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
-			HUDOverlay->QuestList->RemoveItem(WQ->GetListItem());
-			WQ->Destruct();
+	//bool flag = false;
+	//TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	//for (UUserWidget* QuestWidget : QuestWidgets)
+	//{
+	//	UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+	//	if (WQ == nullptr) continue;
+	//	if (WQ->IsCleared() && WQ->GetGivenNPC() == ButtonActionUI->GetNPC())
+	//	{
+	//		flag = true;
+	//		IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+	//		if (QuestManage == nullptr) continue;
+	//		QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+	//		HUDOverlay->QuestList->RemoveItem(WQ->GetListItem());
+	//		WQ->Destruct();
 
-			UE_LOG(LogTemp, Log, TEXT("Quest Reward"));
+	//		UE_LOG(LogTemp, Log, TEXT("Quest Reward"));
 
-			// TO DO
-			// Data Table =+ Reward Dialogue Post Line
-			// PostLine -> Reward() Bind
-			//
-		}
-	}
-	HUDOverlay->QuestList->RequestRefresh();
-	if (flag) return;
+	//		// TO DO
+	//		// Data Table =+ Reward Dialogue Post Line
+	//		// PostLine -> Reward() Bind
+	//		//
+	//	}
+	//}
+	//HUDOverlay->QuestList->RequestRefresh();
+	//if (flag) return;
 
 	SetNPCConversationVisibility(true, ButtonActionUI->GetNPC());
 	NPCInteract_UnShow();
@@ -598,4 +598,86 @@ void ACPlayerController::SetSelectedPortal(int ArrIndex)
 {
 	if (NPCConversation == nullptr) return;
 	NPCConversation->SetLoadedMapIndex(ArrIndex);
+}
+
+UINT32 ACPlayerController::IsPossesQuestCleared(FString QuestName)
+{
+	//bool Flag_Match = false;
+	//bool Flag_Cleared = false;
+	//bool Flag_AleardyCleared = false; // TODO
+
+	//for (UCQuest* ClearedQuest : ClearedQuestArr)
+	for (FString ClearedQuest : ClearedQuestArr)
+	{
+		//if (ClearedQuest->GetQuestName() == QuestName) return QUEST_ALEARDY_CLEARED;
+		if (ClearedQuest == QuestName) return QUEST_ALEARDY_CLEARED;
+	}
+
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	for (UUserWidget* QuestWidget : QuestWidgets)
+	{
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+
+		if (WQ->GetQuestName() == QuestName)
+		{
+			//Flag_Match = true;
+			if (WQ->IsCleared()) return QUEST_CLEARED; //Flag_Cleared = true;
+			return QUEST_ALREADY_HAVE;
+		}
+	}
+	return QUEST_NO_MATCH;
+	//if (!Flag_Match) return QUEST_NO_MATCH;
+	//if (!Flag_Cleared) return QUEST_ALREADY_HAVE;
+	//return QUEST_CLEARED;
+	//return QUEST_ALEARDY_CLEARED; TODO
+}
+
+void ACPlayerController::MoveQuestToClearedByQuestName(FString QuestName)
+{
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	UCQuest* ClearedQuest = nullptr;
+	for (UUserWidget* QuestWidget : QuestWidgets)
+	{
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+
+		if (WQ->GetQuestName() == QuestName)
+		{
+			ClearedQuest = WQ;
+			break;
+		}
+	}
+	if (ClearedQuest == nullptr) return;
+	
+	HUDOverlay->QuestList->RemoveItem(ClearedQuest->GetListItem());
+	ClearedQuestArr.Add(ClearedQuest->GetQuestName());
+}
+
+void ACPlayerController::RemoveQuest(UObject* QuestDat)
+{
+	if (HUDOverlay == nullptr) return;
+	HUDOverlay->QuestList->RemoveItem(QuestDat);
+}
+
+bool ACPlayerController::IsQualifiedQuest(TArray<FString> RequiredQuestsArr)
+{
+	bool Flag = false;
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	for (FString RequiredQuest : RequiredQuestsArr)
+	{
+		//for (UCQuest* QuestWidget : ClearedQuestArr)
+		for (FString QuestWidget : ClearedQuestArr)
+		{
+			//if (QuestWidget->GetQuestName() == RequiredQuest)
+			if (QuestWidget == RequiredQuest)
+			{
+				Flag = true;
+				break;
+			}
+		}
+		if (!Flag) return false;
+		Flag = false;
+	}
+	return true;
 }

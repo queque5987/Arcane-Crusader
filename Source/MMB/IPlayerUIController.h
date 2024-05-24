@@ -17,7 +17,6 @@ class MMB_API IIPlayerUIController
 	GENERATED_BODY()
 
 public:
-	//virtual void SetSelectedPortal(UWorld* Level, FVector Location) {};
 	virtual void SetSelectedPortal(int ArrIndex) {};
 	virtual bool SetInventoryVisibility() { return false; };
 	virtual void AddInventoryItem(UClass* ItemClass) {};
@@ -25,11 +24,16 @@ public:
 	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) {};
 	virtual bool IsOnShop() { return false; };
 //DEPRECATED
-	virtual TArray<UObject*> GetInventoryItems() { return TArray<UObject*>(); };
+	//virtual TArray<UObject*> GetInventoryItems() { return TArray<UObject*>(); };
+
 	virtual void SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList) {};
 	virtual void ResumeShopInventoryItems() {};
 	virtual void AddAlert(FText e) {};
 
 	virtual void SetPressedButton(UUserWidget* SelectedButton) {};
-	//virtual void SetPressedQuest(UUserWidget* SelectedQuest) {};
+
+	virtual void RemoveQuest(UObject* QuestDat){}
+	virtual void MoveQuestToClearedByQuestName(FString QuestName) {}
+	virtual UINT32 IsPossesQuestCleared(FString QuestName) { return 0; }
+	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) { return false; }
 };

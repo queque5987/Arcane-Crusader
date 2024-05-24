@@ -11,13 +11,11 @@
 #include "Engine/Texture2D.h"
 #include "Materials/Material.h"
 #include "Slate/SlateBrushAsset.h"
+#include "IItemManager.h"
 #include "MMBGameModeBase.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class MMB_API AMMBGameModeBase : public AGameModeBase
+class MMB_API AMMBGameModeBase : public AGameModeBase, public IIItemManager
 {
 	GENERATED_BODY()
 
@@ -29,6 +27,8 @@ private:
 	TArray<UMaterialInstance*> DropItemMaterialsRarity;
 	TMap<FString, UTexture2D*> PreLoadedTextureMap;
 	//TArray<USlateBrushAsset*> SlateBrushArr;
+
+	class UDataTable* ItemTable;
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Zone)
@@ -45,4 +45,6 @@ public:
 	
 	UTexture2D* IconGetter(FString IconAssetName);
 
+
+	virtual class UCInventoryItemData* GetItem(FName ItemRowName) override;
 };

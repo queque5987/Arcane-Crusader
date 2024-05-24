@@ -15,6 +15,8 @@ UCLASS()
 class MMB_API UCListedQuest : public UUserWidget, public IUserObjectListEntry, public IIWidgetInteract
 {
 	GENERATED_BODY()
+
+	UCListedQuest(const FObjectInitializer& ObjectInitializer);
 public:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
@@ -34,9 +36,16 @@ protected:
 	const FSlateBrush* SB_Normal;
 	const FSlateBrush* SB_Pressed;
 
+	TArray<const FSlateColor*> QuestState_BackGroundColorArr;
+	UINT32 QuestState;
+	//const FSlateBrush* SB_Pressed;
+	//const FSlateBrush* SB_Pressed;
+
 	UFUNCTION()
 	void OnButtonClicked();
 
 public:
 	UObject* GetQuestData() { return QuestData; }
+	void ResumeButtonStyle();
+	UINT32 GetQuestState() { return QuestState; }
 };

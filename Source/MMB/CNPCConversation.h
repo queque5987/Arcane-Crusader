@@ -100,6 +100,13 @@ public:
 	TObjectPtr<UButton> BtnQuestLeave;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnQuestAccept;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> QuestRewardBox;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BtnQuestRewardAccept;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTileView> QuestRewardItemList;
 	
 
 	virtual void SetVisibility(ESlateVisibility InVisibility) override;
@@ -137,6 +144,8 @@ public:
 	void OnButtonQuestLeaveClicked();
 	UFUNCTION()
 	void OnButtonQuestAcceptClicked();
+	UFUNCTION()
+	void OnButtonQuestRewardAcceptClicked();
 
 	void AlertSwingby(float e, FText Line);
 	UFUNCTION()
@@ -161,7 +170,7 @@ private:
 	const int BUTTON_SHOP		= 4;
 	const int BUTTON_QUEST		= 5;
 	const int BUTTON_LEAVE		= 6;
-	const int BUTTON_TELEPORT	= 7;
+	const int REWARD_GIVE		= 7;
 	const int MAX_BUTTON_NUM	= 8;
 
 	int BUTTON_NEXT_POSTLINE;
@@ -170,7 +179,8 @@ private:
 	int BUTTON_SHOP_POSTLINE;
 	int BUTTON_QUEST_POSTLINE;
 	int BUTTON_LEAVE_POSTLINE;
-	int BUTTON_TELEPORT_POSTLINE;
+	int BUTTON_REWARD_POSTLINE;
+	//int BUTTON_TELEPORT_POSTLINE;	//DEPRECATED
 
 	bool IsQuest_NotTeleport = true;
 
@@ -194,4 +204,8 @@ private:
 
 	void SetSelectedShopItem(UUserWidget* SelectedButton);
 	void SetSelectedQuest(UUserWidget* SelectedButton);
+
+	void OpenQuestRewardBox();
+
+	void ResetSelectedWidgets();
 };

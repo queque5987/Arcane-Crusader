@@ -29,7 +29,8 @@ void UCNPCConversation::NativeConstruct()
 
 	BtnQuestLeave->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonQuestLeaveClicked);
 	BtnQuestAccept->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonQuestAcceptClicked);
-
+	BtnQuestRewardAccept->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonQuestRewardAcceptClicked);
+		
 	ShoppingBox->SetVisibility(ESlateVisibility::Hidden);
 
 	SwingbyAlertBox->SetVisibility(ESlateVisibility::Hidden);
@@ -100,6 +101,7 @@ void UCNPCConversation::SetVisibility(ESlateVisibility InVisibility)
 		NPCLineBox->SetVisibility(ESlateVisibility::Visible);
 		TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
 		QuestListBox->SetVisibility(ESlateVisibility::Hidden);
+		QuestRewardBox->SetVisibility(ESlateVisibility::Hidden);
 		//SwingbyAlertBox->SetVisibility(ESlateVisibility::Hidden);
 		SetLineFromDialogues(0);
 	}
@@ -193,7 +195,8 @@ void UCNPCConversation::OnButtonShopCloseClicked()
 {
 	SetLineFromDialogues(0);
 	ShoppingBox->SetVisibility(ESlateVisibility::Hidden);
-	SetSelectedShopItem(nullptr);
+	ResetSelectedWidgets();
+	//SetSelectedShopItem(nullptr);
 }
 
 void UCNPCConversation::OnButtonShopInClicked()
@@ -215,9 +218,9 @@ void UCNPCConversation::OnButtonQuestClicked()
 {
 	SetLineFromDialogues(BUTTON_QUEST_POSTLINE);
 
+	QuestListBox->SetVisibility(ESlateVisibility::Visible);
 	QuestBox_LoadNPCQuest();
 
-	QuestListBox->SetVisibility(ESlateVisibility::Visible);
 	//if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
 	//{
 	//	TArray<FQuestsRow*> Quests = NPC->GetQuest();
@@ -229,6 +232,7 @@ void UCNPCConversation::OnButtonQuestClicked()
 
 void UCNPCConversation::OnButtonLeaveClicked()
 {
+	ResetSelectedWidgets();
 	if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Close"));
@@ -240,17 +244,18 @@ void UCNPCConversation::OnButtonLeaveClicked()
 	}
 }
 
-//Depreated?
+//Depreated
 void UCNPCConversation::OnButtonTeleportClicked()
 {
-	SetLineFromDialogues(BUTTON_TELEPORT_POSTLINE);
-	TeleportableListBox->SetVisibility(ESlateVisibility::Visible);
+	//SetLineFromDialogues(BUTTON_TELEPORT_POSTLINE);
+	//TeleportableListBox->SetVisibility(ESlateVisibility::Visible);
 }
 
+//Depreated
 void UCNPCConversation::OnButtonTeleportCloseClicked()
 {
-	SetLineFromDialogues(BUTTON_TELEPORT_POSTLINE);
-	TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
+	//SetLineFromDialogues(BUTTON_TELEPORT_POSTLINE);
+	//TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCNPCConversation::OnButtonTeleportSendClicked()
@@ -327,21 +332,71 @@ void UCNPCConversation::OnButtonQuestLeaveClicked()
 {
 	QuestListBox->SetVisibility(ESlateVisibility::Hidden);
 	SetLineFromDialogues(0);
-	SetSelectedQuest(nullptr);
+	ResetSelectedWidgets();
+	//SetSelectedQuest(nullptr);
 	//SelectedButton_Quest = nullptr;
 }
 
 void UCNPCConversation::OnButtonQuestAcceptClicked()
 {
-	QuestListBox->SetVisibility(ESlateVisibility::Hidden);
-
 	if (SelectedButton_Quest == nullptr) return;
 	UCListedQuest* ListedQuest = Cast<UCListedQuest>(SelectedButton_Quest);
 	if (ListedQuest == nullptr) return;
 	UCQuestData* QuestData = Cast<UCQuestData>(ListedQuest->GetQuestData());
 	if (QuestData == nullptr) return;
-	//LoadedQuestData = QuestData;
-	SetLineFromDialogues(QuestData->GetQuestDialogueIndex());
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+	//UINT32 QuestState = UIController->IsPossesQuestCleared(QuestData->GetQuestName());
+
+	UINT32 QuestState = ListedQuest->GetQuestState();
+	switch (QuestState)
+	{
+	case(QUEST_CLEARED):
+		//Give Reward
+		QuestListBox->SetVisibility(ESlateVisibility::Hidden);
+		SetLineFromDialogues(QuestData->GetQuestRewardDialogueIndex());
+		break;
+	case(QUEST_ALREADY_HAVE):
+		//Quest Yet UnCleared
+		UIController->AddAlert(FText::FromString(TEXT("퀘스트 깨고와용")));
+		break;
+	case(QUEST_ALEARDY_CLEARED):
+		//Already Cleard //TODO
+		UIController->AddAlert(FText::FromString(TEXT("이미 했어용")));
+		break;
+	case(QUEST_UNQUALIFIED):
+		UIController->AddAlert(FText::FromString(TEXT("아직 못해용")));
+		break;
+	case(QUEST_NO_MATCH):
+	default:
+		QuestListBox->SetVisibility(ESlateVisibility::Hidden);
+		SetLineFromDialogues(QuestData->GetQuestDialogueIndex());
+		break;
+	}
+
+	//if (ClearFlag) SetLineFromDialogues(QuestData->GetQuestRewardDialogueIndex());
+	//else SetLineFromDialogues(QuestData->GetQuestDialogueIndex()); 
+}
+
+void UCNPCConversation::OnButtonQuestRewardAcceptClicked()
+{
+	UCListedQuest* ListedQuest = Cast<UCListedQuest>(SelectedButton_Quest);
+	if (ListedQuest == nullptr) return;
+	UCQuestData* QuestData = Cast<UCQuestData>(ListedQuest->GetQuestData());
+	if (QuestData == nullptr) return;
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+	for (UObject* RewardItem : QuestRewardItemList->GetListItems())
+	{
+		UCInventoryItemData* tempRewardItemData = Cast<UCInventoryItemData>(RewardItem);
+		if (tempRewardItemData == nullptr) continue;
+		UIController->AddInventoryItem(tempRewardItemData);
+	}
+	QuestRewardBox->SetVisibility(ESlateVisibility::Hidden);
+	QuestRewardItemList->ClearListItems();
+
+	UIController->MoveQuestToClearedByQuestName(QuestData->GetQuestName());
+	SetLineFromDialogues(BUTTON_REWARD_POSTLINE);
 }
 
 void UCNPCConversation::AlertSwingby(float e, FText Line)
@@ -394,48 +449,25 @@ void UCNPCConversation::SetLineFromDialogues(int e)
 
 		NPCLine->SetText(FText::FromString(out[NPC_LINE]));
 
-		//int TransformPrior = 0;
-
 		BUTTON_NEXT_POSTLINE =		(FCString::Atoi(*out[BUTTON_NEXT]));
 		BUTTON_YES_POSTLINE =		(FCString::Atoi(*out[BUTTON_YES]));
 		BUTTON_NO_POSTLINE =		(FCString::Atoi(*out[BUTTON_NO]));
 		BUTTON_SHOP_POSTLINE =		(FCString::Atoi(*out[BUTTON_SHOP]));
 		BUTTON_QUEST_POSTLINE =		(FCString::Atoi(*out[BUTTON_QUEST]));
 		BUTTON_LEAVE_POSTLINE =		(FCString::Atoi(*out[BUTTON_LEAVE]));
-		BUTTON_TELEPORT_POSTLINE =	(FCString::Atoi(*out[BUTTON_TELEPORT]));
+		BUTTON_REWARD_POSTLINE =	(FCString::Atoi(*out[REWARD_GIVE]));
 
-		//TArray<UUserWidget*> Ws = ButtonsBox->GetDisplayedEntryWidgets();
-		////UE_LOG(LogTemp, Log, TEXT("Widgets : %d"), Ws.Num());
-		//for (int i = 0; i < Ws.Num(); i++)
-		//{
-		//	Ws[i]->SetVisibility((*ButtonPostlines[i+1] >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		//	UE_LOG(LogTemp, Log, TEXT("%s : %d"), *Ws[i]->GetName(), *ButtonPostlines[i + 1]);
-		//}
+		if (FCString::Atoi(*out[REWARD_GIVE]) >= 0) OpenQuestRewardBox();
 
-		BtnNext->		SetIsEnabled((BUTTON_NEXT_POSTLINE >= 0)		? true : false);
-		BtnYes->		SetIsEnabled((BUTTON_YES_POSTLINE >= 0)			? true : false);
-		BtnNo->			SetIsEnabled((BUTTON_NO_POSTLINE >= 0)			? true : false);
-		BtnShopIn->		SetIsEnabled((BUTTON_SHOP_POSTLINE >= 0)		? true : false);
-		BtnQuest->		SetIsEnabled((BUTTON_QUEST_POSTLINE >= 0)		? true : false);
-		BtnLeave->		SetIsEnabled((BUTTON_LEAVE_POSTLINE >= 0)		? true : false);
-		//BtnTeleport->	SetIsEnabled((BUTTON_TELEPORT_POSTLINE >= 0)	? true : false);
+		BtnNext->SetIsEnabled((BUTTON_NEXT_POSTLINE >= 0) ? true : false);
+		BtnYes->SetIsEnabled((BUTTON_YES_POSTLINE >= 0) ? true : false);
+		BtnNo->SetIsEnabled((BUTTON_NO_POSTLINE >= 0) ? true : false);
+		BtnShopIn->SetIsEnabled((BUTTON_SHOP_POSTLINE >= 0) ? true : false);
+		BtnQuest->SetIsEnabled((BUTTON_QUEST_POSTLINE >= 0) ? true : false);
+		BtnLeave->SetIsEnabled((BUTTON_LEAVE_POSTLINE >= 0) ? true : false);
 
+		// Set Accept Button To Work As Teleport Button Or Quest Accept
 		IsQuest_NotTeleport = (BUTTON_QUEST_POSTLINE >= 0) ? true : false;
-		UE_LOG(LogTemp, Log, TEXT("IsQuest_NotTeleport : %s"), IsQuest_NotTeleport ? TEXT("True") : TEXT("False"));
-		//BtnNext->		SetRenderScale((BUTTON_NEXT_POSTLINE >= 0)		? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-		//BtnYes->		SetRenderScale((BUTTON_YES_POSTLINE >= 0)		? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-		//BtnNo->SetRenderScale((BUTTON_NO_POSTLINE >= 0) ? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-		//BtnShopIn->SetRenderScale((BUTTON_SHOP_POSTLINE >= 0) ? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-		//BtnQuest->SetRenderScale((BUTTON_QUEST_POSTLINE >= 0) ? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-		//BtnLeave->SetRenderScale((BUTTON_LEAVE_POSTLINE >= 0) ? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-		//BtnTeleport->SetRenderScale((BUTTON_TELEPORT_POSTLINE >= 0) ? FVector2D(1.f, 1.f) : FVector2D::ZeroVector);
-
-		//BtnNext->SetVisibility	((BUTTON_NEXT_POSTLINE	 >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		//BtnYes->SetVisibility	((BUTTON_YES_POSTLINE	 >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		//BtnNo->SetVisibility	((BUTTON_NO_POSTLINE	 >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		//BtnShopIn->SetVisibility((BUTTON_SHOP_POSTLINE	 >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		//BtnQuest->SetVisibility	((BUTTON_QUEST_POSTLINE	 >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		//BtnLeave->SetVisibility	((BUTTON_LEAVE_POSTLINE	 >= 0) ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 }
 
@@ -521,6 +553,55 @@ void UCNPCConversation::SetSelectedQuest(UUserWidget* SelectedButton)
 	}
 }
 
+void UCNPCConversation::OpenQuestRewardBox()
+{
+	QuestRewardItemList->ClearListItems();
+	QuestRewardBox->SetVisibility(ESlateVisibility::Visible);
+
+	UCListedQuest* QuestWidget = Cast<UCListedQuest>(SelectedButton_Quest);
+	if (QuestWidget == nullptr) return;
+	UCQuestData* QuestData = Cast<UCQuestData>(QuestWidget->GetListItem());
+	if (QuestData == nullptr) return;
+	TArray<FName> QuestRewards = QuestData->GetQuestRewards();
+
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetOwningPlayer()->GetWorld()->GetAuthGameMode());
+	for (FName QuestReward : QuestRewards)
+	{
+		UCInventoryItemData* ItemData = ItemManager->GetItem(QuestReward);
+		QuestRewardItemList->AddItem(ItemData);
+	}
+}
+
+void UCNPCConversation::ResetSelectedWidgets()
+{
+	if (SelectedButton_ToBuy != nullptr)
+	{
+		IIWidgetInteract* InteractableWidget = Cast<IIWidgetInteract>(SelectedButton_ToBuy);
+		InteractableWidget->SwitchPressed(false);
+		SelectedButton_ToBuy = nullptr;
+		//for (UUserWidget* DisplayedWidget : ItemList->GetDisplayedEntryWidgets())
+		//{
+		//	IIWidgetInteract* InteractableWidget = Cast<IIWidgetInteract>(DisplayedWidget);
+		//	InteractableWidget->SwitchPressed(false);
+		//}
+	}
+
+	if (SelectedButton_ToSell != nullptr)
+	{
+		IIWidgetInteract* InteractableWidget = Cast<IIWidgetInteract>(SelectedButton_ToSell);
+		InteractableWidget->SwitchPressed(false);
+		SelectedButton_ToSell = nullptr;
+	}
+
+	if (SelectedButton_Quest != nullptr)
+	{
+		IIWidgetInteract* InteractableWidget = Cast<IIWidgetInteract>(SelectedButton_Quest);
+		InteractableWidget->SwitchPressed(false);
+		SelectedButton_Quest = nullptr;
+	}
+
+}
+
 void UCNPCConversation::ShoppingBox_LoadPlayerInventory()
 {
 	IIPlayerUIController* IController = Cast<IIPlayerUIController>(GetOwningPlayer());
@@ -531,14 +612,33 @@ void UCNPCConversation::ShoppingBox_LoadPlayerInventory()
 
 void UCNPCConversation::QuestBox_LoadNPCQuest()
 {
+	QuestList->ClearListItems();
+
 	if (NPC == nullptr) return;
 	TArray<FQuestsRow*> ContainingQuests = NPC->GetQuest();
+
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+
 	for (FQuestsRow* ContainingQuest : ContainingQuests)
 	{
 		UCQuestData* ID = NewObject<UCQuestData>(this, UCQuestData::StaticClass(), FName(ContainingQuest->QuestName));
 		if (ID == nullptr) continue;
+
+		TArray<FString> RequiredQuests = ContainingQuest->RequiredQuest;
+
+		//UINT32 PlayerQuestState = UIController->IsPossesQuestCleared(ContainingQuest->QuestName);
+		//ID->SetQuestState(PlayerQuestState);
 		ID->SetDetails(ContainingQuest);
 		QuestList->AddItem(ID);
+	}
+	QuestList->RequestRefresh();
+
+	for (UUserWidget* W : QuestList->GetDisplayedEntryWidgets())
+	{
+		UCListedQuest* ListedQuestWidget = Cast<UCListedQuest>(W);
+		if (ListedQuestWidget == nullptr) continue;
+		ListedQuestWidget->ResumeButtonStyle();
 	}
 }
 

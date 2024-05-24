@@ -33,7 +33,8 @@ public:
 	class ACStaticNPC* GetGivenNPC() { return GivenNPC; };
 	void SetGivenNPC(class ACStaticNPC* NPC) { GivenNPC = NPC; };
 protected:
-	UObject* QuestData;
+	//UObject* QuestData;
+	UCQuestData* QuestData;
 	FString QuestRecapString;
 	FString QuestNameString;
 	bool bCleared;
@@ -42,6 +43,7 @@ protected:
 	TArray<int> AcquiredQuantities;
 	TArray<int> RequiredQuantities;
 	int QuestRewardIndex;
+	int QuestRewardDialogueIndex;
 	int QuestInitializeIndex;
 private:
 	FLinearColor QualifiedColor;

@@ -15,12 +15,16 @@ class MMB_API UCQuestData : public UObject
 {
 	GENERATED_BODY()
 	UCQuestData(const FObjectInitializer& ObjectInitializer);
+
+	// Row Properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FString QuestName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FString QuestRecap;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int QuestDialogueIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int QuestRewardDialogueIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int QuestInitializeIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
@@ -31,9 +35,19 @@ class MMB_API UCQuestData : public UObject
 	TArray<int> RQuantity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	class ACStaticNPC* GivenNPC;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	TArray<FName> QuestRewards;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	TArray<FString> RequiredQuest;
+
+	UINT32 QuestState = 0;
+
+	//Deprecated
+	//bool bCleared;
 public:
 	void SetDetails(FQuestsRow* Row);
 
+	// Row Properties Getter Setter
 	FString GetQuestName() { return QuestName; }
 	void SetQuestName(FString e) { QuestName = e; }
 	FString GetQuestRecap() { return QuestRecap; }
@@ -50,7 +64,20 @@ public:
 	void SetRQuantity(TArray<int> e) { RQuantity = e; }
 	class ACStaticNPC* GetGivenNPC() { return GivenNPC; }
 	void SetGivenNPC(class ACStaticNPC* e) { GivenNPC = e; }
+	int GetQuestRewardDialogueIndex() { return QuestRewardDialogueIndex; }
+	void SetQuestRewardDialogueIndex(int e) { QuestRewardDialogueIndex = e; }
+	TArray<FName> GetQuestRewards() { return QuestRewards; }
+	void SetQuestRewards(TArray<FName> e) { QuestRewards = e; }
+	TArray<FString> GetRequiredQuest() { return RequiredQuest; }
+	void SetRequiredQuest(TArray<FString> e) { RequiredQuest = e; }
 
+
+	void SetQuestState(UINT32 e) { QuestState = e; }
+	UINT32 GetQuestState() { return QuestState; }
+
+	//Deprecated
+	//bool GetbCleared() { return bCleared; }
+	//void SetbCleared(bool e) { bCleared = e; }
 private:
 	UClass* GetClassFromPath(FString ClassPath);
 };

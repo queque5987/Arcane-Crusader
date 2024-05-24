@@ -79,6 +79,9 @@ protected:
 
 	TArray<class ACDroppedItem*> DroppedItemPtrArr;
 
+	//TArray<class UCQuest*> ClearedQuestArr;
+	TArray<FString> ClearedQuestArr;
+
 	class UCButtonAction* ButtonActionUI;
 	class ACClimbableRope* GraspingRope;
 	int32 JumpStartPoint;
@@ -128,4 +131,8 @@ public:
 
 	//Teleport Map Select
 	virtual void SetSelectedPortal(int ArrIndex) override;
+	virtual UINT32 IsPossesQuestCleared(FString QuestName) override;
+	virtual void MoveQuestToClearedByQuestName(FString QuestName) override;
+	virtual void RemoveQuest(UObject* QuestDat) override;
+	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) override;
 };

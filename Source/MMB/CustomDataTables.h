@@ -20,6 +20,9 @@ public:
 	int QuestDialogueIndex;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int QuestRewardDialogueIndex;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString QuestRecap;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
@@ -33,6 +36,12 @@ public:
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<int> QuestRequiredQuantity;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<FName> QuestRewards;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<FString> RequiredQuest;
 };
 
 USTRUCT(BlueprintType)
@@ -96,6 +105,27 @@ public:
 	FString PreviewSlateBrush;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int RelatedQuestIndex;
+};
+
+USTRUCT(BlueprintType)
+struct FItemTableRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString ItemClass;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString ItemName;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString IconTexture;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 ItemPrice;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float AttackDamage;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 Rarity;
 };
 
 UCLASS()

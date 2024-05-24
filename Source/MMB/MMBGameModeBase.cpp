@@ -8,6 +8,7 @@
 #include "CStaff.h"
 #include "CBattleStaff.h"
 #include "Modules/ModuleManager.h"
+#include "CInventoryItemData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 AMMBGameModeBase::AMMBGameModeBase()
@@ -41,6 +42,9 @@ AMMBGameModeBase::AMMBGameModeBase()
 
 	//ConstructorHelpers::FObjectFinder<USlateBrushAsset>SB_DesertFinder(TEXT("/Game/Resources/Image/SB_Desert.SB_Desert"));
 	//if (SB_DesertFinder.Succeeded())	SlateBrushArr[SB_DESERT] = SB_DesertFinder.Object;
+
+	ConstructorHelpers::FObjectFinder<UDataTable> ItemTableFinder(TEXT("/Game/Resources/DataTables/DT_ItemTable.DT_ItemTable"));
+	if (ItemTableFinder.Succeeded())	ItemTable = ItemTableFinder.Object;
 
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> AssetData;
@@ -108,6 +112,24 @@ UTexture2D* AMMBGameModeBase::IconGetter(FString IconAssetName)
 {
 	//return PreLoadedTextureMap.Find(IconAssetName);
 	return PreLoadedTextureMap.Contains(IconAssetName) ? PreLoadedTextureMap[IconAssetName] : DefaultIconDroppedItem;
+}
+
+UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName)
+{
+	FItemTableRow* Row = ItemTable->FindRow<FItemTableRow>(ItemRowName, FString(""));
+
+	if (Row == nullptr) return nullptr;
+
+	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName));
+	D->SetIconTexture(Row->IconTexture);
+	D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *Row->ItemClass));
+	D->SetItemCount(1); //?
+	D->SetstrName(Row->ItemName);
+	D->SetAttackDamage(Row->AttackDamage);
+	D->SetPrice(Row->ItemPrice);
+	D->SetRarity(Row->Rarity);
+	
+	return D;
 }
 
 //FSlateBrush* AMMBGameModeBase::GetSlateBrush(int32 e)
