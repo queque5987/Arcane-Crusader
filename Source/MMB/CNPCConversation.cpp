@@ -8,6 +8,7 @@
 #include "IPortalNPC.h"
 #include "CListedQuest.h"
 #include "CShopItem.h"
+#include "CGameInstance.h"
 
 void UCNPCConversation::NativeConstruct()
 {
@@ -324,13 +325,13 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 			if (AC == nullptr) return;
 			TSoftObjectPtr<UWorld> World = LoadedMap->GetDestLevel();
 			UGameplayStatics::OpenLevelBySoftObjectPtr(AC, LoadedMap->GetDestLevel());
-			//AC->SetActorLocation(LoadedMap->GetDestLocation());
-			//ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer());
-
-			//if (PCC != nullptr)
-			//{
-			//	PCC->SaveGame();
-			//}
+			UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
+			IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+			if (PCC != nullptr)
+			{
+				if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
+				else PCC->SaveGame(GI->SelectedSaveSlot);
+			}
 
 			//int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
 			//TArray<FQuestsRow*> Quests = NPC->GetQuest();

@@ -16,7 +16,7 @@ class MMB_API UCGameInstance : public UGameInstance
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Settings")
 	int32 SelectedSaveSlot;
-
+	TArray<uint8> TempSaveFileAddress;
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Settings")
 
 	virtual void Init() override;

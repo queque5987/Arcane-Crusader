@@ -128,7 +128,8 @@ void ACPlayerController::BeginPlay()
 
 	UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
 	if (GI == nullptr) return;
-	LoadGame(GI->SelectedSaveSlot);
+	if (GI->SelectedSaveSlot >= 0) LoadGame(GI->SelectedSaveSlot);
+	else LoadGame(GI->TempSaveFileAddress);
 }
 
 void ACPlayerController::DequeueDamageUI()
@@ -876,10 +877,93 @@ void ACPlayerController::SaveGame(int32 SlotIndex)
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 }
 
+void ACPlayerController::SaveGame(TArray<uint8>& MemoryAddress)
+{
+	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
+	if (SaveGameInstance != nullptr)
+	{
+		SaveGameInstance->SaveSlotName = "Save" + FString::FromInt(-1);
+		SaveGameInstance->SaveIndex = -1;
+
+		TArray<FName> ItemRowNames;
+		TArray<int> ItemCounts;
+		for (UObject* Item : ItemInventory->ItemList->GetListItems())
+		{
+			UCInventoryItemData* ID = Cast<UCInventoryItemData>(Item);
+			if (ID != nullptr)
+			{
+				SaveGameInstance->SavedItemListQ.Add(ID->GetItemCount());
+				SaveGameInstance->SavedItemList.Add(ID->GetDT_RowName());
+			}
+		}
+		if (UCInventoryItemData* W = Cast<UCInventoryItemData>(ItemInventory->Weapon->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedWeapon = W->GetDT_RowName();
+		}
+		if (UCInventoryItemData* A = Cast<UCInventoryItemData>(ItemInventory->Artifact->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedArtifact = A->GetDT_RowName();
+		}
+		if (UCInventoryItemData* M = Cast<UCInventoryItemData>(ItemInventory->Armor->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedArmor = M->GetDT_RowName();
+		}
+
+		IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+		if (PC != nullptr)
+		{
+			SaveGameInstance->SavedGold = PC->GetPlayerGold();
+		}
+		SaveGameInstance->SavedLevel = GetWorld()->GetCurrentLevel()->GetPathName();
+	}
+	//UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
+	UGameplayStatics::SaveGameToMemory(SaveGameInstance, MemoryAddress);
+}
+
 void ACPlayerController::LoadGame(int32 SaveSlot)
 {
 	if (SaveSlot < 0) return;
 	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot("Save" + FString::FromInt(SaveSlot), SaveSlot));
+	AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (SaveGameInstance == nullptr || GM == nullptr) return;
+
+	for (int i = 0; i < SaveGameInstance->SavedItemList.Num(); i++)
+	{
+		UCInventoryItemData* ID = GM->GetItem(SaveGameInstance->SavedItemList[i], SaveGameInstance->SavedItemListQ[i]);
+		if (ID == nullptr) continue;
+		AddInventoryItem(ID);
+	}
+
+	IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+	if (PC == nullptr) return;
+
+	UCInventoryItemData* W = GM->GetItem(SaveGameInstance->SavedWeapon);
+	if (W)
+	{
+		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(W->GetItemClass(), GetCharacter()->GetActorLocation(), FRotator::ZeroRotator);
+		IIWeapon* isWeapon = Cast<IIWeapon>(spawnedActor);
+		if (isWeapon != nullptr)
+		{
+			isWeapon->SetIsEquiped(true);
+			isWeapon->SetWeaponName(FName(W->GetstrName()));
+			isWeapon->SetAttackDamage(W->GetAttackDamage());
+
+			PC->Equip(*spawnedActor);
+		}
+		EquipItem(ITEM_TYPE_WEAPON, *W);
+	}
+
+	UCInventoryItemData* M = GM->GetItem(SaveGameInstance->SavedArmor);
+	if (M) EquipItem(ITEM_TYPE_ARMOR, *M);
+	UCInventoryItemData* A = GM->GetItem(SaveGameInstance->SavedArtifact);
+	if (A) EquipItem(ITEM_TYPE_ARTIFACT, *A);
+
+	PC->SetPlayerGold(SaveGameInstance->SavedGold);
+}
+
+void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
+{
+	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromMemory(MemoryAddress));
 	AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
 	if (SaveGameInstance == nullptr || GM == nullptr) return;
 

@@ -46,6 +46,7 @@ public:
 	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) { return false; }
 
 	virtual void SaveGame(int32 SlotIndex) {};
+	virtual void SaveGame(TArray<uint8>& MemoryAddress) {};
 	virtual void LoadGame(int32 SaveSlot) {};
-
+	virtual void LoadGame(TArray<uint8> MemoryAddress) {};
 };

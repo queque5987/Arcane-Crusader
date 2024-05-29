@@ -156,5 +156,8 @@ public:
 	virtual void RemoveQuest(UObject* QuestDat) override;
 	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) override;
 	virtual void SaveGame(int SlotIndex) override;
+	virtual void SaveGame(TArray<uint8>& MemoryAddress) override;
 	virtual void LoadGame(int32 SaveSlot) override;
+	virtual void LoadGame(TArray<uint8> MemoryAddress) override;
+
 };
