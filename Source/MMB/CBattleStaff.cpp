@@ -361,7 +361,9 @@ UCInventoryItemData* ACBattleStaff::GetItemData(ACharacter* PC)
 	UCInventoryItemData* ID = NewObject<UCInventoryItemData>(PC, UCInventoryItemData::StaticClass(), WeaponName);
 	ID->SetIconTexture(ItemData_IconTexture);
 	ID->SetPrice(ItemData_ItemPrice);
-	ID->SetAttackType(ItemData_AttackType);
+	ID->SetDT_RowName(ItemDTRowName);
+	//ID->SetAttackType(ItemData_AttackType);
+	ID->SetItemType(0);
 	ID->SetAttackDamage(AttackDamage);
 	ID->SetstrName(WeaponName.ToString());
 	ID->SetItemClass(ACBattleStaff::StaticClass());

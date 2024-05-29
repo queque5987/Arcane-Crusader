@@ -57,7 +57,7 @@ void ACDroppedItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
 		{
-			PCC->ShowDroppedItemList(true, this, PossessingItem);
+			PCC->ShowDroppedItemList(true, *this, PossessingItem);
 		}
 	}
 }
@@ -68,18 +68,18 @@ void ACDroppedItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
 		{
-			PCC->ShowDroppedItemList(false, this, PossessingItem);
+			PCC->ShowDroppedItemList(false, *this, PossessingItem);
 		}
 	}
 }
 
-void ACDroppedItem::SetPossessingItem(UCInventoryItemData* ItemData)
+void ACDroppedItem::SetPossessingItem(UCInventoryItemData& ItemData)
 {
-	PossessingItem = ItemData;
+	PossessingItem = &ItemData;
 
 	if (AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode()))
 	{
-		int32 R = ItemData->GetRarity();
+		int32 R = ItemData.GetRarity();
 		UMaterialInstance* Mat = GM->GetDropItemMaterial(R);
 		if (Mat != nullptr)
 		{

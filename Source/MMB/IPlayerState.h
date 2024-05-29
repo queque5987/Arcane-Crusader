@@ -25,5 +25,12 @@ public:
 	virtual void GainPlayerGold(UINT32 e) {};
 
 	virtual void SetRevivalPoint(FVector Pos) {};
+
 	virtual void SetHoverringUI(UUserWidget* UI) {};
+
+	virtual void SetStartPos(FVector StartPos) {};
+
+	virtual void Equip(class ACWeapon& ActorToEquip) {};
+	virtual void Equip(class AActor& ActorToEquip) {};
+	virtual void UnEquip() {};
 };

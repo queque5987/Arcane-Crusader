@@ -33,6 +33,6 @@ public:
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void SetPossessingItem(class UCInventoryItemData* ItemData);
+	void SetPossessingItem(class UCInventoryItemData& ItemData);
 	class UCInventoryItemData* GetPossessingItem() { return PossessingItem; }
 };

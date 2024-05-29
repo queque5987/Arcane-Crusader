@@ -41,7 +41,7 @@ public:
 	void SetJumpPoints(class ACJumpPoints* e);
 	class ACJumpPoints* GetJumpPoints() { return JumpPoints; }
 
-	void SetButtonMode(int e) { ButtonMode = e; }
+	void SetButtonMode(int e);
 	int GetButtonMode() { return ButtonMode; }
 
 	UFUNCTION()

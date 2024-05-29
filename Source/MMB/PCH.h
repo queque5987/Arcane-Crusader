@@ -61,7 +61,7 @@
 //#define UINT(1) << 26
 //#define UINT(1) << 27
 
-//#define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
+#define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
 //#define UINT(1) << 29
 //#define UINT(1) << 30
 //#define UINT(1) << 31
@@ -131,6 +131,11 @@
 #define QUEST_ALEARDY_CLEARED	UINT(3)
 #define QUEST_UNQUALIFIED		UINT(4)
 
+#define ITEM_TYPE_WEAPON	0
+#define ITEM_TYPE_ARTIFACT	1
+#define ITEM_TYPE_ARMOR		2
+#define ITEM_TYPE_GOLD		3
+
 struct AttackResult
 {
 	float StaminaUsed;
@@ -145,5 +150,26 @@ struct DELAY_START_PROJECTILE_CONFIGURE
 
 struct MonsterConfigure
 {
-	class UDataTable* DropTable;
+	MonsterConfigure(
+		class UDataTable* DropTable = nullptr,
+		float HP = 100.f, float MaxHP = 100.f,
+		float AttackDamage = 20.f, float MaxWalkSpeed = 350.f,
+		float FlyAcc = 0.5f, float VirticalAcc = 120.f)
+	{
+		_DropTable = DropTable;
+		_HP = HP;
+		_MaxHP = MaxHP;
+		_MaxWalkSpeed = MaxWalkSpeed;
+		_AttackDamage = AttackDamage;
+		_FlyAcc = FlyAcc;
+		_VirticalAcc = VirticalAcc;
+	}
+
+	class UDataTable* _DropTable;
+	float _HP;
+	float _MaxHP;
+	float _MaxWalkSpeed;
+	float _AttackDamage;
+	float _FlyAcc;
+	float _VirticalAcc;
 };

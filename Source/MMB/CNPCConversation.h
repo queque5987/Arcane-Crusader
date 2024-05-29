@@ -74,6 +74,8 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTileView> ItemList_Inventory;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> PlayerGold;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnShopBuy;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnShopSell;

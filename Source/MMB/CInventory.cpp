@@ -29,3 +29,20 @@ void UCInventory::SetVisibility(ESlateVisibility InVisibility)
 		PlayerGold->SetText(FText::FromString(FString::FromInt(PC->GetPlayerGold())));
 	}
 }
+
+bool UCInventory::EquipItem(int ItemType, UCInventoryItemData& ToEquipItemData)
+{
+	switch(ItemType)
+	{
+	case(0):
+		Weapon->AddItem(&ToEquipItemData);
+		return true;
+	case(1):
+		Artifact->AddItem(&ToEquipItemData);
+		return true;
+	case(2):
+		Armor->AddItem(&ToEquipItemData);
+		return true;
+	}
+	return false;
+}

@@ -27,7 +27,7 @@ ACEnemyCharacter::ACEnemyCharacter()
 	//GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 
 	RotationSpeed = 0.8f;
-	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetMesh()->SetCollisionObjectType(PlayerAttackChannel);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
@@ -237,7 +237,7 @@ void ACEnemyCharacter::Die()
 			bIsRagdoll = true;
 
 			//Drop Item
-			UCInventoryItemData* D;
+			//UCInventoryItemData* D;
 			FDropTableRow* R;
 			ACDroppedItem* DI;
 			AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
@@ -251,18 +251,23 @@ void ACEnemyCharacter::Die()
 				R = DropTable->FindRow<FDropTableRow>(RowName, FString(""));
 				if (R == nullptr || FMath::RandRange(0.f, 1.f) < R->ItemDropRate) continue;
 
-				D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(R->ItemName.ToString()));
-				D->SetIconTexture(R->ItemTexture);
-				D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *R->ItemClass));
-				//D->SetItemClass(GM->GetItemClass(R->ItemClass));
-				D->SetItemCount(1);
-				D->SetstrName(R->ItemName.ToString());
-				D->SetAttackDamage(R->ItemAttackDamage);
-				D->SetPrice(R->ItemPrice);
-				D->SetRarity(R->Rarity);
-
 				DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
-				DI->SetPossessingItem(D);
+				UCInventoryItemData* ID = GM->GetItem(FName(R->ItemCode));
+				if (ID == nullptr) continue;
+				DI->SetPossessingItem(*ID);
+
+				//D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(R->ItemName.ToString()));
+				//D->SetIconTexture(R->ItemTexture);
+				//D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *R->ItemClass));
+				////D->SetItemClass(GM->GetItemClass(R->ItemClass));
+				//D->SetItemCount(1);
+				//D->SetstrName(R->ItemName.ToString());
+				//D->SetAttackDamage(R->ItemAttackDamage);
+				//D->SetPrice(R->ItemPrice);
+				//D->SetRarity(R->Rarity);
+
+				//DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
+				//DI->SetPossessingItem(D);
 			}
 
 			//for (int i = 0; i < DropRates.Num(); i++)
@@ -318,4 +323,14 @@ void ACEnemyCharacter::SetbAttacking(bool e)
 	SetBBAttacking.ExecuteIfBound(e);
 	//UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
 	bAttacking = e;
+}
+
+void ACEnemyCharacter::SetMonsterConfig(MonsterConfigure& Config)
+{
+	DropTable = Config._DropTable;
+	AttackDamage =  Config._AttackDamage;
+	WalkSpeed = Config._MaxWalkSpeed;
+	HP = Config._HP;
+	MaxHP = Config._MaxHP;
+
 }

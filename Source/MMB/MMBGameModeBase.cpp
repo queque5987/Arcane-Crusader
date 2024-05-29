@@ -9,12 +9,14 @@
 #include "CBattleStaff.h"
 #include "Modules/ModuleManager.h"
 #include "CInventoryItemData.h"
+#include "CGameInstance.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 AMMBGameModeBase::AMMBGameModeBase()
 {
 	DefaultPawnClass = ACPlayerCharacter::StaticClass();
 	PlayerControllerClass = ACPlayerController::StaticClass();
+	//PlayerStateClass = ACPlayerState::StaticClass();
 
 	PreLoadedTextures.SetNum(MAX_PRELOADED_TEXTURES_NUM);
 	DropItemMaterialsRarity.SetNum(MAX_ITEM_RARITY_NUM);
@@ -59,9 +61,9 @@ AMMBGameModeBase::AMMBGameModeBase()
 		PreLoadedTextureMap.Add(Dat.AssetName.ToString(), tempTexture);
 	}
 
-	FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
-	TSoftObjectPtr<UWorld> testlevel(path);
-	LevelToLoad = testlevel;
+	//FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
+	//TSoftObjectPtr<UWorld> testlevel(path);
+	//LevelToLoad = testlevel;
 }
 
 void AMMBGameModeBase::BeginPlay()
@@ -75,6 +77,8 @@ void AMMBGameModeBase::BeginPlay()
 
 	TArray<AActor*> Entrances;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACStaticNPC::StaticClass(), Entrances);
+
+	GameInstance = Cast<UCGameInstance>(GetGameInstance());
 
 	/*for (auto& NPC : NPCs)
 	{
@@ -114,20 +118,23 @@ UTexture2D* AMMBGameModeBase::IconGetter(FString IconAssetName)
 	return PreLoadedTextureMap.Contains(IconAssetName) ? PreLoadedTextureMap[IconAssetName] : DefaultIconDroppedItem;
 }
 
-UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName)
+UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 {
 	FItemTableRow* Row = ItemTable->FindRow<FItemTableRow>(ItemRowName, FString(""));
 
 	if (Row == nullptr) return nullptr;
-
-	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName));
+	
+	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName + FString::FromInt(Count)));
+	D->SetDT_RowName(ItemRowName);
 	D->SetIconTexture(Row->IconTexture);
 	D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *Row->ItemClass));
-	D->SetItemCount(1); //?
+	D->SetItemCount(Count);
 	D->SetstrName(Row->ItemName);
 	D->SetAttackDamage(Row->AttackDamage);
 	D->SetPrice(Row->ItemPrice);
+	D->SetItemType(Row->ItemType);
 	D->SetRarity(Row->Rarity);
+	D->SetItemDetail(FText::FromString(Row->ItemDetail));
 	
 	return D;
 }

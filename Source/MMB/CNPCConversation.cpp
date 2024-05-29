@@ -39,6 +39,8 @@ void UCNPCConversation::NativeConstruct()
 	InSwingbyClock = 0.f;
 
 	TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
+	QuestListBox->SetVisibility(ESlateVisibility::Hidden);
+	QuestRewardBox->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCNPCConversation::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -87,7 +89,8 @@ void UCNPCConversation::SetVisibility(ESlateVisibility InVisibility)
 		}
 	}
 
-	if (NPC != nullptr && InVisibility == ESlateVisibility::Visible)
+	//if (NPC != nullptr && InVisibility == ESlateVisibility::Visible)
+	if (InVisibility == ESlateVisibility::Visible)
 	{
 		if (GetWorld()->GetTimerManager().TimerExists(SwingbyTimerHandle))
 		{
@@ -95,14 +98,13 @@ void UCNPCConversation::SetVisibility(ESlateVisibility InVisibility)
 			AllowInput = false;
 			InSwingbyTime = 0.f;
 		}
-		ItemList->ClearListItems();
-		NPC->SetNPCConversationItemList(ItemList);
+		//ItemList->ClearListItems();
+		//if (NPC != nullptr) NPC->SetNPCConversationItemList(ItemList);
 		ShoppingBox->SetVisibility(ESlateVisibility::Hidden);
 		NPCLineBox->SetVisibility(ESlateVisibility::Visible);
 		TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
 		QuestListBox->SetVisibility(ESlateVisibility::Hidden);
 		QuestRewardBox->SetVisibility(ESlateVisibility::Hidden);
-		//SwingbyAlertBox->SetVisibility(ESlateVisibility::Hidden);
 		SetLineFromDialogues(0);
 	}
 }
@@ -163,12 +165,16 @@ void UCNPCConversation::OnButtonYesClicked()
 					ID = NewObject<UCTeleportableMapData>(this, UCTeleportableMapData::StaticClass(), R->LevelName);
 					if (ID != nullptr)
 					{
-						UObject* L = StaticLoadObject(UWorld::StaticClass(), nullptr, *R->Level);
+						FSoftObjectPath path = FSoftObjectPath(R->Level);
+						TSoftObjectPtr<UWorld> DestLevel(path);
+						ID->SetDestLevel(DestLevel);
+
+						//UObject* L = StaticLoadObject(UWorld::StaticClass(), nullptr, *R->Level);
 						//UWorld* L = LoadObject<UWorld*>(*R->Level);
-						if (UWorld* W = Cast<UWorld>(L))
-						{
-							ID->SetDestLevel(W);
-						}
+						//if (UWorld* W = Cast<UWorld>(L))
+						//{
+							//ID->SetDestLevel(W);
+						//}
 						ID->SetDestLevelName(R->LevelName);
 						ID->SetDestLocation(R->Pos);
 						ID->SetArrIndex(temp++);
@@ -205,6 +211,8 @@ void UCNPCConversation::OnButtonShopInClicked()
 	ShoppingBox->SetVisibility(ESlateVisibility::Visible);
 	ShoppingBox_LoadPlayerInventory();
 	SetSelectedShopItem(nullptr);
+	ItemList->ClearListItems();
+	if (NPC != nullptr) NPC->SetNPCConversationItemList(ItemList);
 	//SelectedButton_ToBuy = nullptr;
 	//SelectedButton_ToSell = nullptr;
 }
@@ -251,11 +259,10 @@ void UCNPCConversation::OnButtonTeleportClicked()
 	//TeleportableListBox->SetVisibility(ESlateVisibility::Visible);
 }
 
-//Depreated
 void UCNPCConversation::OnButtonTeleportCloseClicked()
 {
-	//SetLineFromDialogues(BUTTON_TELEPORT_POSTLINE);
-	//TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
+	SetLineFromDialogues(0);
+	TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCNPCConversation::OnButtonTeleportSendClicked()
@@ -265,7 +272,12 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 	{
 		UCTeleportableMapData* LoadedMap = Cast<UCTeleportableMapData>(TeleportableMapList->GetItemAt(LoadedMapIndex));
 		
-		if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevel()->GetMapName())
+		TSoftObjectPtr<UWorld> dLevel = LoadedMap->GetDestLevel();
+		
+		//FString MapName = dLevel->GetMapName();
+		// 
+		//Depricated
+		if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevelName().ToString())
 		{
 			//Just Location
 			UE_LOG(LogTemp, Log, TEXT("Teleporting to %s At %s"),
@@ -279,13 +291,13 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 			if (AC == nullptr) return;
 			AC->SetActorLocation(LoadedMap->GetDestLocation());
 
+			//If With Quest
 			int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
 			if (RelatedQuestIndex < 0)
 			{
 				OnButtonLeaveClicked();
 				return;
 			}
-			//If With Quest
 			TArray<FQuestsRow*> Quests = NPC->GetQuest();
 			if (!Quests.IsValidIndex(RelatedQuestIndex))
 			{
@@ -305,8 +317,33 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 		}
 		else
 		{
-			//Load Level
-			//Move to Pos
+
+			AController* ACC = GetOwningPlayer();
+			if (ACC == nullptr) return;
+			ACharacter* AC = ACC->GetCharacter();
+			if (AC == nullptr) return;
+			TSoftObjectPtr<UWorld> World = LoadedMap->GetDestLevel();
+			UGameplayStatics::OpenLevelBySoftObjectPtr(AC, LoadedMap->GetDestLevel());
+			//AC->SetActorLocation(LoadedMap->GetDestLocation());
+			//ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer());
+
+			//if (PCC != nullptr)
+			//{
+			//	PCC->SaveGame();
+			//}
+
+			//int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
+			//TArray<FQuestsRow*> Quests = NPC->GetQuest();
+
+			//if ((RelatedQuestIndex < 0 || !Quests.IsValidIndex(RelatedQuestIndex)) || PCC == nullptr)
+			//{
+			//	return;
+			//}
+			//FQuestsRow* Quest = Quests[RelatedQuestIndex];
+			//if (Quest != nullptr)
+			//{
+			//	PCC->AddQuest(Quest);
+			//}
 		}
 	}
 	// TO Do : Move to Selected Map
@@ -318,6 +355,7 @@ void UCNPCConversation::OnButtonBuyClicked()
 	UCShopItem* ShopItem = Cast<UCShopItem>(SelectedButton_ToBuy);
 	if (ShopItem == nullptr) return;
 	ShopItem->BuyItem();
+	ShoppingBox_LoadPlayerInventory();
 }
 
 void UCNPCConversation::OnButtonSellClicked()
@@ -326,6 +364,7 @@ void UCNPCConversation::OnButtonSellClicked()
 	UCShopItem* ShopItem = Cast<UCShopItem>(SelectedButton_ToSell);
 	if (ShopItem == nullptr) return;
 	ShopItem->SellItem();
+	ShoppingBox_LoadPlayerInventory();
 }
 
 void UCNPCConversation::OnButtonQuestLeaveClicked()
@@ -440,8 +479,19 @@ void UCNPCConversation::SetLineFromDialogues(int e)
 	{
 		FNPCDialoguesRow* Row = Dialogues[e];
 		NPCName->SetText(Row->NPCName);
+		NPCLine->SetText(Row->NPCDialogue);
 
-		TArray<FString> out;
+		BUTTON_NEXT_POSTLINE = Row->BUTTON_NEXT_POSTLINE;
+		BUTTON_YES_POSTLINE = Row->BUTTON_YES_POSTLINE;
+		BUTTON_NO_POSTLINE = Row->BUTTON_NO_POSTLINE;
+		BUTTON_SHOP_POSTLINE = Row->BUTTON_SHOP_POSTLINE;
+		BUTTON_QUEST_POSTLINE = Row->BUTTON_QUEST_POSTLINE;
+		BUTTON_LEAVE_POSTLINE = Row->BUTTON_LEAVE_POSTLINE;
+		BUTTON_REWARD_POSTLINE = Row->BUTTON_REWARD_POSTLINE;
+
+		if (BUTTON_REWARD_POSTLINE >= 0) OpenQuestRewardBox();
+
+		/*TArray<FString> out;
 		const TCHAR* d[] = { TEXT("//") };
 		Row->NPCDialogue.ToString().ParseIntoArray(out, d, 1);
 		out.SetNum(MAX_BUTTON_NUM+1);
@@ -457,7 +507,7 @@ void UCNPCConversation::SetLineFromDialogues(int e)
 		BUTTON_LEAVE_POSTLINE =		(FCString::Atoi(*out[BUTTON_LEAVE]));
 		BUTTON_REWARD_POSTLINE =	(FCString::Atoi(*out[REWARD_GIVE]));
 
-		if (FCString::Atoi(*out[REWARD_GIVE]) >= 0) OpenQuestRewardBox();
+		if (FCString::Atoi(*out[REWARD_GIVE]) >= 0) OpenQuestRewardBox();*/
 
 		BtnNext->SetIsEnabled((BUTTON_NEXT_POSTLINE >= 0) ? true : false);
 		BtnYes->SetIsEnabled((BUTTON_YES_POSTLINE >= 0) ? true : false);
@@ -563,13 +613,20 @@ void UCNPCConversation::OpenQuestRewardBox()
 	UCQuestData* QuestData = Cast<UCQuestData>(QuestWidget->GetListItem());
 	if (QuestData == nullptr) return;
 	TArray<FName> QuestRewards = QuestData->GetQuestRewards();
+	TArray<int> QuestRewardsQ = QuestData->GetQuestRewardsQuantity();
 
 	IIItemManager* ItemManager = Cast<IIItemManager>(GetOwningPlayer()->GetWorld()->GetAuthGameMode());
-	for (FName QuestReward : QuestRewards)
+	for (int i = 0; i < QuestRewards.Num(); i++)
 	{
-		UCInventoryItemData* ItemData = ItemManager->GetItem(QuestReward);
+		UCInventoryItemData* ItemData = ItemManager->GetItem(QuestRewards[i], QuestRewardsQ[i]);
+		if (QuestRewardsQ[i] > 1) ItemData->SetItemCount(QuestRewardsQ[i]);
 		QuestRewardItemList->AddItem(ItemData);
 	}
+	//for (FName QuestReward : QuestRewards)
+	//{
+	//	UCInventoryItemData* ItemData = ItemManager->GetItem(QuestReward);
+	//	QuestRewardItemList->AddItem(ItemData);
+	//}
 }
 
 void UCNPCConversation::ResetSelectedWidgets()
@@ -606,8 +663,11 @@ void UCNPCConversation::ShoppingBox_LoadPlayerInventory()
 {
 	IIPlayerUIController* IController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (IController == nullptr) return;
+	IIPlayerState* PC = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	if (PC == nullptr) return;
 	ItemList_Inventory->ClearListItems();
 	IController->SetShopInventoryItems(ItemList_Inventory);
+	PlayerGold->SetText(FText::FromString(FString::FromInt(PC->GetPlayerGold())));
 }
 
 void UCNPCConversation::QuestBox_LoadNPCQuest()

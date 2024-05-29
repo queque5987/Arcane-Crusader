@@ -10,8 +10,8 @@ void UCShopItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 	if (UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData))
 	{
 		ItemPrice->SetText(FText::FromString(FString::FromInt(ID->GetPrice())));
-		ItemType->SetText(FText::FromString(ID->GetAttackType()));
-		ItemATK->SetText(FText::FromString(FString::SanitizeFloat(ID->GetAttackDamage())));
+		//ItemType->SetText(FText::FromString(ID->GetAttackType()));
+		//ItemATK->SetText(FText::FromString(FString::SanitizeFloat(ID->GetAttackDamage())));
 		ItemName->SetText(FText::FromString(ID->GetstrName()));
 		IsShopItem = ID->GetIsShopItem();
 	}

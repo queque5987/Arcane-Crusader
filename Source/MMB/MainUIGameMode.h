@@ -8,16 +8,24 @@
 #include "MainUIGameMode.generated.h"
 
 UCLASS()
-class MMB_API AMainUIGameMode : public AGameModeBase
+class MMB_API AMainUIGameMode : public AGameModeBase, public IIItemManager
 {
 	GENERATED_BODY()
 	
 	AMainUIGameMode();
 
-	//virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
+
+	class UDataTable* ItemTable;
+	class UCGameInstance* GameInstance;
+	UTexture2D* DefaultIconDroppedItem;
+	TMap<FString, UTexture2D*> PreLoadedTextureMap;
 
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Zone)
 	TSoftObjectPtr<UWorld> LevelToLoad;
+
+	virtual UTexture2D* IconGetter(FString IconAssetName) override;
+	virtual class UCInventoryItemData* GetItem(FName ItemRowName, int Count = 1) override;
 };

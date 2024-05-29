@@ -22,7 +22,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "IPlayerState.h"
 #include "IPlayerQuest.h"
-#include "QuestComponent.h"
+#include "QuestComponent.h" 
 #include "CPlayerCharacter.generated.h"
 
 DECLARE_DELEGATE(FLMBAttack);
@@ -76,6 +76,8 @@ public:
 	class UInputAction* AnyKeyAction;
 	UPROPERTY()
 	class UInputAction* ScrollAction;
+	UPROPERTY()
+	class UInputAction* ESCAction;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmComponent;
@@ -122,6 +124,8 @@ public:
 	bool IsWeaponEquiped = false;
 protected:
 	virtual void BeginPlay() override;
+	FVector StartPos;
+
 	UQuestComponent* QuestComponent;
 
 	UPROPERTY()
@@ -201,10 +205,12 @@ public:
 	void Anykey_Triggered();
 	UFUNCTION()
 	void Scroll(const FInputActionValue& Value);
+	void ESC();
 
 
-	void Equip(class ACWeapon& ActorToEquip);
-	void Equip(class AActor& ActorToEquip);
+	virtual void Equip(class ACWeapon& ActorToEquip) override;
+	virtual void Equip(class AActor& ActorToEquip) override;
+	virtual void UnEquip() override;
 	//void Equip(TSubClassOf<AActor>& ActorToEquip);
 
 
@@ -251,4 +257,6 @@ public:
 
 	virtual void QuestClear(int e) override;
 	virtual void QuestInitialize(int e) override;
+
+	virtual void SetStartPos(FVector e) override;
 };

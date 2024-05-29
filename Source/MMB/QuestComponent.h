@@ -17,9 +17,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void Quest0();
+	void Quest1();
+	//void Quest2();
+	void Quest3();
 	void Init_Quest0();
 	void Init_Quest1();
-	//void Init_Quest2();
+	void Init_Quest2();
+	void Init_Quest3();
 
 private:
 	AActor* FindActorByLabel(TSubclassOf<AActor> FindClass, FString Label);

@@ -17,12 +17,12 @@ public:
 	//TObjectPtr<UImage> ItemImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemPrice;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemType;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemATK;
 	//UPROPERTY(meta = (BindWidget))
-	//TObjectPtr<UTextBlock> ItemName;
+	//TObjectPtr<UTextBlock> ItemType;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UTextBlock> ItemATK;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ItemName;
 	virtual void OnRightClicked() override;
 	virtual void SwitchPressed(bool Pressed) override;
 	virtual bool GetbPressed() override { return bPressed; }

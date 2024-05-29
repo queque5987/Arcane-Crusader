@@ -17,6 +17,7 @@ class MMB_API IIItemManager
 	GENERATED_BODY()
 
 public:
+	virtual UTexture2D* IconGetter(FString IconAssetName) { return nullptr; };
 
-	virtual class UCInventoryItemData* GetItem(FName ItemRowName) { return nullptr; }
+	virtual class UCInventoryItemData* GetItem(FName ItemRowName, int Count = 1) { return nullptr; }
 };

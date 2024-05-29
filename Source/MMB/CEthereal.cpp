@@ -2,6 +2,7 @@
 
 
 #include "CEthereal.h"
+#include "IItemManager.h"
 
 ACEthereal::ACEthereal() : Super()
 {
@@ -77,19 +78,30 @@ void ACEthereal::Initialize()
 {
 	ItemList.Empty();
 
-	for (int i = 0; i < 3; ++i)
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+	if (ItemManager == nullptr) return;
+
+	for (FName PossessItemRowName : PossessItems)
 	{
-		//UCInventoryItemData* T = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(ItemList->GetListItems().Num())));
-		UCInventoryItemData* T = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(i)));
-		T->SetIndex(i);
-		T->SetIconTexture("Tex_gemstone_11_b");
-		T->SetItemClass(ACStaff::StaticClass());
-		T->SetItemCount(1);
-		T->SetstrName(FString::FString(TEXT("Staff_")) + FString::FromInt(i));
-		T->SetOwner(this);
-		T->SetIsShopItem(true);
-		ItemList.Add(T);
+		UCInventoryItemData* ID = ItemManager->GetItem(PossessItemRowName);
+		if (ID == nullptr) continue;
+		ItemList.Add(ID);
 	}
+
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	//UCInventoryItemData* T = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(ItemList->GetListItems().Num())));
+	//	UCInventoryItemData* T = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(i)));
+	//	T->SetIndex(i);
+	//	T->SetIconTexture("Tex_gemstone_11_b");
+	//	T->SetItemClass(ACStaff::StaticClass());
+	//	T->SetItemCount(1);
+	//	T->SetstrName(FString::FString(TEXT("Staff_")) + FString::FromInt(i));
+	//	T->SetOwner(this);
+	//	T->SetIsShopItem(true);
+	//	T->SetItemDetail(FText::FromString("Test"));
+	//	ItemList.Add(T);
+	//}
 }
 
 //TArray<FNPCDialoguesRow*> ACEthereal::GetDialogue()

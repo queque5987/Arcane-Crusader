@@ -20,7 +20,6 @@ class MMB_API ACEnemyCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	ACEnemyCharacter();
 
 	FRoar DoRoar;
@@ -31,14 +30,14 @@ public:
 	FbAttacking SetBBAttacking;
 	UPROPERTY(EditAnyWhere)
 	class UDataTable* DropTable;
+
+	//DEPRECATED
 	UPROPERTY(EditAnyWhere)
 	TArray<FName> DropItemNames;
+	//DEPRECATED
 	UPROPERTY(EditAnyWhere)
 	TArray<float> DropRates;
-	//FDropTableRow 
-	//float ArmStretchedOut;
-	//UPROPERTY(EditAnyWhere)
-	//float ArmStretchedIn;
+
 	UPROPERTY(EditAnyWhere)
 	float ArmRadius = 50.f;
 	UPROPERTY(EditAnyWhere)
@@ -46,20 +45,18 @@ public:
 	UPROPERTY(EditAnyWhere)
 	float WingClawRadius = 30.f;
 
-	//UPROPERTY(EditAnyWhere)
-	//float tempFloat;
-
 	UPROPERTY(EditAnyWhere)
 	float HP = 500;
 	UPROPERTY(EditAnyWhere)
 	float MaxHP = 500;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	bool bHostile;
 	bool bAttacking;
 	float RotationSpeed;
+	UPROPERTY(EditAnyWhere)
 	float AttackDamage = 20.f;
+	float WalkSpeed = 350.f;
 	float DamageScale;
 	int AttackPower;
 	bool bIsDying = false;
@@ -74,12 +71,7 @@ public:
 	void SetbHostile(bool e);
 	bool GetHostile() { return bHostile; }
 	void SetbAttacking(bool e);
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
-	//	bAttacking = e; 
-	//}
 	bool GetbAttacking() { return bAttacking; }
-	//void SetbAttackingFree() { bAttacking = false; }
 	bool AttackHitCheck(int AttackType = 0);
 	void HitDamage(float e, ACharacter& Attacker, FVector HitLocation = FVector::ZeroVector);
 	float GetHP() { return HP; }
@@ -91,4 +83,6 @@ public:
 	int GetAttackPower() { return AttackPower; }
 	void SetAttackPower(int e) { AttackPower = e; }
 	void Die();
+
+	virtual void SetMonsterConfig(struct MonsterConfigure& Config);
 };

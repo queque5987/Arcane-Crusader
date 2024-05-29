@@ -28,11 +28,16 @@ void ACJumpPoints::BeginPlay()
 	//ArrivalPoint1Pos = ArrivalPoint1->GetComponentLocation();
 
 	//ExpectedTime = (ArrivalPoint0Pos - ArrivalPoint1Pos).Size() / JumpSpeed;
-
-	ArrivalPoint0->OnComponentBeginOverlap.AddDynamic(this, &ACJumpPoints::OnPoint0BeginOverlap);
-	ArrivalPoint1->OnComponentBeginOverlap.AddDynamic(this, &ACJumpPoints::OnPoint1BeginOverlap);
-	ArrivalPoint0->OnComponentEndOverlap.AddDynamic(this, &ACJumpPoints::OnEndOverlap);
-	ArrivalPoint1->OnComponentEndOverlap.AddDynamic(this, &ACJumpPoints::OnEndOverlap);
+	if (AllowArrival0)
+	{
+		ArrivalPoint0->OnComponentBeginOverlap.AddDynamic(this, &ACJumpPoints::OnPoint0BeginOverlap);
+		ArrivalPoint0->OnComponentEndOverlap.AddDynamic(this, &ACJumpPoints::OnEndOverlap);
+	}
+	if (AllowArrival1)
+	{
+		ArrivalPoint1->OnComponentBeginOverlap.AddDynamic(this, &ACJumpPoints::OnPoint1BeginOverlap);
+		ArrivalPoint1->OnComponentEndOverlap.AddDynamic(this, &ACJumpPoints::OnEndOverlap);
+	}
 }
 
 void ACJumpPoints::OnPoint0BeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

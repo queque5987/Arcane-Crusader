@@ -6,6 +6,10 @@
 #include "CJumpPoints.h"
 #include "IPlayerState.h"
 #include "IPlayerQuest.h"
+#include "CItemDetailUI.h"
+#include "CSaveGame.h"
+#include "CGameInstance.h"
+#include "CESCUI.h"
 #include "Blueprint/UserWidget.h"
 
 ACPlayerController::ACPlayerController()
@@ -19,6 +23,8 @@ ACPlayerController::ACPlayerController()
 	ConstructorHelpers::FClassFinder<UCDamageUI> DamageAssetFinder(TEXT("/Game/Player/UI/BP_UI_Damage"));
 	ConstructorHelpers::FClassFinder<UUserWidget> DroppedItemListAssetFinder(TEXT("/Game/Player/UI/BP_DroppedItemList"));
 	ConstructorHelpers::FClassFinder<UCButtonAction> ButtonActionAssetFinder(TEXT("/Game/Player/UI/BP_UI_ButtonAction"));
+	ConstructorHelpers::FClassFinder<UCItemDetailUI> ItemDetailAssetFinder(TEXT("/Game/Player/UI/BP_UI_InventoryItem_Detail"));
+	ConstructorHelpers::FClassFinder<UCESCUI> ESCAssetFinder(TEXT("/Game/Player/UI/BP_ESC"));
 
 
 	if (WidgetAssetFinder.Succeeded())			HUDOverlayAsset = WidgetAssetFinder.Class;
@@ -29,6 +35,8 @@ ACPlayerController::ACPlayerController()
 	if (DamageAssetFinder.Succeeded())			DamageAsset = DamageAssetFinder.Class;
 	if (DroppedItemListAssetFinder.Succeeded()) DroppedItemListAsset = DroppedItemListAssetFinder.Class;
 	if (ButtonActionAssetFinder.Succeeded())	ButtonActionAsset = ButtonActionAssetFinder.Class;
+	if (ItemDetailAssetFinder.Succeeded())		ItemDetailAsset = ItemDetailAssetFinder.Class;
+	if (ESCAssetFinder.Succeeded())				ESCMenuAsset = ESCAssetFinder.Class;
 }
 
 void ACPlayerController::PlayerTick(float DeltaTime)
@@ -99,7 +107,7 @@ void ACPlayerController::BeginPlay()
 		MainUI->SetVisibility(ESlateVisibility::Visible);
 		bShowMouseCursor = true;
 	}
-	else if (CurrentLevel == "TestLevel1")
+	else if (CurrentLevel == "TestLevel1" || CurrentLevel == "Startlevel")
 	{
 		HUDOverlay->SetVisibility(ESlateVisibility::Visible);
 		ItemInventory->SetVisibility(ESlateVisibility::Hidden);
@@ -107,6 +115,20 @@ void ACPlayerController::BeginPlay()
 		MainUI->SetVisibility(ESlateVisibility::Hidden);
 		bShowMouseCursor = false;
 	}
+	else
+	{
+		HUDOverlay->SetVisibility(ESlateVisibility::Visible);
+		ItemInventory->SetVisibility(ESlateVisibility::Hidden);
+		NPCConversation->SetVisibility(ESlateVisibility::Hidden);
+		MainUI->SetVisibility(ESlateVisibility::Hidden);
+		bShowMouseCursor = false;
+
+	}
+	ESCUI = CreateWidget<UCESCUI>(this, ESCMenuAsset);
+
+	UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
+	if (GI == nullptr) return;
+	LoadGame(GI->SelectedSaveSlot);
 }
 
 void ACPlayerController::DequeueDamageUI()
@@ -115,6 +137,7 @@ void ACPlayerController::DequeueDamageUI()
 	if (DamageUIQueue.Dequeue(D))
 	{
 		D->RemoveFromViewport();
+		D->Destruct();
 	}
 }
 
@@ -151,6 +174,25 @@ void ACPlayerController::AddInventoryItem(UClass* ItemClass)
 void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
+
+	if (ItemData->GetItemType() == ITEM_TYPE_GOLD)
+	{
+		IIPlayerState* PS = Cast<IIPlayerState>(GetCharacter());
+		if (PS == nullptr) return;
+		PS->GainPlayerGold(ItemData->GetItemCount());
+		return;
+	}
+
+	for (UObject* HasItem : ItemInventory->ItemList->GetListItems())
+	{
+		UCInventoryItemData* HasItemData = Cast<UCInventoryItemData>(HasItem);
+		if (HasItemData == ItemData)
+		{
+			HasItemData->SetItemCount(HasItemData->GetItemCount() + ItemData->GetItemCount());
+			CheckQuest(ItemData->GetItemClass());
+			return;
+		}
+	}
 	ItemInventory->ItemList->AddItem(ItemData);
 	CheckQuest(ItemData->GetItemClass());
 }
@@ -158,6 +200,61 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 void ACPlayerController::RemoveInventoryItem(UCInventoryItemData* ItemData)
 {
 	if (ItemData != nullptr) ItemInventory->ItemList->RemoveItem(ItemData);
+}
+
+bool ACPlayerController::RemoveEquippedItem(FString EquippedSpace, UCInventoryItemData* ItemData)
+{
+	if (EquippedSpace == "Weapon")
+	{
+		ItemInventory->Weapon->RemoveItem(ItemData);
+		IIPlayerState* IPlayerState = Cast<IIPlayerState>(GetCharacter());
+		IPlayerState->UnEquip();
+		return true;
+	}
+	else if (EquippedSpace == "Artifact")
+	{
+		ItemInventory->Artifact->RemoveItem(ItemData);
+		return true;
+	}
+	else if (EquippedSpace == "Armor")
+	{
+		ItemInventory->Armor->RemoveItem(ItemData);
+		return true;
+	}
+	return false;
+}
+
+void ACPlayerController::ShowItemDetailUI(UCInventoryItemData* ItemData)
+{
+	if (ItemData == nullptr) return;
+
+	if (ItemDetailAsset)
+	{
+		if (ItemDetailUI != nullptr) UnShowItemDetailUI();
+
+		UCItemDetailUI* DetailUI = CreateWidget<UCItemDetailUI>(this, ItemDetailAsset);
+		if (IsValid(DetailUI))
+		{
+			DetailUI->SetDetail(ItemData);
+
+			FVector2D MousePos;
+			GetMousePosition(MousePos.X, MousePos.Y);
+
+			DetailUI->SetPositionInViewport(MousePos);
+			DetailUI->AddToViewport(1);
+			DetailUI->SetVisibility(ESlateVisibility::HitTestInvisible);
+			ItemDetailUI = DetailUI;
+		}
+	}
+
+}
+
+void ACPlayerController::UnShowItemDetailUI()
+{
+	if (ItemDetailUI == nullptr) return;
+
+	ItemDetailUI->RemoveFromViewport();
+	ItemDetailUI->Destruct();
 }
 
 bool ACPlayerController::IsOnShop()
@@ -183,6 +280,57 @@ void ACPlayerController::SetShopInventoryItems(TObjectPtr<class UTileView>& Shop
 void ACPlayerController::ResumeShopInventoryItems()
 {
 	SetShopInventoryItems(NPCConversation->ItemList_Inventory);
+}
+
+void ACPlayerController::SwitchESCMenu()
+{
+	if (ESCUI == nullptr) return;
+	IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+
+	if (!ESCUI->GetIsVisible())
+	{
+		ESCUI->AddToViewport(1);
+		ESCUI->SetVisibility(ESlateVisibility::Visible);
+		bShowMouseCursor = true;
+		if (PC != nullptr) PC->SetState(PLAYER_UI_INTERACTING, true);
+	}
+	else
+	{
+		ESCUI->SetVisibility(ESlateVisibility::Hidden);
+		ESCUI->RemoveFromViewport();
+		bShowMouseCursor = false;
+		if (PC != nullptr) PC->SetState(PLAYER_UI_INTERACTING, false);
+	}
+}
+
+bool ACPlayerController::EquipItem(int ItemType, UCInventoryItemData& ItemData)
+{
+	if (ItemInventory->EquipItem(ItemType, ItemData))
+	{
+		RemoveInventoryItem(&ItemData);
+		return true;
+	}
+	return false;
+	//ItemInventory->Weapon->AddItem(&ItemData);
+	//RemoveInventoryItem(&ItemData);
+	//return true;
+	//switch (ItemType)
+	//{
+	//case(ITEM_TYPE_WEAPON):
+	//	ItemInventory->Weapon->AddItem(&ItemData);
+	//	RemoveInventoryItem(&ItemData);
+	//	return true;
+	//case(ITEM_TYPE_ARTIFACT):
+	//	ItemInventory->Artifact->AddItem(&ItemData);
+	//	RemoveInventoryItem(&ItemData);
+	//	return true;
+	//case(ITEM_TYPE_ARMOR):
+	//	ItemInventory->Armor->AddItem(&ItemData);
+	//	RemoveInventoryItem(&ItemData);
+	//	return true;
+	//default:
+	//	return false;
+	//}
 }
 
 void ACPlayerController::SetPressedButton(UUserWidget* SelectedButton)
@@ -298,7 +446,6 @@ void ACPlayerController::AlertSwingby(float e, FText Line)
 	NPCConversation->AlertSwingby(e, Line);
 }
 
-//Deprecated 20240523 1312
 void ACPlayerController::AddQuest(FQuestsRow* Q)
 {
 	FString QN = Q->QuestName;
@@ -335,11 +482,12 @@ void ACPlayerController::CheckQuest(UObject* ToCheckObject)
 	{
 		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
 		if (WQ == nullptr) continue;
+		if (WQ->IsCleared()) continue;
 		if (WQ->RefreshQuestRecap(ToCheckObject))
 		{
-			//IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
-			//if (QuestManage == nullptr) continue;
-			//QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			if (QuestManage == nullptr) continue;
+			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
 		}
 	}
 	HUDOverlay->QuestList->RequestRefresh();
@@ -352,11 +500,12 @@ void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass)
 	{
 		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
 		if (WQ == nullptr) continue;
+		if (WQ->IsCleared()) continue;
 		if (WQ->RefreshQuestRecap(ToCheckObjectClass))
 		{
-			//IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
-			//if (QuestManage == nullptr) continue;
-			//QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			if (QuestManage == nullptr) continue;
+			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
 		}
 	}
 	HUDOverlay->QuestList->RequestRefresh();
@@ -379,20 +528,21 @@ bool ACPlayerController::CheckQuest_Cleared(FString QuestName)
 	return false;
 }
 
-void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem* Dropped, UCInventoryItemData* ItemData)
+void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem& Dropped, UCInventoryItemData* ItemData)
 {
 	if (DroppedItemList == nullptr) return;
 	if (e)
 	{
 		DroppedItemList->SetVisibility(ESlateVisibility::Visible);
 		DroppedItemList->ItemList->AddItem(ItemData);
-		DroppedItemPtrArr.Add(Dropped);
+		//if (Dropped == nullptr) return;
+		DroppedItemPtrArr.Add(&Dropped);
 		PickUpItemInteract_ShowAndInputReady();
 	}
 	else
 	{
 		DroppedItemList->ItemList->RemoveItem(ItemData);
-		DroppedItemPtrArr.Remove(Dropped);
+		if (DroppedItemPtrArr.Contains(&Dropped)) DroppedItemPtrArr.Remove(&Dropped);
 		if (DroppedItemList->ItemList->GetNumItems() == 0)
 		{
 			DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
@@ -568,6 +718,7 @@ void ACPlayerController::PickUpItemInteract_ShowAndInputReady()
 
 void ACPlayerController::PickUpItemInteract_Interact()
 {
+	if (ButtonActionUI == nullptr) return;
 	TArray<UObject*> tempArr = DroppedItemList->ItemList->GetListItems();
 	UCInventoryItemData* tempItem;
 	ACDroppedItem* tempDroppedItem;
@@ -587,6 +738,7 @@ void ACPlayerController::PickUpItemInteract_Interact()
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
 	if (PC == nullptr) return;
 	PC->PickUp.ExecuteIfBound();
+	NPCInteract_UnShow();
 }
 
 void ACPlayerController::CharacterDied(bool b)
@@ -680,4 +832,87 @@ bool ACPlayerController::IsQualifiedQuest(TArray<FString> RequiredQuestsArr)
 		Flag = false;
 	}
 	return true;
+}
+
+void ACPlayerController::SaveGame(int32 SlotIndex)
+{
+	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
+	if (SaveGameInstance != nullptr)
+	{
+		SaveGameInstance->SaveSlotName = "Save" + FString::FromInt(SlotIndex);
+		SaveGameInstance->SaveIndex = SlotIndex;
+
+		TArray<FName> ItemRowNames;
+		TArray<int> ItemCounts;
+		for (UObject* Item : ItemInventory->ItemList->GetListItems())
+		{
+			UCInventoryItemData* ID = Cast<UCInventoryItemData>(Item);
+			if (ID != nullptr)
+			{
+				SaveGameInstance->SavedItemListQ.Add(ID->GetItemCount());
+				SaveGameInstance->SavedItemList.Add(ID->GetDT_RowName());
+			}
+		}
+		if (UCInventoryItemData* W = Cast<UCInventoryItemData>(ItemInventory->Weapon->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedWeapon = W->GetDT_RowName();
+		}
+		if (UCInventoryItemData* A = Cast<UCInventoryItemData>(ItemInventory->Artifact->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedArtifact = A->GetDT_RowName();
+		}
+		if (UCInventoryItemData* M = Cast<UCInventoryItemData>(ItemInventory->Armor->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedArmor = M->GetDT_RowName();
+		}
+
+		IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+		if (PC != nullptr)
+		{
+			SaveGameInstance->SavedGold = PC->GetPlayerGold();
+		}
+		SaveGameInstance->SavedLevel = GetWorld()->GetCurrentLevel()->GetPathName();
+	}
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
+}
+
+void ACPlayerController::LoadGame(int32 SaveSlot)
+{
+	if (SaveSlot < 0) return;
+	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot("Save" + FString::FromInt(SaveSlot), SaveSlot));
+	AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (SaveGameInstance == nullptr || GM == nullptr) return;
+
+	for (int i = 0; i < SaveGameInstance->SavedItemList.Num(); i++)
+	{
+		UCInventoryItemData* ID = GM->GetItem(SaveGameInstance->SavedItemList[i], SaveGameInstance->SavedItemListQ[i]);
+		if (ID == nullptr) continue;
+		AddInventoryItem(ID);
+	}
+
+	IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+	if (PC == nullptr) return;
+
+	UCInventoryItemData* W = GM->GetItem(SaveGameInstance->SavedWeapon);
+	if (W)
+	{
+		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(W->GetItemClass(), GetCharacter()->GetActorLocation(), FRotator::ZeroRotator);
+		IIWeapon* isWeapon = Cast<IIWeapon>(spawnedActor);
+		if (isWeapon != nullptr)
+		{
+			isWeapon->SetIsEquiped(true);
+			isWeapon->SetWeaponName(FName(W->GetstrName()));
+			isWeapon->SetAttackDamage(W->GetAttackDamage());
+
+			PC->Equip(*spawnedActor);
+		}
+		EquipItem(ITEM_TYPE_WEAPON, *W);
+	}
+
+	UCInventoryItemData* M = GM->GetItem(SaveGameInstance->SavedArmor);
+	if (M) EquipItem(ITEM_TYPE_ARMOR, *M);
+	UCInventoryItemData* A = GM->GetItem(SaveGameInstance->SavedArtifact);
+	if (A) EquipItem(ITEM_TYPE_ARTIFACT, *A);
+
+	PC->SetPlayerGold(SaveGameInstance->SavedGold);
 }

@@ -102,6 +102,8 @@ protected:
 	FName WeaponMesh;
 
 	UPROPERTY(EditAnywhere)
+	FName ItemDTRowName;
+	UPROPERTY(EditAnywhere)
 	FString ItemData_IconTexture;
 	UPROPERTY(EditAnywhere)
 	int32 ItemData_ItemPrice;

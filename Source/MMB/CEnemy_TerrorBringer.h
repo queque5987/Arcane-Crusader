@@ -16,10 +16,11 @@ class MMB_API ACEnemy_TerrorBringer : public ACEnemyCharacter, public IIFlyMonst
 	ACEnemy_TerrorBringer();
 private:
 	bool IsFlying;
-	float MaxAltitude;
-	float CurrentAltitude;
-	float VirtialAcc;
-	float FlyAcc;
+
+	float MaxAltitude = 200.f;
+	float CurrentAltitude = 0.f;
+	float VirtialAcc = 120.f;
+	float FlyAcc = 0.5f;
 
 	TArray<UParticleSystem*> EnemyAttackEffect;
 public:
@@ -51,4 +52,5 @@ public:
 	virtual bool RotateTo(FVector Destination, float DeltaSeconds, float AccWeight = 1.f) override;
 
 	virtual class UParticleSystem* GetParticleSystem(int e) override;
+	virtual void SetMonsterConfig(struct MonsterConfigure& Config) override;
 };

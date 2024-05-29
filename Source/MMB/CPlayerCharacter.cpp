@@ -38,6 +38,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ConstructorHelpers::FObjectFinder<UInputAction> InteractFinder(TEXT("/Game/Player/Input/IA_Interact.IA_Interact"));
 	ConstructorHelpers::FObjectFinder<UInputAction> AnyKeyFinder(TEXT("/Game/Player/Input/IA_Any.IA_Any"));
 	ConstructorHelpers::FObjectFinder<UInputAction> ScrollFinder(TEXT("/Game/Player/Input/IA_Scroll.IA_Scroll"));
+	ConstructorHelpers::FObjectFinder<UInputAction> ESCFinder(TEXT("/Game/Player/Input/IA_ESC.IA_ESC"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -50,6 +51,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (InteractFinder.Succeeded()) InteractAction = InteractFinder.Object;
 	if (AnyKeyFinder.Succeeded()) AnyKeyAction = AnyKeyFinder.Object;
 	if (ScrollFinder.Succeeded()) ScrollAction = ScrollFinder.Object;
+	if (ESCFinder.Succeeded()) ESCAction = ESCFinder.Object;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	//SpringArmComponent->SetUsingAbsoluteRotation(false);
@@ -86,7 +88,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	GetMesh()->SetAnimClass(SMKnightMageAnimBPFinder.Object->GeneratedClass);
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -87.f), FRotator(0.f, -90.f, 0.f));
 
-	SetActorRelativeScale3D(FVector(1.3f, 1.3f, 1.3f));
+	//SetActorRelativeScale3D(FVector(1.3f, 1.3f, 1.3f));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
@@ -120,6 +122,11 @@ void ACPlayerCharacter::BeginPlay()
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
+	}
+
+	if (StartPos != FVector::ZeroVector)
+	{
+		SetActorLocation(StartPos);
 	}
 }
 
@@ -361,6 +368,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::ShiftTriggered);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::E_Triggered);
 		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::Scroll);
+		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::ESC);
 	}
 }
 
@@ -625,6 +633,12 @@ void ACPlayerCharacter::Equip(ACWeapon& ActorToEquip)
 	//ActorToEquip.SetOwner(this);
 }
 
+void ACPlayerCharacter::ESC()
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	UIController->SwitchESCMenu();
+}
+
 void ACPlayerCharacter::Equip(AActor& ActorToEquip)
 {
 	IIWeapon* WTE = Cast<IIWeapon>(&ActorToEquip);
@@ -634,6 +648,12 @@ void ACPlayerCharacter::Equip(AActor& ActorToEquip)
 	WeaponEquipped = &ActorToEquip;
 	IsWeaponEquiped = true;
 	ActorToEquip.SetOwner(this);
+}
+
+void ACPlayerCharacter::UnEquip()
+{
+	WeaponEquipped->Destroy();
+	IsWeaponEquiped = false;
 }
 
 bool ACPlayerCharacter::GetState(UINT StateType)
@@ -935,4 +955,9 @@ void ACPlayerCharacter::QuestClear(int e)
 void ACPlayerCharacter::QuestInitialize(int e)
 {
 	QuestComponent->OnQuestInitialize(e);
+}
+
+void ACPlayerCharacter::SetStartPos(FVector e)
+{
+	StartPos = e;
 }

@@ -29,6 +29,8 @@ private:
 	//TArray<USlateBrushAsset*> SlateBrushArr;
 
 	class UDataTable* ItemTable;
+
+	class UCGameInstance* GameInstance;
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Zone)
@@ -43,8 +45,6 @@ public:
 	UMaterialInstance* GetDropItemMaterial(int32 Rarity);
 	//FSlateBrush* GetSlateBrush(int32 e);
 	
-	UTexture2D* IconGetter(FString IconAssetName);
-
-
-	virtual class UCInventoryItemData* GetItem(FName ItemRowName) override;
+	virtual UTexture2D* IconGetter(FString IconAssetName) override;
+	virtual class UCInventoryItemData* GetItem(FName ItemRowName, int Count = 1) override;
 };

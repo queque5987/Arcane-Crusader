@@ -2,15 +2,20 @@
 
 
 #include "CMainUI.h"
+#include "IItemManager.h"
 #include "MainUIGameMode.h"
+#include "CSaveGame.h"
 
 void UCMainUI::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	BTNGameStart->OnClicked.AddDynamic(this, &UCMainUI::OnGameStartClicked);
-	BTNLoadGame->OnClicked.AddDynamic(this, &UCMainUI::OnLoadGameClicked);
-	BTNQuit->OnClicked.AddDynamic(this, &UCMainUI::OnQuitClicked);
+	BTNGameStart->OnReleased.AddDynamic(this, &UCMainUI::OnGameStartClicked);
+	BTNLoadGame->OnReleased.AddDynamic(this, &UCMainUI::OnLoadGameClicked);
+	BTNQuit->OnReleased.AddDynamic(this, &UCMainUI::OnQuitClicked);
+	BTNClose->OnReleased.AddDynamic(this, &UCMainUI::OnCloseClicked);
+
+	SavePanel->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCMainUI::OnGameStartClicked()
@@ -22,17 +27,37 @@ void UCMainUI::OnGameStartClicked()
 		{
 			e->MainUI->SetVisibility(ESlateVisibility::Hidden);
 		}
-		//SetVisibility(ESlateVisibility::Hidden);
 	}
 	
 }
 
 void UCMainUI::OnLoadGameClicked()
 {
+	SavePanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	MainPanel->SetVisibility(ESlateVisibility::Hidden);
+	LoadSaveSlot();
+}
+
+void UCMainUI::OnCloseClicked()
+{
+	SavePanel->SetVisibility(ESlateVisibility::Hidden);
+	MainPanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UCMainUI::OnQuitClicked()
 {
+}
+
+void UCMainUI::LoadSaveSlot()
+{
+	SaveSlotList->ClearListItems();
+
+	for (int i = 0; i < 3; i++)
+	{
+		UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot("Save" + FString::FromInt(i), i));
+		//if (SaveGameInstance == nullptr) continue;
+		SaveSlotList->AddItem(SaveGameInstance);
+	}
 }
 
 //ACPlayerController* UCMainUI::GetPlayerController()

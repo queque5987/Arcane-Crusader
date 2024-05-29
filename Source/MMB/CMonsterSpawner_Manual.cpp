@@ -9,7 +9,7 @@ ACMonsterSpawner_Manual::ACMonsterSpawner_Manual()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SpawnPoint = CreateDefaultSubobject<USphereComponent>(TEXT("Spawner"));
-	SpawnPoint->SetSphereRadius(Radius);
+	//SpawnPoint->SetSphereRadius(Radius);
 	SetRootComponent(SpawnPoint);
 	SetActorEnableCollision(true);
 
@@ -35,13 +35,13 @@ void ACMonsterSpawner_Manual::GetCoordinate(FVector& Location)
 	if (nav != nullptr)
 	{
 		FNavLocation NLocation;
-		nav->GetRandomReachablePointInRadius(GetActorLocation(), Radius, NLocation);
+		nav->GetRandomReachablePointInRadius(GetActorLocation(), SpawnPoint->GetScaledSphereRadius(), NLocation);
 
 		Location = NLocation.Location;
 	}
 }
 
-void ACMonsterSpawner_Manual::SpawnMonster(TSubclassOf<class ACEnemyCharacter> MonsterClass)
+class ACEnemyCharacter* ACMonsterSpawner_Manual::SpawnMonster(TSubclassOf<class ACEnemyCharacter> MonsterClass)
 {
 	FVector SpawnLocation;
 	GetCoordinate(SpawnLocation);
@@ -52,9 +52,11 @@ void ACMonsterSpawner_Manual::SpawnMonster(TSubclassOf<class ACEnemyCharacter> M
 		SpawnedMonsters.Add(EC);
 		EC->OnDestroyed.AddDynamic(this, &ACMonsterSpawner_Manual::OnMonsterDied);
 		UE_LOG(LogTemp, Log, TEXT("Spawning Monster"));
+		return EC;
 	}
 	else
 	{
 		UE_LOG(LogTemp, Log, TEXT("Failed to Spawn Monster"));
 	}
+	return nullptr;
 }

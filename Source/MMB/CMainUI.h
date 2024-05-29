@@ -4,17 +4,21 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
+#include "Components/TileView.h"
+#include "Components/CanvasPanel.h"
 #include "PCH.h"
 #include "CMainUI.generated.h"
 
 UCLASS()
-class MMB_API UCMainUI : public UUserWidget
+class MMB_API UCMainUI : public UUserWidget, public IIWidgetInteract
 {
 	GENERATED_BODY()
 
-	virtual void NativeOnInitialized() override;
 
 public:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> MainPanel;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BTNGameStart;
 
@@ -24,6 +28,20 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BTNQuit;
 
+
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> SavePanel;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTileView> SaveSlotList;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BTNLoad;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BTNClose;
+
 	UFUNCTION(BlueprintCallable)
 	void OnGameStartClicked();
 
@@ -31,9 +49,14 @@ public:
 	void OnLoadGameClicked();
 
 	UFUNCTION(BlueprintCallable)
-	void OnQuitClicked();
+	void OnCloseClicked();
 
-//protected:
-//	ACPlayerController* GetPlayerController();
+	UFUNCTION(BlueprintCallable)
+	void OnQuitClicked();
+protected:
+	virtual void NativeOnInitialized() override;
+
+
+	void LoadSaveSlot();
 	
 };

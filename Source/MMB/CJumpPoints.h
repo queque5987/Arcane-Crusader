@@ -27,6 +27,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	class USphereComponent* ArrivalPoint0;
 	UPROPERTY(EditAnywhere)
+	bool AllowArrival0;
+	UPROPERTY(EditAnywhere)
+	bool AllowArrival1;
+	UPROPERTY(EditAnywhere)
 	class USphereComponent* ArrivalPoint1;
 	float TimeElapsed = 0.f;
 	UPROPERTY(EditAnywhere)

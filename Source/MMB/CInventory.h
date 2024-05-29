@@ -24,5 +24,16 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> PlayerGold;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> Weapon;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> Artifact;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> Armor;
+
 	virtual void SetVisibility(ESlateVisibility InVisibility) override;
+
+	bool EquipItem(int ItemType, class UCInventoryItemData& ToEquipItemData);
 };

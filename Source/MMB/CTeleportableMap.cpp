@@ -15,16 +15,19 @@ void UCTeleportableMap::NativeOnListItemObjectSet(UObject* ListItemObject)
 	//UObject* Style = StaticLoadObject(USlateWidgetStyleAsset::StaticClass(), nullptr, *MapData->GetPreviewSlateBrush());
 	//UObject* L = StaticLoadObject(USlateBrushAsset::StaticClass(), nullptr, *MapData->GetPreviewSlateBrush());
 	USlateWidgetStyleAsset* Style = LoadObject<USlateWidgetStyleAsset>(nullptr, *MapData->GetPreviewSlateBrush());
-	const FButtonStyle* btnStyle = Style->GetStyle<FButtonStyle>();
-	if (USlateWidgetStyleAsset* ST = Cast<USlateWidgetStyleAsset>(Style))
+	if (Style != nullptr)
 	{
-		//ST->GetStyle()
-		BtnMapPreview->WidgetStyle = *btnStyle;
-		//BtnMapPreview->WidgetStyle.SetNormal(SB->Brush);
-		//BtnMapPreview->WidgetStyle.SetHovered(SB->Brush);
-		//BtnMapPreview->WidgetStyle.SetPressed(SB->Brush);
-		SB_Normal = &btnStyle->Normal;
-		SB_Pressed = &btnStyle->Pressed;
+		const FButtonStyle* btnStyle = Style->GetStyle<FButtonStyle>();
+		if (USlateWidgetStyleAsset* ST = Cast<USlateWidgetStyleAsset>(Style))
+		{
+			//ST->GetStyle()
+			BtnMapPreview->WidgetStyle = *btnStyle;
+			//BtnMapPreview->WidgetStyle.SetNormal(SB->Brush);
+			//BtnMapPreview->WidgetStyle.SetHovered(SB->Brush);
+			//BtnMapPreview->WidgetStyle.SetPressed(SB->Brush);
+			SB_Normal = &btnStyle->Normal;
+			SB_Pressed = &btnStyle->Pressed;
+		}
 	}
 	Pressed = false;
 }

@@ -52,6 +52,13 @@ public:
 	TSubclassOf<class UCButtonAction> ButtonActionAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<class UUserWidget> ItemDetailAsset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<class UCESCUI> ESCMenuAsset;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	class UCUserWidgetPlayerHUD* HUDOverlay;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
@@ -68,6 +75,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	class UCWidgetDroppedItemList* DroppedItemList;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	class UCItemDetailUI* ItemDetailUI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	class UCESCUI* ESCUI;
 
 	virtual void PlayerTick(float DeltaTime) override;
 protected:
@@ -92,9 +105,16 @@ public:
 	virtual void AddInventoryItem(UClass* ItemClass) override;
 	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) override;
 	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) override;
+	virtual bool RemoveEquippedItem(FString EquippedSpace, class UCInventoryItemData* ItemData) override;
+	virtual void ShowItemDetailUI(class UCInventoryItemData* ItemData) override;
+	virtual void UnShowItemDetailUI() override;
 	virtual bool IsOnShop() override;
 	virtual void SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList) override;
 	virtual void ResumeShopInventoryItems() override;
+
+	virtual void SwitchESCMenu() override;
+
+	virtual bool EquipItem(int ItemType, class UCInventoryItemData& ItemData) override;
 
 	virtual void SetPressedButton(UUserWidget* SelectedButton) override;
 
@@ -108,7 +128,7 @@ public:
 	void CheckQuest(UObject* ToCheckObject);
 	void CheckQuest(UClass* ToCheckObjectClass);
 	bool CheckQuest_Cleared(FString QuestName);
-	void ShowDroppedItemList(bool e, class ACDroppedItem* Dropped, class UCInventoryItemData* ItemData);
+	void ShowDroppedItemList(bool e, class ACDroppedItem& Dropped, class UCInventoryItemData* ItemData);
 
 
 	void OnInteract();
@@ -135,4 +155,6 @@ public:
 	virtual void MoveQuestToClearedByQuestName(FString QuestName) override;
 	virtual void RemoveQuest(UObject* QuestDat) override;
 	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) override;
+	virtual void SaveGame(int SlotIndex) override;
+	virtual void LoadGame(int32 SaveSlot) override;
 };

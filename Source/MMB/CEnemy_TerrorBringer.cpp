@@ -149,3 +149,10 @@ UParticleSystem* ACEnemy_TerrorBringer::GetParticleSystem(int e)
 {
 	return EnemyAttackEffect.IsValidIndex(e) ? EnemyAttackEffect[e] : nullptr;
 }
+
+void ACEnemy_TerrorBringer::SetMonsterConfig(MonsterConfigure& Config)
+{
+	Super::SetMonsterConfig(Config);
+	FlyAcc = Config._FlyAcc;
+	VirtialAcc = Config._VirticalAcc;
+}

@@ -24,6 +24,7 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 	QuestRewardDialogueIndex = Row->QuestRewardDialogueIndex;
 	QuestRewards = Row->QuestRewards;
 	RequiredQuest = Row->RequiredQuest;
+	QuestRewardsQuantity = Row->QuestRewardsQuantity;
 }
 
 UClass* UCQuestData::GetClassFromPath(FString ClassPath)

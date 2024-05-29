@@ -41,6 +41,9 @@ public:
 	TArray<FName> QuestRewards;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<int> QuestRewardsQuantity;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<FString> RequiredQuest;
 };
 
@@ -56,9 +59,24 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FText NPCDialogue;
 
+	//Deprecated
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int QuestID;
 
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_NEXT_POSTLINE;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_YES_POSTLINE;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_NO_POSTLINE;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_SHOP_POSTLINE;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_QUEST_POSTLINE;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_LEAVE_POSTLINE;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int BUTTON_REWARD_POSTLINE;
 };
 
 USTRUCT(BlueprintType)
@@ -68,25 +86,28 @@ struct FDropTableRow : public FTableRowBase
 
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	FString ItemClass;
+	FString ItemCode;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	FText ItemName;
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	//FString ItemClass;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	float ItemAttackDamage;
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	//FText ItemName;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	int ItemPrice;
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	//float ItemAttackDamage;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	FString ItemTexture;
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	//int ItemPrice;
+
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	//FString ItemTexture;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float ItemDropRate;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	int Rarity;
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	//int Rarity;
 };
 
 USTRUCT(BlueprintType)
@@ -121,11 +142,15 @@ public:
 	FString IconTexture;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 ItemPrice;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString ItemDetail;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float AttackDamage;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 Rarity;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 ItemType;
 };
 
 UCLASS()

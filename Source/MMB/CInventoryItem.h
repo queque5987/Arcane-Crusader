@@ -24,7 +24,10 @@ protected:
 	double ClickedSec;
 	bool IsInShop;
 
+	int ItemType;
+
 	void Equip();
+	void UnEquip(FString EquippedSpace);
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnButtonClicked();
@@ -35,12 +38,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemName;
-	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ItemButton;
 	
 	FTimerHandle UnHoverTimerHandler;
 
 	virtual void OnRightClicked() override;
-
+private:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ItemQuantity;
 };

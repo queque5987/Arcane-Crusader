@@ -19,6 +19,9 @@ protected:
 	int32 Index;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	FName DT_RowName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	UClass* ItemClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
@@ -37,6 +40,9 @@ protected:
 	float AttackDamage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int ItemType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FString AttackType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
@@ -45,14 +51,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	bool IsShopItem = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	FText ItemDetail;
+
 	class ACStaticNPC* Owner;
 public:
 	int32 GetIndex() { return Index; }
 	void SetIndex(int32 e) { Index = e; }
+	FName GetDT_RowName() { return DT_RowName; }
+	void SetDT_RowName(FName e) { DT_RowName = e; }
 	UClass* GetItemClass() { return ItemClass; }
 	void SetItemClass(UClass* e) { ItemClass = e; }
 	int32 GetItemCount() { return ItemCount; }
-	void SetItemCount(int32 e) { Index = e; }
+	void SetItemCount(int32 e) { ItemCount = e; }
 	FString GetstrName() { return strName; }
 	void SetstrName(FString e) { strName = e; }
 	FString GetIconTexture() { return IconTexture; }
@@ -63,10 +74,12 @@ public:
 	void SetPrice(int32 e) { ItemPrice = e; }
 	float GetAttackDamage() { return AttackDamage; }
 	void SetAttackDamage(float e) { AttackDamage = e; }
-	FString GetAttackType() { return AttackType; }
-	void SetAttackType(FString e) { AttackType = e; }
+	int GetItemType() { return ItemType; }
+	void SetItemType(int e) { ItemType = e; }
 	int32 GetRarity() { return Rarity; }
 	void SetRarity(int32 e) { Rarity = e; }
 	bool GetIsShopItem() { return IsShopItem; }
 	void SetIsShopItem(bool e) { IsShopItem = e; }
+	FText GetItemDetail() { return ItemDetail; }
+	void SetItemDetail(FText e) { ItemDetail = e; }
 };
