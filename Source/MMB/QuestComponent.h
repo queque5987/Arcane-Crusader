@@ -24,9 +24,12 @@ protected:
 	void Init_Quest1();
 	void Init_Quest2();
 	void Init_Quest3();
+	void Init_Quest4();
 
 private:
+	//Deprecated 20240531 Editor Only Function
 	AActor* FindActorByLabel(TSubclassOf<AActor> FindClass, FString Label);
+	AActor* FindActorByTag(TSubclassOf<AActor> FindClass, FName Tag);
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 

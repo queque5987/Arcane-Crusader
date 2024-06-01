@@ -24,7 +24,7 @@ AMainUIGameMode::AMainUIGameMode()
 
 	ConstructorHelpers::FObjectFinder<UTexture2D>DroppedItemIconFinder(TEXT("/Game/Resources/Texture_DroppedItem.Texture_DroppedItem"));
 
-	DefaultIconDroppedItem = DroppedItemIconFinder.Object;
+	if (DroppedItemIconFinder.Succeeded()) DefaultIconDroppedItem = DroppedItemIconFinder.Object;
 
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> AssetData;
@@ -64,10 +64,15 @@ UCInventoryItemData* AMainUIGameMode::GetItem(FName ItemRowName, int Count)
 	D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *Row->ItemClass));
 	D->SetItemCount(Count);
 	D->SetstrName(Row->ItemName);
-	D->SetAttackDamage(Row->AttackDamage);
+	//D->SetAttackDamage(Row->AttackDamage);
 	D->SetPrice(Row->ItemPrice);
 	D->SetItemType(Row->ItemType);
 	D->SetRarity(Row->Rarity);
+	D->SetItemStats(
+		Row->AttackDamage,
+		Row->Defence,
+		Row->AttackSpeed
+	);
 
 	return D;
 }

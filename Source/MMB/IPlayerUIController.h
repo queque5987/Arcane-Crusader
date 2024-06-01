@@ -31,9 +31,6 @@ public:
 
 	virtual bool EquipItem(int ItemType, class UCInventoryItemData& ItemData) { return false; };
 
-//DEPRECATED
-	//virtual TArray<UObject*> GetInventoryItems() { return TArray<UObject*>(); };
-
 	virtual void SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList) {};
 	virtual void ResumeShopInventoryItems() {};
 	virtual void AddAlert(FText e) {};
@@ -44,6 +41,9 @@ public:
 	virtual void MoveQuestToClearedByQuestName(FString QuestName) {}
 	virtual UINT32 IsPossesQuestCleared(FString QuestName) { return 0; }
 	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) { return false; }
+	virtual void HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArray<class UCQuestData*>& OutArr) {};
+
+	virtual void EquippedItemStat(struct ItemStat& SumItemStat) {};
 
 	virtual void SaveGame(int32 SlotIndex) {};
 	virtual void SaveGame(TArray<uint8>& MemoryAddress) {};

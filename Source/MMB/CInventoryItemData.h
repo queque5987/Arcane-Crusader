@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "PCH.h"
 #include "CNPCConversation.h"
+#include "PCH.h"
 #include "CInventoryItemData.generated.h"
 
 UCLASS()
@@ -36,8 +36,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int32 ItemPrice;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	float AttackDamage;
+	//Deprecated 20240531
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	//float AttackDamage;
+
+	struct ItemStat* ItemStats;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int ItemType;
@@ -72,8 +75,8 @@ public:
 	void SetOwner(ACStaticNPC* e) { Owner = e; }
 	int32 GetPrice() { return ItemPrice; }
 	void SetPrice(int32 e) { ItemPrice = e; }
-	float GetAttackDamage() { return AttackDamage; }
-	void SetAttackDamage(float e) { AttackDamage = e; }
+	float GetAttackDamage();
+	//void SetAttackDamage(float e) { AttackDamage = e; }
 	int GetItemType() { return ItemType; }
 	void SetItemType(int e) { ItemType = e; }
 	int32 GetRarity() { return Rarity; }
@@ -82,4 +85,6 @@ public:
 	void SetIsShopItem(bool e) { IsShopItem = e; }
 	FText GetItemDetail() { return ItemDetail; }
 	void SetItemDetail(FText e) { ItemDetail = e; }
+	struct ItemStat* GetItemStats() { return ItemStats; }
+	void SetItemStats(float AttackDamage = 0.f, float Defence = 0.f, float AttackSpeed = 0.f);
 };

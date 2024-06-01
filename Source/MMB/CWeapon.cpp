@@ -112,7 +112,10 @@ UCInventoryItemData* ACWeapon::GetItemData(ACharacter* PC)
 	ID->SetPrice(ItemData_ItemPrice);
 	//ID->SetAttackType(ItemData_AttackType);
 	ID->SetItemType(0);
-	ID->SetAttackDamage(AttackDamage);
+	//ID->SetAttackDamage(AttackDamage);
+	ID->SetItemStats(
+		AttackDamage
+	);
 	ID->SetstrName(WeaponName.ToString());
 	return ID;
 }

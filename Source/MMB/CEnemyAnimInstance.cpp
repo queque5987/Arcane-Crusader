@@ -35,10 +35,6 @@ void UCEnemyAnimInstance::NativeInitializeAnimation()
 	EnemyCharacter = Cast<ACEnemyCharacter>(TryGetPawnOwner());
 	if (EnemyCharacter != nullptr)
 	{
-		//EnemyCharacter->DoRoar.BindUFunction(this, TEXT("Roar"));
-		//EnemyCharacter->DoAttackHand.BindUFunction(this, TEXT("AttackHand"));
-		//EnemyCharacter->DoAttackHead.BindUFunction(this, TEXT("AttackHead"));
-
 		OnMontageEnded.AddDynamic(this, &UCEnemyAnimInstance::SetbAttackingFree);
 	}
 }

@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "CItemDetailUI.h"
 #include "CInventoryItemData.h"
 #include "IItemManager.h"
+#include "PCH.h"
 #include "MMBGameModeBase.h"
 
 UCItemDetailUI::UCItemDetailUI(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -38,5 +39,64 @@ void UCItemDetailUI::SetDetail(UCInventoryItemData* ItemData)
 	ItemName->SetText(FText::FromString(ItemData->GetstrName()));
 	ItemPrice->SetText(FText::FromString(FString::FromInt(ItemData->GetPrice())));
 	ItemDetail->SetText(ItemData->GetItemDetail());
-	ItemATK->SetText(FText::FromString(FString::SanitizeFloat(ItemData->GetAttackDamage())));
+
+	//ItemStat Stats;
+	//ItemData->GetItemStats(Stats);
+	ItemStat* Stats = ItemData->GetItemStats();
+	FString tempStat;
+	FString tempStatDesc;
+	bool EnterFlag = false;
+	if (Stats->_AttackDamage != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("공격력");
+		if (Stats->_AttackDamage > 0) tempStatDesc += "+ ";
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_AttackDamage);
+		EnterFlag = true;
+	}
+	if (Stats->_Defence != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("방어력");
+		tempStatDesc += "+ ";
+		//tempStatDesc += FString::SanitizeFloat(Stats->_Defence);
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_Defence);
+		EnterFlag = true;
+	}
+	if (Stats->_AttackSpeed != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("공격속도");
+		if (Stats->_AttackSpeed > 0) tempStatDesc += "+ ";
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_AttackSpeed * 100.f);
+		//tempStatDesc += FString::SanitizeFloat(Stats->_AttackSpeed * 100.f);
+		tempStatDesc += "%";
+		EnterFlag = true;
+	}
+
+	ItemStatText->SetText(FText::FromString(tempStat));
+	ItemStatDescText->SetText(FText::FromString(tempStatDesc));
+
+	//switch (ItemData->GetItemType())
+	//{
+	//case(ITEM_TYPE_WEAPON):
+	//	ItemATK->SetText(FText::FromString(FString::SanitizeFloat(ItemData->GetAttackDamage())));
+	//	WeaponPannel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//	break;
+	//default:
+	//	WeaponPannel->SetVisibility(ESlateVisibility::Hidden);
+	//	break;
+	//}
 }

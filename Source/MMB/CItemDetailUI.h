@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -35,7 +35,9 @@ class MMB_API UCItemDetailUI : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> WeaponPannel;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemATK;
+	TObjectPtr<UTextBlock> ItemStatText;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ItemStatDescText;
 protected:
 	FVector2D DefaultPos;
 

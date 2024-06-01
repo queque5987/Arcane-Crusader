@@ -8,36 +8,12 @@ ACEthereal::ACEthereal() : Super()
 {
 	SetActorEnableCollision(true);
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Sculptures/SM_Scultpture_Angel_01.SM_Scultpture_Angel_01"));
-	if (SMFinder.Succeeded())
-	{
-		StaticMeshComponent->SetStaticMesh(SMFinder.Object);
-	}
-	StaticMeshComponent->SetRelativeScale3D(FVector(3.f, 3.f, 3.f));
-
-	//UCInventoryItemData* Item0 = UObject::CreateDefaultSubobject<UCInventoryItemData>(TEXT("Start Weapon0"));
-	//Item0->SetIndex(0);
-	//Item0->SetIconTexture("Tex_gemstone_11_b");
-	//Item0->SetItemClass(ACStaff::StaticClass());
-	//Item0->SetItemCount(1);
-	//Item0->SetstrName("Fire Staff");
-	//Item0->SetAttackDamage(5);
-	//Item0->SetOwner(this);
-	//Item0->SetPrice(100);
-	////Item0->SetAttackType("Trying to do better");
-	//ItemList.Add(Item0);
-
-	//UCInventoryItemData* Item1 = UObject::CreateDefaultSubobject<UCInventoryItemData>(TEXT("Start Weapon1"));
-	//Item1->SetIndex(1);
-	//Item1->SetIconTexture("Tex_gemstone_11_b");
-	//Item1->SetItemClass(ACBattleStaff::StaticClass());
-	//Item1->SetItemCount(1);
-	//Item1->SetstrName("Battle Staff");
-	//Item1->SetAttackDamage(5);
-	//Item1->SetOwner(this);
-	//Item1->SetPrice(100);
-	////Item1->SetAttackType("Physical");
-	//ItemList.Add(Item1);
+	//ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Sculptures/SM_Scultpture_Angel_01.SM_Scultpture_Angel_01"));
+	//if (SMFinder.Succeeded())
+	//{
+	//	StaticMeshComponent->SetStaticMesh(SMFinder.Object);
+	//}
+	//StaticMeshComponent->SetRelativeScale3D(FVector(3.f, 3.f, 3.f));
 }
 
 void ACEthereal::BeginPlay()

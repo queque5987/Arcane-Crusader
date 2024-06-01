@@ -21,6 +21,28 @@ ACEnemy_TerrorBringer::ACEnemy_TerrorBringer() : Super()
 		GetMesh()->SetSkeletalMesh(SMFinder.Object);
 		GetMesh()->SetWorldRotation(FRotator(0.f, -90.f, 0.f));
 		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+		FString MatAddres = TEXT("/Game/FourEvilDragonsPBR/Materials/DragonTheTerrorBringer/AlbedoMat_Inst.AlbedoMat_Inst");
+		switch (FMath::RandRange(0, 3))
+		{
+		case(0):
+			break;
+		case(1):
+			MatAddres = TEXT("/Game/FourEvilDragonsPBR/Materials/DragonTheTerrorBringer/DarkBlueMat_Inst.DarkBlueMat_Inst");
+			break;
+		case(2):
+			MatAddres = TEXT("/Game/FourEvilDragonsPBR/Materials/DragonTheTerrorBringer/GreenMat_Inst.GreenMat_Inst");
+			break;
+		case(3):
+			MatAddres = TEXT("/Game/FourEvilDragonsPBR/Materials/DragonTheTerrorBringer/RedMat_Inst.RedMat_Inst");
+			break;
+		default:
+			break;
+		}
+		ConstructorHelpers::FObjectFinder<UMaterialInstance> Mat0Finder(*MatAddres);
+		if (Mat0Finder.Succeeded())
+		{
+			GetMesh()->SetMaterial(0, Mat0Finder.Object);
+		}
 	}
 	if (AnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(AnimBPFinder.Object->GeneratedClass);
 	AIControllerClass = ACEnemyAIController_TB::StaticClass();

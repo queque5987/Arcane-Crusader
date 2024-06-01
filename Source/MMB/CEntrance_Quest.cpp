@@ -23,7 +23,7 @@ ACEntrance_Quest::ACEntrance_Quest()
 	for (int i = 0; i < GateNum; i++)
 	{
 		UStaticMeshComponent* StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent_") + i);
-		StaticMeshComponent->SetStaticMesh(GatePrag.Object);
+		if (GatePrag.Succeeded()) StaticMeshComponent->SetStaticMesh(GatePrag.Object);
 		StaticMeshComponent->SetupAttachment(Collider);
 		FTransform T = FTransform();
 		T.SetLocation(FVector(j * c + GateWidth / 2.5, 0.f, 0.f));

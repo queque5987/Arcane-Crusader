@@ -100,6 +100,8 @@ protected:
 	int32 JumpStartPoint;
 	UFUNCTION()
 	void DequeueDamageUI();
+
+	void StartBattleMap();
 public:
 	virtual bool SetInventoryVisibility() override;
 	virtual void AddInventoryItem(UClass* ItemClass) override;
@@ -128,6 +130,8 @@ public:
 	void CheckQuest(UObject* ToCheckObject);
 	void CheckQuest(UClass* ToCheckObjectClass);
 	bool CheckQuest_Cleared(FString QuestName);
+
+	virtual void HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArray<class UCQuestData*>& OutArr) override;
 	void ShowDroppedItemList(bool e, class ACDroppedItem& Dropped, class UCInventoryItemData* ItemData);
 
 
@@ -155,6 +159,9 @@ public:
 	virtual void MoveQuestToClearedByQuestName(FString QuestName) override;
 	virtual void RemoveQuest(UObject* QuestDat) override;
 	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) override;
+
+	virtual void EquippedItemStat(struct ItemStat& SumItemStat) override;
+
 	virtual void SaveGame(int SlotIndex) override;
 	virtual void SaveGame(TArray<uint8>& MemoryAddress) override;
 	virtual void LoadGame(int32 SaveSlot) override;

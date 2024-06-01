@@ -113,7 +113,7 @@ public:
 
 	virtual void SetVisibility(ESlateVisibility InVisibility) override;
 
-	void SetNPC(class ACStaticNPC* e) { NPC = e; }
+	void SetNPC(class ACStaticNPC* e);
 	class ACStaticNPC* GetNPC() { return NPC; }
 	void SetItemList(class ACStaticNPC** e);
 	void SetLoadedMapIndex(int e) { LoadedMapIndex = e; }
@@ -210,4 +210,7 @@ private:
 	void OpenQuestRewardBox();
 
 	void ResetSelectedWidgets();
+
+	// 0 :Idle, 1 : Talking, 2 : Thankful, 3 : Disappointed
+	void PlayNPCAnimation(int32 State);
 };

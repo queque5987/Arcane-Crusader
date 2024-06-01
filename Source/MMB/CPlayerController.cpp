@@ -9,6 +9,7 @@
 #include "CItemDetailUI.h"
 #include "CSaveGame.h"
 #include "CGameInstance.h"
+#include "CStageGameMode.h"
 #include "CESCUI.h"
 #include "Blueprint/UserWidget.h"
 
@@ -107,7 +108,7 @@ void ACPlayerController::BeginPlay()
 		MainUI->SetVisibility(ESlateVisibility::Visible);
 		bShowMouseCursor = true;
 	}
-	else if (CurrentLevel == "TestLevel1" || CurrentLevel == "Startlevel")
+	else if (CurrentLevel == "Level_Town" || CurrentLevel == "Startlevel")
 	{
 		HUDOverlay->SetVisibility(ESlateVisibility::Visible);
 		ItemInventory->SetVisibility(ESlateVisibility::Hidden);
@@ -122,7 +123,11 @@ void ACPlayerController::BeginPlay()
 		NPCConversation->SetVisibility(ESlateVisibility::Hidden);
 		MainUI->SetVisibility(ESlateVisibility::Hidden);
 		bShowMouseCursor = false;
+	}
 
+	if (Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		StartBattleMap();
 	}
 	ESCUI = CreateWidget<UCESCUI>(this, ESCMenuAsset);
 
@@ -139,6 +144,43 @@ void ACPlayerController::DequeueDamageUI()
 	{
 		D->RemoveFromViewport();
 		D->Destruct();
+	}
+}
+
+void ACPlayerController::StartBattleMap()
+{
+	UCGameInstance* GInstance = Cast<UCGameInstance>(GetGameInstance());
+	ACStageGameMode* GM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	
+	if (GInstance->SpawnMonsterClass)
+	{
+		//AddQuest()
+		FQuestsRow* QR = GM->GetQuestbyIndex(GInstance->BattleQuestRowIndex);
+		if (QR != nullptr)
+		{
+			AddQuest(QR);
+		}
+		
+		//TArray<AActor*> arrOut;
+		//UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACMonsterSpawner_Manual::StaticClass(), arrOut);
+		//if (arrOut.Num() <= 0)
+		//{
+		//	return;
+		//}
+		//AActor* tempActor = arrOut[FMath::RandRange(0, arrOut.Num())];
+
+		//ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
+		//if (PC == nullptr) return;
+		//ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempActor);
+		//if (Spawner == nullptr) return;
+		//ACEnemyCharacter* EC = Spawner->SpawnMonster(GInstance->SpawnMonsterClass);
+		////ACEnemy_Nightmare* cEC = Cast<ACEnemy_Nightmare>(EC);
+		////if (cEC == nullptr) return;
+		//MonsterConfigure Config = MonsterConfigure();
+
+		//UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
+		//if (DT != nullptr) Config._DropTable = DT;
+		//EC->SetMonsterConfig(Config);
 	}
 }
 
@@ -276,6 +318,9 @@ void ACPlayerController::SetShopInventoryItems(TObjectPtr<class UTileView>& Shop
 	{
 		ShopTileList->AddItem(Item);
 	}
+	IIPlayerState* PS = Cast<IIPlayerState>(GetCharacter());
+	if (PS == nullptr) return;
+	ItemInventory->PlayerGold->SetText(FText::FromString(FString::FromInt(PS->GetPlayerGold())));
 }
 
 void ACPlayerController::ResumeShopInventoryItems()
@@ -527,6 +572,20 @@ bool ACPlayerController::CheckQuest_Cleared(FString QuestName)
 	}
 	//UE_LOG(LogTemp, Log, TEXT("Quest Check Failed"));
 	return false;
+}
+
+void ACPlayerController::HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArray<class UCQuestData*>& OutArr)
+{
+	TArray<UObject*> Quests = HUDOverlay->QuestList->GetListItems();
+	for (UObject* Quest: Quests)
+	{
+		UCQuestData* QD = Cast<UCQuestData>(Quest);
+		UClass* HoxyClass = QD->GetGivenNPC();
+		if (NPC->IsA(HoxyClass))
+		{
+			OutArr.Add(QD);
+		}
+	}
 }
 
 void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem& Dropped, UCInventoryItemData* ItemData)
@@ -833,6 +892,48 @@ bool ACPlayerController::IsQualifiedQuest(TArray<FString> RequiredQuestsArr)
 		Flag = false;
 	}
 	return true;
+}
+
+void ACPlayerController::EquippedItemStat(ItemStat& SumItemStat)
+{
+	float AD = 0.f;
+	float AS = 0.f;
+	float DF = 0.f;
+
+	if (ItemInventory->Weapon->GetNumItems() > 0)
+	{
+		UCInventoryItemData* WeaponID = Cast<UCInventoryItemData>(ItemInventory->Weapon->GetListItems()[0]);
+		ItemStat* WeaponStat = WeaponID->GetItemStats();
+		AD += WeaponStat->_AttackDamage;
+		AS += WeaponStat->_AttackSpeed;
+		DF += WeaponStat->_Defence;
+	}
+
+	if (ItemInventory->Artifact->GetNumItems() > 0)
+	{
+		UCInventoryItemData* ArtifactID = Cast<UCInventoryItemData>(ItemInventory->Artifact->GetListItems()[0]);
+		ItemStat* ArtifactStat = ArtifactID->GetItemStats();
+		AD += ArtifactStat->_AttackDamage;
+		AS += ArtifactStat->_AttackSpeed;
+		DF += ArtifactStat->_Defence;
+	}
+
+	if (ItemInventory->Armor->GetNumItems() > 0)
+	{
+		UCInventoryItemData* ArmorID = Cast<UCInventoryItemData>(ItemInventory->Armor->GetListItems()[0]);
+		ItemStat* ArmorStat = ArmorID->GetItemStats();
+		AD += ArmorStat->_AttackDamage;
+		AS += ArmorStat->_AttackSpeed;
+		DF += ArmorStat->_Defence;
+	}
+	
+	SumItemStat._AttackDamage = AD;
+	SumItemStat._Defence = DF;
+	SumItemStat._AttackSpeed = AS;
+	//ItemStat* temp = (ItemStat*)malloc(sizeof(struct ItemStat));
+	// TO DO //
+	// Iterate Equippped Item
+	// Sum States to Parameter
 }
 
 void ACPlayerController::SaveGame(int32 SlotIndex)

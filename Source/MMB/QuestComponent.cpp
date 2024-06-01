@@ -23,7 +23,8 @@ void UQuestComponent::BeginPlay()
 
 void UQuestComponent::Quest0()
 {
-	AActor* tempActor = FindActorByLabel(ACEntrance_Quest::StaticClass(), "TutorialZoneOutGate");
+	//AActor* tempActor = FindActorByLabel(ACEntrance_Quest::StaticClass(), "TutorialZoneOutGate");
+	AActor* tempActor = FindActorByTag(ACEntrance_Quest::StaticClass(), FName("TutorialZoneOutGate"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -31,8 +32,8 @@ void UQuestComponent::Quest0()
 	if (TutorialGate == nullptr) return;
 	TutorialGate->FocusToGate(PC);
 
-	AActor* tempEthereal = FindActorByLabel(ACEthereal::StaticClass(), "NPC_Ethereal");
-	AActor* tempPos = FindActorByLabel(AStaticMeshActor::StaticClass(), "NPC_Ethereal_Empty");
+	AActor* tempEthereal = FindActorByTag(ACEthereal::StaticClass(), FName("NPC_Ethereal"));
+	AActor* tempPos = FindActorByTag(AStaticMeshActor::StaticClass(), FName("NPC_Ethereal_Empty"));
 	
 	ACEthereal* Ethereal = Cast<ACEthereal>(tempEthereal);
 	if (tempPos == nullptr) return;
@@ -43,7 +44,7 @@ void UQuestComponent::Quest0()
 
 void UQuestComponent::Quest1()
 {
-	AActor* tempActor = FindActorByLabel(ACEntrance_Quest::StaticClass(), "RockMountainOutGate");
+	AActor* tempActor = FindActorByTag(ACEntrance_Quest::StaticClass(), FName("RockMountainOutGate"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -58,7 +59,7 @@ void UQuestComponent::Quest3()
 
 void UQuestComponent::Init_Quest0()
 {
-	AActor* tempActor = FindActorByLabel(ACEntrance_Quest::StaticClass(), "TutorialZoneInGate");
+	AActor* tempActor = FindActorByTag(ACEntrance_Quest::StaticClass(), FName("TutorialZoneInGate"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -69,7 +70,7 @@ void UQuestComponent::Init_Quest0()
 
 void UQuestComponent::Init_Quest1()
 {
-	AActor* tempActor = FindActorByLabel(ACMonsterSpawner_Manual::StaticClass(), "RockMountain_MonsterSpawner");
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("RockMountain_MonsterSpawner"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -88,7 +89,7 @@ void UQuestComponent::Init_Quest1()
 
 void UQuestComponent::Init_Quest2()
 {
-	AActor* tempActor = FindActorByLabel(ACMonsterSpawner_Manual::StaticClass(), "RockMountain_MonsterSpawner");
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("RockMountain_MonsterSpawner"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -99,7 +100,7 @@ void UQuestComponent::Init_Quest2()
 
 void UQuestComponent::Init_Quest3()
 {
-	AActor* tempActor = FindActorByLabel(ACMonsterSpawner_Manual::StaticClass(), "MonsterSpawner");
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("MonsterSpawner"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
@@ -112,7 +113,28 @@ void UQuestComponent::Init_Quest3()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 1.f;
+	Config._HP = 200.f;
+	Config._MaxHP = 200.f;
+	cEC->SetMonsterConfig(Config);
+}
+
+void UQuestComponent::Init_Quest4()
+{
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("MonsterSpawner"));
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+	ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempActor);
+	if (Spawner == nullptr) return;
+	ACEnemyCharacter* EC = Spawner->SpawnMonster(ACEnemy_TerrorBringer::StaticClass());
+	ACEnemy_TerrorBringer * cEC = Cast<ACEnemy_TerrorBringer>(EC);
+	if (cEC == nullptr) return;
+	MonsterConfigure Config = MonsterConfigure();
+
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
+	if (DT != nullptr) Config._DropTable = DT;
+	Config._HP = 200.f;
+	Config._MaxHP = 200.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -127,8 +149,25 @@ AActor* UQuestComponent::FindActorByLabel(TSubclassOf<AActor> FindClass, FString
 	}
 	for (AActor* A : arrOut)
 	{
-		if (A->GetActorLabel() == Label) return A;
-		//if (A->IsA(FindClass)) return A;
+		//if (A->GetActorLabel() == Label) return A;
+		if (A->IsA(FindClass)) return A;
+	}
+	return nullptr;
+}
+
+AActor* UQuestComponent::FindActorByTag(TSubclassOf<AActor> FindClass, FName Tag)
+{
+	TArray<AActor*> arrOut;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), Tag, arrOut);
+	if (arrOut.Num() < 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ERROR In QuestComponent : No Gate Found"));
+		return nullptr;
+	}
+	for (AActor* A : arrOut)
+	{
+		//if (A->GetActorLabel() == Label) return A;
+		if (A->IsA(FindClass)) return A;
 	}
 	return nullptr;
 }
@@ -170,6 +209,9 @@ void UQuestComponent::OnQuestInitialize(int InitIndex)
 		return;
 	case(3):
 		Init_Quest3();
+		return;
+	case(4):
+		Init_Quest4();
 		return;
 	default:
 		return;

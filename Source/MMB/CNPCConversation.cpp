@@ -9,6 +9,9 @@
 #include "CListedQuest.h"
 #include "CShopItem.h"
 #include "CGameInstance.h"
+#include "CEnemy_TerrorBringer.h"
+#include "CEnemy_Nightmare.h"
+#include "CDynamicNPC.h"
 
 void UCNPCConversation::NativeConstruct()
 {
@@ -110,6 +113,12 @@ void UCNPCConversation::SetVisibility(ESlateVisibility InVisibility)
 	}
 }
 
+void UCNPCConversation::SetNPC(ACStaticNPC* e)
+{
+	NPC = e;
+	PlayNPCAnimation(4);
+}
+
 void UCNPCConversation::SetItemList(ACStaticNPC** e)
 {
 	ItemList->ClearListItems();
@@ -126,13 +135,13 @@ void UCNPCConversation::SetItemList(ACStaticNPC** e)
 void UCNPCConversation::OnButtonYesClicked()
 {
 	//Quest Select Mode
-	//if (LoadedQuest != nullptr)
 	if (SelectedButton_Quest != nullptr)
 	{
+		PlayNPCAnimation(2);
 		UCListedQuest* ListedQuest = Cast<UCListedQuest>(SelectedButton_Quest);
 		if (ListedQuest == nullptr) return;
 		UCQuestData* QuestData = Cast<UCQuestData>(ListedQuest->GetQuestData());
-		QuestData->SetGivenNPC(NPC);
+		//QuestData->SetGivenNPC(NPC);
 		if (QuestData == nullptr) return;
 
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
@@ -193,6 +202,7 @@ void UCNPCConversation::OnButtonYesClicked()
 
 void UCNPCConversation::OnButtonNoClicked()
 {
+	PlayNPCAnimation(3);
 	SelectedButton_Quest = nullptr;
 	//LoadedQuest = nullptr;
 	SetLineFromDialogues(BUTTON_NO_POSTLINE);
@@ -200,6 +210,7 @@ void UCNPCConversation::OnButtonNoClicked()
 
 void UCNPCConversation::OnButtonShopCloseClicked()
 {
+	PlayNPCAnimation(1);
 	SetLineFromDialogues(0);
 	ShoppingBox->SetVisibility(ESlateVisibility::Hidden);
 	ResetSelectedWidgets();
@@ -208,6 +219,7 @@ void UCNPCConversation::OnButtonShopCloseClicked()
 
 void UCNPCConversation::OnButtonShopInClicked()
 {
+	PlayNPCAnimation(0);
 	SetLineFromDialogues(BUTTON_SHOP_POSTLINE);
 	ShoppingBox->SetVisibility(ESlateVisibility::Visible);
 	ShoppingBox_LoadPlayerInventory();
@@ -220,11 +232,13 @@ void UCNPCConversation::OnButtonShopInClicked()
 
 void UCNPCConversation::OnButtonNextClicked()
 {
+	PlayNPCAnimation(1);
 	SetLineFromDialogues(BUTTON_NEXT_POSTLINE);
 }
 
 void UCNPCConversation::OnButtonQuestClicked()
 {
+	PlayNPCAnimation(1);
 	SetLineFromDialogues(BUTTON_QUEST_POSTLINE);
 
 	QuestListBox->SetVisibility(ESlateVisibility::Visible);
@@ -241,6 +255,7 @@ void UCNPCConversation::OnButtonQuestClicked()
 
 void UCNPCConversation::OnButtonLeaveClicked()
 {
+	PlayNPCAnimation(4);
 	ResetSelectedWidgets();
 	if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
 	{
@@ -262,12 +277,14 @@ void UCNPCConversation::OnButtonTeleportClicked()
 
 void UCNPCConversation::OnButtonTeleportCloseClicked()
 {
+	PlayNPCAnimation(1);
 	SetLineFromDialogues(0);
 	TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCNPCConversation::OnButtonTeleportSendClicked()
 {
+	PlayNPCAnimation(1);
 	UE_LOG(LogTemp, Log, TEXT("Player Teleport To : Somewhere"), );
 	if (TeleportableMapList->GetNumItems() > LoadedMapIndex && LoadedMapIndex >= 0)
 	{
@@ -318,7 +335,6 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 		}
 		else
 		{
-
 			AController* ACC = GetOwningPlayer();
 			if (ACC == nullptr) return;
 			ACharacter* AC = ACC->GetCharacter();
@@ -326,32 +342,22 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 			TSoftObjectPtr<UWorld> World = LoadedMap->GetDestLevel();
 			UGameplayStatics::OpenLevelBySoftObjectPtr(AC, LoadedMap->GetDestLevel());
 			UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
+
+			GI->BattleQuestRowIndex = LoadedMap->GetRelatedQuestIndex();
+			GI->SpawnMonsterClass = ACEnemy_Nightmare::StaticClass();
 			IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
 			if (PCC != nullptr)
 			{
 				if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
 				else PCC->SaveGame(GI->SelectedSaveSlot);
 			}
-
-			//int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
-			//TArray<FQuestsRow*> Quests = NPC->GetQuest();
-
-			//if ((RelatedQuestIndex < 0 || !Quests.IsValidIndex(RelatedQuestIndex)) || PCC == nullptr)
-			//{
-			//	return;
-			//}
-			//FQuestsRow* Quest = Quests[RelatedQuestIndex];
-			//if (Quest != nullptr)
-			//{
-			//	PCC->AddQuest(Quest);
-			//}
 		}
 	}
-	// TO Do : Move to Selected Map
 }
 
 void UCNPCConversation::OnButtonBuyClicked()
 {
+	PlayNPCAnimation(2);
 	if (SelectedButton_ToBuy == nullptr) return;
 	UCShopItem* ShopItem = Cast<UCShopItem>(SelectedButton_ToBuy);
 	if (ShopItem == nullptr) return;
@@ -361,6 +367,7 @@ void UCNPCConversation::OnButtonBuyClicked()
 
 void UCNPCConversation::OnButtonSellClicked()
 {
+	PlayNPCAnimation(2);
 	if (SelectedButton_ToSell == nullptr) return;
 	UCShopItem* ShopItem = Cast<UCShopItem>(SelectedButton_ToSell);
 	if (ShopItem == nullptr) return;
@@ -370,6 +377,7 @@ void UCNPCConversation::OnButtonSellClicked()
 
 void UCNPCConversation::OnButtonQuestLeaveClicked()
 {
+	PlayNPCAnimation(1);
 	QuestListBox->SetVisibility(ESlateVisibility::Hidden);
 	SetLineFromDialogues(0);
 	ResetSelectedWidgets();
@@ -379,6 +387,7 @@ void UCNPCConversation::OnButtonQuestLeaveClicked()
 
 void UCNPCConversation::OnButtonQuestAcceptClicked()
 {
+	PlayNPCAnimation(2);
 	if (SelectedButton_Quest == nullptr) return;
 	UCListedQuest* ListedQuest = Cast<UCListedQuest>(SelectedButton_Quest);
 	if (ListedQuest == nullptr) return;
@@ -420,6 +429,7 @@ void UCNPCConversation::OnButtonQuestAcceptClicked()
 
 void UCNPCConversation::OnButtonQuestRewardAcceptClicked()
 {
+	PlayNPCAnimation(2);
 	UCListedQuest* ListedQuest = Cast<UCListedQuest>(SelectedButton_Quest);
 	if (ListedQuest == nullptr) return;
 	UCQuestData* QuestData = Cast<UCQuestData>(ListedQuest->GetQuestData());
@@ -620,7 +630,10 @@ void UCNPCConversation::OpenQuestRewardBox()
 	for (int i = 0; i < QuestRewards.Num(); i++)
 	{
 		UCInventoryItemData* ItemData = ItemManager->GetItem(QuestRewards[i], QuestRewardsQ[i]);
-		if (QuestRewardsQ[i] > 1) ItemData->SetItemCount(QuestRewardsQ[i]);
+		if (QuestRewardsQ[i] > 1) 
+		{
+			ItemData->SetItemCount(QuestRewardsQ[i]);
+		}
 		QuestRewardItemList->AddItem(ItemData);
 	}
 	//for (FName QuestReward : QuestRewards)
@@ -660,6 +673,14 @@ void UCNPCConversation::ResetSelectedWidgets()
 
 }
 
+void UCNPCConversation::PlayNPCAnimation(int32 State)
+{
+	if (NPC == nullptr) return;
+	ACDynamicNPC* AnimNPC = Cast<ACDynamicNPC>(NPC);
+	if (AnimNPC == nullptr) return;
+	AnimNPC->SetNPCAnimation(State);
+}
+
 void UCNPCConversation::ShoppingBox_LoadPlayerInventory()
 {
 	IIPlayerUIController* IController = Cast<IIPlayerUIController>(GetOwningPlayer());
@@ -681,18 +702,27 @@ void UCNPCConversation::QuestBox_LoadNPCQuest()
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 
+	//Containing Quest Check
 	for (FQuestsRow* ContainingQuest : ContainingQuests)
 	{
 		UCQuestData* ID = NewObject<UCQuestData>(this, UCQuestData::StaticClass(), FName(ContainingQuest->QuestName));
-		if (ID == nullptr) continue;
+		if (ID == nullptr) continue; //At Least One Missing
 
 		TArray<FString> RequiredQuests = ContainingQuest->RequiredQuest;
 
-		//UINT32 PlayerQuestState = UIController->IsPossesQuestCleared(ContainingQuest->QuestName);
-		//ID->SetQuestState(PlayerQuestState);
 		ID->SetDetails(ContainingQuest);
 		QuestList->AddItem(ID);
 	}
+
+	TArray<UCQuestData*> OutArr;
+	UIController->HoxyPossessClearableQuest(NPC, OutArr);
+	for (UCQuestData* ClearableQuest : OutArr)
+	{
+		QuestList->AddItem(ClearableQuest);
+		//UE_LOG(LogTemp, Log, TEXT("%s"), *ClearableQuest->GetQuestName());
+	}
+
+
 	QuestList->RequestRefresh();
 
 	for (UUserWidget* W : QuestList->GetDisplayedEntryWidgets())

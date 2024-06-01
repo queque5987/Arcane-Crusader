@@ -45,6 +45,9 @@ public:
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<FString> RequiredQuest;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString ClearableNPCClass;
 };
 
 USTRUCT(BlueprintType)
@@ -147,6 +150,10 @@ public:
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float AttackDamage;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float Defence;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float AttackSpeed;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 Rarity;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)

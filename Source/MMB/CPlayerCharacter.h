@@ -254,9 +254,13 @@ public:
 	void OnLooseRope();
 
 	virtual void SetRevivalPoint(FVector Pos) override;
+	virtual FVector GetRevivalPoint() override { return RevivalPos; };
 
 	virtual void QuestClear(int e) override;
 	virtual void QuestInitialize(int e) override;
 
 	virtual void SetStartPos(FVector e) override;
+
+	virtual float GetBonusAttackDamage() override;
+	virtual void FallToRevivalPoint(class AActor* AttachedCamera, float Damage = 0.f) override;
 };

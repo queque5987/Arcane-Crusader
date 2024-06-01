@@ -25,6 +25,8 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 	QuestRewards = Row->QuestRewards;
 	RequiredQuest = Row->RequiredQuest;
 	QuestRewardsQuantity = Row->QuestRewardsQuantity;
+	GivenNPC = GetClassFromPath(Row->ClearableNPCClass);
+	//GivenNPC = Row->
 }
 
 UClass* UCQuestData::GetClassFromPath(FString ClassPath)

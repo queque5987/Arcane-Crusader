@@ -21,7 +21,7 @@ void UCEnemy_AnimInstance_Nightmare::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	//EnemyCharacter = Cast<ACEnemyCharacter>(TryGetPawnOwner());
+	EnemyCharacter = Cast<ACEnemyCharacter>(TryGetPawnOwner());
 	if (EnemyCharacter != nullptr)
 	{
 		EnemyCharacter->DoRoar.BindUFunction(this, TEXT("Roar"));

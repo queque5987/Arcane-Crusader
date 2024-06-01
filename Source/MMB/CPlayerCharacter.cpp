@@ -81,11 +81,9 @@ ACPlayerCharacter::ACPlayerCharacter()
 	//GetMesh()->SetAnimClass(SMWizrdAnimBPFinder.Object->GeneratedClass);
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SMKnightMage(TEXT("/Game/Player/Guard/castle_guard_01.castle_guard_01"));
-	//ConstructorHelpers::FObjectFinder<USkeletalMesh> SMKnightMage(TEXT("/Game/Player/Mage/Mesh/Knight_D_Pelegrini.Knight_D_Pelegrini"));
 	if (SMKnightMage.Succeeded()) GetMesh()->SetSkeletalMesh(SMKnightMage.Object);
-	//ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("/Game/Player/Mage/Animation/BP_MageAnimInstance.BP_MageAnimInstance"));
 	ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("/Game/Player/Guard/Animation/BP_AnimInstance.BP_AnimInstance"));
-	GetMesh()->SetAnimClass(SMKnightMageAnimBPFinder.Object->GeneratedClass);
+	if (SMKnightMageAnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(SMKnightMageAnimBPFinder.Object->GeneratedClass);
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -87.f), FRotator(0.f, -90.f, 0.f));
 
 	//SetActorRelativeScale3D(FVector(1.3f, 1.3f, 1.3f));
@@ -614,6 +612,8 @@ void ACPlayerCharacter::Anykey_Triggered()
 
 void ACPlayerCharacter::Scroll(const FInputActionValue& Value)
 {
+	if (GetState(PLAYER_UI_INTERACTING)) return;
+
 	float ScrollAxis = Value.Get<float>();
 	float TempTargetLength = SpringArmComponent->TargetArmLength - 10.f * ScrollAxis;
 
@@ -960,4 +960,23 @@ void ACPlayerCharacter::QuestInitialize(int e)
 void ACPlayerCharacter::SetStartPos(FVector e)
 {
 	StartPos = e;
+}
+
+float ACPlayerCharacter::GetBonusAttackDamage()
+{
+	return 0.0f;
+}
+
+void ACPlayerCharacter::FallToRevivalPoint(AActor* AttachedCamera, float Damage)
+{
+	APlayerController* AController = Cast<APlayerController>(GetController());
+	if (AttachedCamera != nullptr) AController->SetViewTargetWithBlend(AttachedCamera);
+	GetWorld()->GetTimerManager().SetTimer(
+		HitReactTimerHandle, FTimerDelegate::CreateLambda([&] {
+			SetActorLocation(RevivalPos);
+			APlayerController* AController = Cast<APlayerController>(GetController());
+			if (AController != nullptr) AController->SetViewTargetWithBlend(CameraComponent->GetOwner(), 1.f);
+			}), 3.f, false
+	);
+	if (Damage > 0.f) HitDamage(Damage, nullptr);
 }

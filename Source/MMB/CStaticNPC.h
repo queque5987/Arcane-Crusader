@@ -45,16 +45,20 @@ public:
 	UPROPERTY(EditAnywhere)
 	TArray<int> QuestIndex;
 
-	virtual void Initialize() {}
+	virtual void Initialize() {};
 
 protected:
 	//TObjectPtr<UTileView> ItemList;
+
+	UPROPERTY(EditAnywhere)
+	TArray<FName> PossessItems;
 
 	TArray<class UCInventoryItemData*> ItemList;
 	FTransform NPCCameraFixedTransform;
 
 	virtual void BeginPlay() override;
 	bool NPCCameraOn;
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 

@@ -3,6 +3,7 @@
 
 #include "CBattleStaff.h"
 #include "Sound/SoundCue.h"
+#include "IPlayerUIController.h"
 
 ACBattleStaff::ACBattleStaff() : Super()
 {
@@ -25,41 +26,40 @@ ACBattleStaff::ACBattleStaff() : Super()
 
 
 	ConstructorHelpers::FObjectFinder <USoundCue> MeleeHitSoundCueFinder(TEXT("/Game/Resources/Sound/Hit/Staff_Melee_Hit.Staff_Melee_Hit"));
-	StaffMeleeHitSoundCue = MeleeHitSoundCueFinder.Object;
+	if (MeleeHitSoundCueFinder.Succeeded()) StaffMeleeHitSoundCue = MeleeHitSoundCueFinder.Object;
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> BattleStaffMeshFinder(TEXT("/Game/BattleWizardPolyart/Meshes/MagicStaffs/Staff01SM.Staff01SM"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_ExplodeEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_Area_01.P_RBurst_Default_Burst_Area_01"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_FinalAttackExplode(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_SinkH_01.P_RBurst_Default_Burst_SinkH_01"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_FinalAttackBonusExplode(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_Stalag_01.P_RBurst_Default_Burst_Stalag_01"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo2AttackExplode(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Charge_Slam_01.P_RBurst_Default_Charge_Slam_01"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackHitEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Base_Charge_01.P_RBurst_Base_Charge_01"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo1AttackProjectileEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_ProjectileLob_Bomblet_Untyped.P_ProjectileLob_Bomblet_Untyped"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo1AttackProjectileExplode(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_ProjectileLob_Explo_Untyped.P_ProjectileLob_Explo_Untyped"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo1AttackProjectileLaunchEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_Shout_00.P_Shout_00"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo1AttackProjectileSpawnEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_Shout_Charge_00.P_Shout_Charge_00"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo2AttackProjectileEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_LineToPoint_Projectile_Untyped.P_LineToPoint_Projectile_Untyped"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackingEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Fire/P_Beam_Laser_Dot.P_Beam_Laser_Dot"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackTrail(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_WeaponThrow/P_Skill_Throw_Fire_Trail_Base.P_Skill_Throw_Fire_Trail_Base"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> WeaponAttackHitEffect(TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_C.P_Sparks_C"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> MeleeAttackCombo_Combo2AttackProjectileHitEffect(TEXT("/Game/InfinityBladeEffects/Effects/FX_Treasure/Resources/P_Resource_Impact_Rock.P_Resource_Impact_Rock"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh>		BattleStaffMeshFinder								(TEXT("/Game/BattleWizardPolyart/Meshes/MagicStaffs/Staff01SM.Staff01SM"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_ExplodeEffect						(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_Area_01.P_RBurst_Default_Burst_Area_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_FinalAttackExplode					(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_SinkH_01.P_RBurst_Default_Burst_SinkH_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_FinalAttackBonusExplode			(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Burst_Stalag_01.P_RBurst_Default_Burst_Stalag_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo2AttackExplode				(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Default_Charge_Slam_01.P_RBurst_Default_Charge_Slam_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackHitEffect								(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Base_Charge_01.P_RBurst_Base_Charge_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo1AttackProjectileEffect		(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_ProjectileLob_Bomblet_Untyped.P_ProjectileLob_Bomblet_Untyped"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo1AttackProjectileExplode		(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_ProjectileLob_Explo_Untyped.P_ProjectileLob_Explo_Untyped"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo1AttackProjectileLaunchEffect	(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_Shout_00.P_Shout_00"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo1AttackProjectileSpawnEffect	(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_Shout_Charge_00.P_Shout_Charge_00"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo2AttackProjectileEffect		(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/combat/P_LineToPoint_Projectile_Untyped.P_LineToPoint_Projectile_Untyped"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	WeaponAttackingEffect								(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Fire/P_Beam_Laser_Dot.P_Beam_Laser_Dot"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	WeaponAttackTrail									(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_WeaponThrow/P_Skill_Throw_Fire_Trail_Base.P_Skill_Throw_Fire_Trail_Base"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	WeaponAttackHitEffect								(TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_C.P_Sparks_C"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo2AttackProjectileHitEffect	(TEXT("/Game/InfinityBladeEffects/Effects/FX_Treasure/Resources/P_Resource_Impact_Rock.P_Resource_Impact_Rock"));
 
+	if (BattleStaffMeshFinder.Succeeded()) StaticMeshComponent->SetStaticMesh(BattleStaffMeshFinder.Object);
 
-	StaticMeshComponent->SetStaticMesh(BattleStaffMeshFinder.Object);
-
-	WeaponEffect[E_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_Combo2AttackExplode.Object;;
-	WeaponEffect[E_MELEEATTACKCOMBO_3_FINALATTACK_EXPLODE] = MeleeAttackCombo_ExplodeEffect.Object;
-	WeaponEffect[E_MELEEATTACKCOMBO_3_FINALATTACK_BONUS_EXPLODE] = MeleeAttackCombo_FinalAttackBonusExplode.Object;
-	WeaponEffect[E_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackExplode.Object;
-	WeaponEffect[E_MELEEATTACK_HITEFFECT] = MeleeAttackHitEffect.Object;
-	WeaponEffect[E_MELEEATTACKCOMBO_1_PROJECTILE] = MeleeAttackCombo_Combo1AttackProjectileEffect.Object;
-	WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_EXPLODE] = MeleeAttackCombo_Combo1AttackProjectileExplode.Object;
-	WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectileLaunchEffect.Object;
-	WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_SPAWN] = MeleeAttackCombo_Combo1AttackProjectileSpawnEffect.Object;
-	WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE] = MeleeAttackCombo_Combo2AttackProjectileEffect.Object;
-	WeaponEffect[E_MELLEWEAPON_ATTACKING_EFFECT] = WeaponAttackingEffect.Object;
-	WeaponEffect[E_MELLEWEAPON_ATTACK_TRAIL] = WeaponAttackTrail.Object;
-	WeaponEffect[E_MELLEWEAPON_ATTACK_HIT] = WeaponAttackHitEffect.Object;
-	WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE_HIT] = MeleeAttackCombo_Combo2AttackProjectileHitEffect.Object;
+	if (MeleeAttackCombo_ExplodeEffect.Succeeded()) WeaponEffect[E_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_Combo2AttackExplode.Object;;
+	if (MeleeAttackCombo_FinalAttackExplode.Succeeded()) WeaponEffect[E_MELEEATTACKCOMBO_3_FINALATTACK_EXPLODE] = MeleeAttackCombo_ExplodeEffect.Object;
+	if (MeleeAttackCombo_FinalAttackBonusExplode.Succeeded()) WeaponEffect[E_MELEEATTACKCOMBO_3_FINALATTACK_BONUS_EXPLODE] = MeleeAttackCombo_FinalAttackBonusExplode.Object;
+	if (MeleeAttackCombo_Combo2AttackExplode.Succeeded()) WeaponEffect[E_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackExplode.Object;
+	if (MeleeAttackHitEffect.Succeeded()) WeaponEffect[E_MELEEATTACK_HITEFFECT] = MeleeAttackHitEffect.Object;
+	if (MeleeAttackCombo_Combo1AttackProjectileEffect.Succeeded()) WeaponEffect[E_MELEEATTACKCOMBO_1_PROJECTILE] = MeleeAttackCombo_Combo1AttackProjectileEffect.Object;
+	if (MeleeAttackCombo_Combo1AttackProjectileExplode.Succeeded()) WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_EXPLODE] = MeleeAttackCombo_Combo1AttackProjectileExplode.Object;
+	if (MeleeAttackCombo_Combo1AttackProjectileLaunchEffect.Succeeded()) WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectileLaunchEffect.Object;
+	if (MeleeAttackCombo_Combo1AttackProjectileSpawnEffect.Succeeded()) WeaponEffect[E_MELLEATTACKCOMBO_1_PROJECTILE_SPAWN] = MeleeAttackCombo_Combo1AttackProjectileSpawnEffect.Object;
+	if (MeleeAttackCombo_Combo2AttackProjectileEffect.Succeeded()) WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE] = MeleeAttackCombo_Combo2AttackProjectileEffect.Object;
+	if (WeaponAttackingEffect.Succeeded()) WeaponEffect[E_MELLEWEAPON_ATTACKING_EFFECT] = WeaponAttackingEffect.Object;
+	if (WeaponAttackTrail.Succeeded()) WeaponEffect[E_MELLEWEAPON_ATTACK_TRAIL] = WeaponAttackTrail.Object;
+	if (WeaponAttackHitEffect.Succeeded()) WeaponEffect[E_MELLEWEAPON_ATTACK_HIT] = WeaponAttackHitEffect.Object;
+	if (MeleeAttackCombo_Combo2AttackProjectileHitEffect.Succeeded()) WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE_HIT] = MeleeAttackCombo_Combo2AttackProjectileHitEffect.Object;
 
 	WeaponSoundEffect.SetNum(MAX_SE_WEAPON);
 
@@ -68,10 +68,10 @@ ACBattleStaff::ACBattleStaff() : Super()
 	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo2AttackProjectile_LauncchSE(TEXT("/Game/Resources/Sound/Rock/stones-falling-6375.stones-falling-6375"));
 	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo1AttackProjectile_LauncchSE(TEXT("/Game/Resources/Sound/Rock/rocks-6129.rocks-6129"));
 
-	WeaponSoundEffect[SE_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_FinalAttack_ExplodeSE.Object;
-	WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Object;
-	WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_LAUNCH] = MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Object;
-	WeaponSoundEffect[SE_MELEEATTACKCOMBO_1_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Object;
+	if (MeleeAttackCombo_FinalAttack_ExplodeSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_FinalAttack_ExplodeSE.Object;
+	if (MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Object;
+	if (MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_LAUNCH] = MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Object;
+	if (MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_1_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Object;
 
 
 	
@@ -171,17 +171,33 @@ void ACBattleStaff::RMB_Triggered(struct AttackResult& AttackResult)
 
 float ACBattleStaff::GettempDamage0()
 {
-	return AttackDamage*tempDamage0;
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(PC->GetController());
+	if (UIController == nullptr) return AttackDamage * tempDamage0;
+	ItemStat temp;
+	UIController->EquippedItemStat(temp);
+	return temp._AttackDamage * tempDamage0;
 }
 
 float ACBattleStaff::GettempDamage1()
 {
-	return AttackDamage*tempDamage1;
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(PC->GetController());
+	if (UIController == nullptr) return AttackDamage * tempDamage1;
+	ItemStat temp;
+	UIController->EquippedItemStat(temp);
+	return temp._AttackDamage * tempDamage1;
+
 }
 
 float ACBattleStaff::GettempDamage2()
 {
-	return AttackDamage*tempDamage2;
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(PC->GetController());
+	if (UIController == nullptr) return AttackDamage * tempDamage2;
+	ItemStat temp;
+	UIController->EquippedItemStat(temp);
+	return temp._AttackDamage * tempDamage2;
 }
 
 void ACBattleStaff::SetIsEquiped(bool e)
@@ -364,7 +380,10 @@ UCInventoryItemData* ACBattleStaff::GetItemData(ACharacter* PC)
 	ID->SetDT_RowName(ItemDTRowName);
 	//ID->SetAttackType(ItemData_AttackType);
 	ID->SetItemType(0);
-	ID->SetAttackDamage(AttackDamage);
+	//ID->SetAttackDamage(AttackDamage);
+	ID->SetItemStats(
+		AttackDamage
+	);
 	ID->SetstrName(WeaponName.ToString());
 	ID->SetItemClass(ACBattleStaff::StaticClass());
 	return ID;

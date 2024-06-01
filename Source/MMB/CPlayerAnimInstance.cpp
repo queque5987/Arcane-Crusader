@@ -39,43 +39,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitReactFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_React_Large_Gut.Standing_React_Large_Gut"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PickUpFinder(TEXT("/Game/Player/Guard/Animation/Picking_Up.Picking_Up"));
-	//Knithe Version
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim.Attack03StartAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastOngoingFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03MaintainAnim.Attack03MaintainAnim"));
-
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeComboFinder(TEXT("/Game/Player/Mage/Animation/Attack/Standing_Melee_Combo_Attack_Ver__2.Standing_Melee_Combo_Attack_Ver__2"));
-
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo1Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_1.Mage_Standing_Melee_Combo_Attack_1"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo2Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_2.Mage_Standing_Melee_Combo_Attack_2"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo3Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_3.Mage_Standing_Melee_Combo_Attack_3"));
-
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FinishAttackFinder(TEXT("/Game/Player/Mage/Animation/Attack/Sword_And_Shield_Slash.Sword_And_Shield_Slash"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo1AttackFinder(TEXT("/Game/Player/Mage/Animation/Attack/Standing_1H_Magic_Attack_01.Standing_1H_Magic_Attack_01"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo2AttackFinder(TEXT("/Game/Player/Mage/Animation/Attack/Standing_1H_Magic_Attack_03.Standing_1H_Magic_Attack_03"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> StandToRollFinder(TEXT("/Game/Player/Mage/Animation/Attack/Stand_To_Roll.Stand_To_Roll"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownFinder(TEXT("/Game/Player/Mage/Animation/Attack/Falling_Back_Death.Falling_Back_Death"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/Player/Mage/Animation/Attack/Stand_Up.Stand_Up"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/Player/Mage/Animation/Attack/exhausted_recover.exhausted_recover"));
-
-
-	//Portrait Version
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim.Attack03StartAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastOngoingFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03MaintainAnim.Attack03MaintainAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeComboFinder(TEXT("/Game/Player/Animation/Mage_Standing_Melee_Combo_Attack_Ver__2.Mage_Standing_Melee_Combo_Attack_Ver__2"));
-
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo1Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_1.Mage_Standing_Melee_Combo_Attack_1"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo2Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_2.Mage_Standing_Melee_Combo_Attack_2"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo3Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_3.Mage_Standing_Melee_Combo_Attack_3"));
-
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FinishAttackFinder(TEXT("/Game/Player/Animation/Mage_sword_and_shield_slash__4_.Mage_sword_and_shield_slash__4_"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo1AttackFinder(TEXT("/Game/Player/Animation/Mage_Mirror_Standing_1H_Magic_Attack_01.Mage_Mirror_Standing_1H_Magic_Attack_01"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo2AttackFinder(TEXT("/Game/Player/Animation/Mage_Mirror_Standing_1H_Magic_Attack_03.Mage_Mirror_Standing_1H_Magic_Attack_03"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> StandToRollFinder(TEXT("/Game/Player/Animation/Mage_Stand_To_Roll.Mage_Stand_To_Roll"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownFinder(TEXT("/Game/Player/Animation/Mage_Falling_Back_Death.Mage_Falling_Back_Death"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/BattleWizardPolyart/Animations/DieRecoverAnim.DieRecoverAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/BattleWizardPolyart/Animations/DizzyAnim.DizzyAnim"));
+	
 
 	if(LMBAttackFinder.Succeeded())			AnimSequenceLMBAttack = LMBAttackFinder.Object;
 	if(RMBCastStartFinder.Succeeded())		AnimSequenceRMBCastStart = RMBCastStartFinder.Object;
@@ -122,37 +86,93 @@ void UCPlayerAnimInstance::RMBCastOngoing()
 
 void UCPlayerAnimInstance::MeleeAttackCombo()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::MeleeAttackCombo1()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo1, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo1, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::MeleeAttackCombo2()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo2, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo2, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::MeleeAttackCombo3()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo3, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeCombo3, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::FinishAttack()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeFinishAttack, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMeleeFinishAttack, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::Combo1Attack()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMelee1ComboAttack, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMelee1ComboAttack, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::Combo2Attack()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceMelee2ComboAttack, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	float BonusSpeed = 0.f;
+	if (Pawn)
+	{
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(Pawn->GetController());
+		ItemStat tempStat;
+		UIController->EquippedItemStat(tempStat);
+		BonusSpeed += tempStat._AttackSpeed;
+	}
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceMelee2ComboAttack, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 }
 
 void UCPlayerAnimInstance::StandToRoll()
@@ -193,7 +213,7 @@ void UCPlayerAnimInstance::JumpPoint_Jump(float e)
 
 void UCPlayerAnimInstance::JumpPoint_Land()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointLand, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointLand, "UpperBody", 0.25f, 0.25f, 1.f);
 	float e = AnimSequenceJumpPointLand->GetPlayLength();
 }
 

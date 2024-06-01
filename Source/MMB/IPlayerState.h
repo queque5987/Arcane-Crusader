@@ -25,6 +25,8 @@ public:
 	virtual void GainPlayerGold(UINT32 e) {};
 
 	virtual void SetRevivalPoint(FVector Pos) {};
+	virtual FVector GetRevivalPoint() { return FVector(); };
+	virtual void FallToRevivalPoint(class AActor* AttachedCamera, float Damage = 0.f) {};
 
 	virtual void SetHoverringUI(UUserWidget* UI) {};
 
@@ -33,4 +35,6 @@ public:
 	virtual void Equip(class ACWeapon& ActorToEquip) {};
 	virtual void Equip(class AActor& ActorToEquip) {};
 	virtual void UnEquip() {};
+
+	virtual float GetBonusAttackDamage() { return 0.f; }
 };

@@ -154,7 +154,8 @@ struct MonsterConfigure
 		class UDataTable* DropTable = nullptr,
 		float HP = 100.f, float MaxHP = 100.f,
 		float AttackDamage = 20.f, float MaxWalkSpeed = 350.f,
-		float FlyAcc = 0.5f, float VirticalAcc = 120.f)
+		float FlyAcc = 0.5f, float VirticalAcc = 120.f
+	)
 	{
 		_DropTable = DropTable;
 		_HP = HP;
@@ -172,4 +173,22 @@ struct MonsterConfigure
 	float _AttackDamage;
 	float _FlyAcc;
 	float _VirticalAcc;
+};
+
+struct ItemStat
+{
+	ItemStat(
+		float AttackDamage = 0.f,
+		float Defence = 0.f,
+		float AttackSpeed = 0.f
+	)
+	{
+		_AttackDamage = AttackDamage;
+		_Defence = Defence;
+		_AttackSpeed = AttackSpeed;
+	}
+
+	float _AttackDamage;
+	float _Defence;
+	float _AttackSpeed;
 };

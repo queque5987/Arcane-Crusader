@@ -18,7 +18,7 @@ UCLASS()
 class MMB_API AMMBGameModeBase : public AGameModeBase, public IIItemManager
 {
 	GENERATED_BODY()
-
+protected:
 	AMMBGameModeBase();
 
 	virtual void BeginPlay() override;

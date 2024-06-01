@@ -30,15 +30,15 @@ public:
 	bool IsCleared() { return bCleared; };
 	int GetQuestRewardIndex() { return QuestRewardIndex; }
 	int GetQuestInitializeIndex() { return QuestInitializeIndex; }
-	class ACStaticNPC* GetGivenNPC() { return GivenNPC; };
-	void SetGivenNPC(class ACStaticNPC* NPC) { GivenNPC = NPC; };
+	UClass* GetGivenNPC() { return GivenNPC; };
+	void SetGivenNPC(UClass* NPC) { GivenNPC = NPC; };
 protected:
 	//UObject* QuestData;
 	UCQuestData* QuestData;
 	FString QuestRecapString;
 	FString QuestNameString;
 	bool bCleared;
-	class ACStaticNPC* GivenNPC;
+	UClass* GivenNPC;
 	TArray<UClass*> RequiredClasses;
 	TArray<int> AcquiredQuantities;
 	TArray<int> RequiredQuantities;
