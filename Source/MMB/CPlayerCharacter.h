@@ -56,6 +56,8 @@ class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, publi
 public:
 	ACPlayerCharacter();
 
+	virtual void PostInitializeComponents() override;
+
 	UPROPERTY()
 	class UInputAction* MoveAction;
 	UPROPERTY()
@@ -144,6 +146,7 @@ protected:
 	FTimerHandle HitReactTimerHandle;
 	FTimerHandle HitDownRecoverHandle;
 	FTimerHandle StaminaRegainHandle;
+	FTimerHandle StageStartHandle;
 	void SetCanGetup();
 	void Getup();
 	void LazyGetUp();
@@ -243,7 +246,7 @@ public:
 	FVector GetMoveInputDesiredVector();
 	FRotator GetMoveInputDesiredRotator();
 
-	void TransferToLevel(FName e);
+	//void TransferToLevel(FName e);
 
 	void AxisAdjustOnScreenRotation(float DeltaTime = 1/60);
 

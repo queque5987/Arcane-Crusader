@@ -16,7 +16,7 @@ ACDroppedItem::ACDroppedItem()
 	Collider->SetSphereRadius(1500.f);
 	Collider->SetupAttachment(StaticMeshComponent);
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Runes/SM_Temple_Rune_Sphere_01.SM_Temple_Rune_Sphere_01"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Runes/SM_Temple_Rune_Sphere_01"));
 	if (SMFinder.Succeeded()) StaticMeshComponent->SetStaticMesh(SMFinder.Object);
 
 	StaticMeshComponent->SetSimulatePhysics(true);

@@ -4,6 +4,7 @@
 #include "CPlayerCharacter.h"
 #include "IWidgetInteract.h"
 #include "PCH.h"
+#include "Engine/LevelStreaming.h"
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
@@ -27,18 +28,18 @@ ACPlayerCharacter::ACPlayerCharacter()
 
 	PrimaryActorTick.bCanEverTick = true;
 
-	ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCFinder(TEXT("/Game/Player/Input/IMC_Default.IMC_Default"));
-	ConstructorHelpers::FObjectFinder<UInputAction> MoveFinder(TEXT("/Game/Player/Input/IA_Move.IA_Move"));
-	ConstructorHelpers::FObjectFinder<UInputAction> LookFinder(TEXT("/Game/Player/Input/IA_Look.IA_Look"));
-	ConstructorHelpers::FObjectFinder<UInputAction> JumpFinder(TEXT("/Game/Player/Input/IA_Jump.IA_Jump"));
-	ConstructorHelpers::FObjectFinder<UInputAction> LMBFinder(TEXT("/Game/Player/Input/IA_LMB.IA_LMB"));
-	ConstructorHelpers::FObjectFinder<UInputAction> RMBFinder(TEXT("/Game/Player/Input/IA_RMB.IA_RMB"));
-	ConstructorHelpers::FObjectFinder<UInputAction> OpenInventoryFinder(TEXT("/Game/Player/Input/IA_Inventory.IA_Inventory"));
-	ConstructorHelpers::FObjectFinder<UInputAction> ShiftFinder(TEXT("/Game/Player/Input/IA_Shift.IA_Shift"));
-	ConstructorHelpers::FObjectFinder<UInputAction> InteractFinder(TEXT("/Game/Player/Input/IA_Interact.IA_Interact"));
-	ConstructorHelpers::FObjectFinder<UInputAction> AnyKeyFinder(TEXT("/Game/Player/Input/IA_Any.IA_Any"));
-	ConstructorHelpers::FObjectFinder<UInputAction> ScrollFinder(TEXT("/Game/Player/Input/IA_Scroll.IA_Scroll"));
-	ConstructorHelpers::FObjectFinder<UInputAction> ESCFinder(TEXT("/Game/Player/Input/IA_ESC.IA_ESC"));
+	ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCFinder(TEXT("/Game/Player/Input/IMC_Default"));
+	ConstructorHelpers::FObjectFinder<UInputAction> MoveFinder(TEXT("/Game/Player/Input/IA_Move"));
+	ConstructorHelpers::FObjectFinder<UInputAction> LookFinder(TEXT("/Game/Player/Input/IA_Look"));
+	ConstructorHelpers::FObjectFinder<UInputAction> JumpFinder(TEXT("/Game/Player/Input/IA_Jump"));
+	ConstructorHelpers::FObjectFinder<UInputAction> LMBFinder(TEXT("/Game/Player/Input/IA_LMB"));
+	ConstructorHelpers::FObjectFinder<UInputAction> RMBFinder(TEXT("/Game/Player/Input/IA_RMB"));
+	ConstructorHelpers::FObjectFinder<UInputAction> OpenInventoryFinder(TEXT("/Game/Player/Input/IA_Inventory"));
+	ConstructorHelpers::FObjectFinder<UInputAction> ShiftFinder(TEXT("/Game/Player/Input/IA_Shift"));
+	ConstructorHelpers::FObjectFinder<UInputAction> InteractFinder(TEXT("/Game/Player/Input/IA_Interact"));
+	ConstructorHelpers::FObjectFinder<UInputAction> AnyKeyFinder(TEXT("/Game/Player/Input/IA_Any"));
+	ConstructorHelpers::FObjectFinder<UInputAction> ScrollFinder(TEXT("/Game/Player/Input/IA_Scroll"));
+	ConstructorHelpers::FObjectFinder<UInputAction> ESCFinder(TEXT("/Game/Player/Input/IA_ESC"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -80,10 +81,13 @@ ACPlayerCharacter::ACPlayerCharacter()
 	//ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMWizrdAnimBPFinder(TEXT("/Game/Player/Animation/BP_AnimInstance.BP_AnimInstance"));
 	//GetMesh()->SetAnimClass(SMWizrdAnimBPFinder.Object->GeneratedClass);
 
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> SMKnightMage(TEXT("/Game/Player/Guard/castle_guard_01.castle_guard_01"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SMKnightMage(TEXT("/Game/Player/Guard/castle_guard_01"));
 	if (SMKnightMage.Succeeded()) GetMesh()->SetSkeletalMesh(SMKnightMage.Object);
-	ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("/Game/Player/Guard/Animation/BP_AnimInstance.BP_AnimInstance"));
-	if (SMKnightMageAnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(SMKnightMageAnimBPFinder.Object->GeneratedClass);
+
+	//ConstructorHelpers::FClassFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("/Game/Player/Guard/Animation/BP_AnimInstance_Guard"));
+	//ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("AnimBlueprint'/Game/Player/Guard/Animation/BP_AnimInstance_Guard'"));
+	//if (SMKnightMageAnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(SMKnightMageAnimBPFinder.Object->GeneratedClass);
+
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -87.f), FRotator(0.f, -90.f, 0.f));
 
 	//SetActorRelativeScale3D(FVector(1.3f, 1.3f, 1.3f));
@@ -96,7 +100,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMovementSpeed;
 
 	ParticleSystemAimCircle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CircleAim"));
-	ConstructorHelpers::FObjectFinder<UParticleSystem> ParticleFinder(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Fire/combat/P_AuraCircle_Fire_00.P_AuraCircle_Fire_00"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> ParticleFinder(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Fire/combat/P_AuraCircle_Fire_00"));
 	if (ParticleFinder.Succeeded()) ParticleSystemAimCircle->SetTemplate(ParticleFinder.Object);
 	ParticleSystemAimCircle->SetRelativeScale3D(FVector(0.7f, 0.7f, 0.7f));
 	ParticleSystemAimCircle->SetVisibility(false);
@@ -108,6 +112,16 @@ ACPlayerCharacter::ACPlayerCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Block);
 
 	QuestComponent = CreateDefaultSubobject<UQuestComponent>(TEXT("QuestComponent"));
+}
+
+void ACPlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	FString AnimBPAdderss = "Class'/Game/Player/Guard/Animation/BP_AnimInstance_Guard.BP_AnimInstance_Guard_C'";
+	UClass* tempAnimBP = LoadObject<UClass>(nullptr, *AnimBPAdderss);
+	if (!tempAnimBP) return;
+	GetMesh()->SetAnimInstanceClass(tempAnimBP);
 }
 
 void ACPlayerCharacter::BeginPlay()
@@ -126,6 +140,26 @@ void ACPlayerCharacter::BeginPlay()
 	{
 		SetActorLocation(StartPos);
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(StageStartHandle, FTimerDelegate::CreateLambda([&] {
+		bool Flag = true;
+		for (ULevelStreaming* LS : GetWorld()->GetStreamingLevels())
+		{
+			if (LS != nullptr && !LS->IsLevelLoaded())
+			{
+				Flag = false;
+				break;
+			}
+		}
+		if (Flag)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Loaded"));
+			GetWorld()->GetTimerManager().ClearTimer(StageStartHandle);
+		}
+		else UE_LOG(LogTemp, Log, TEXT("Loading"));
+		}), 0.1f, true
+	);
+	
 }
 
 void ACPlayerCharacter::SetCanGetup()
@@ -803,14 +837,15 @@ FRotator ACPlayerCharacter::GetMoveInputDesiredRotator()
 	//return FRotator(0.f, GetControlRotation().Yaw + directionalYaw, 0.f);
 }
 
-void ACPlayerCharacter::TransferToLevel(FName e)
-{
-	if (AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode()))
-	{
-		UE_LOG(LogTemp, Log, TEXT("Gamemode loaded"));
-		UGameplayStatics::OpenLevelBySoftObjectPtr(this, GM->LevelToLoad);
-	}
-}
+//Deprecated
+//void ACPlayerCharacter::TransferToLevel(FName e)
+//{
+//	if (AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode()))
+//	{
+//		UE_LOG(LogTemp, Log, TEXT("Gamemode loaded"));
+//		//UGameplayStatics::OpenLevelBySoftObjectPtr(this, GM->LevelToLoad);
+//	}
+//}
 
 void ACPlayerCharacter::AxisAdjustOnScreenRotation(float DeltaTime)
 {

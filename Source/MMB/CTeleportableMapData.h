@@ -10,6 +10,10 @@ UCLASS()
 class MMB_API UCTeleportableMapData : public UObject
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	FName LevelName;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FName DestLevelName;
 
@@ -34,6 +38,8 @@ public:
 	void SetDestLevel(TSoftObjectPtr<UWorld> e) { DestLevel = e; }
 	FVector GetDestLocation() { return DestLocation; }
 	void SetDestLocation(FVector e) { DestLocation = e; }
+	FName GetLevelName() { return LevelName; }
+	void SetLevelName(FName e) { LevelName = e; }
 	FName GetDestLevelName() { return DestLevelName; }
 	void SetDestLevelName(FName e) { DestLevelName = e; }
 	int GetArrIndex() { return ArrIndex; }

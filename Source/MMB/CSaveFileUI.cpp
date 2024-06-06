@@ -46,14 +46,16 @@ void UCSaveFileUI::OnButtonClicked()
 	if (GI == nullptr) return;
 	GI->SelectedSaveSlot = SaveFile->SaveIndex;
 
-	TSoftObjectPtr<UWorld> LoadedLevel(FSoftObjectPath(SaveFile->SavedLevel));
-	if (SaveFile->SavedLevel.IsEmpty())
+	//TSoftObjectPtr<UWorld> LoadedLevel(FSoftObjectPath(SaveFile->SavedLevel));
+	FName LoadedLevel = SaveFile->SavedLevel;
+	if (SaveFile->SavedLevel.IsNone())
 	{
-		LoadedLevel = FSoftObjectPath("/Game/Resources/Levels/Startlevel.Startlevel");
+		//LoadedLevel = FSoftObjectPath("/Game/Resources/Levels/Startlevel.Startlevel");
+		LoadedLevel = "Startlevel";
 	}
 	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, GM->LevelToLoad);
-	
-	UGameplayStatics::OpenLevelBySoftObjectPtr(this, LoadedLevel);
+	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, LoadedLevel);
+	UGameplayStatics::OpenLevel(this, LoadedLevel);
 	if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))
 	{
 		e->MainUI->SetVisibility(ESlateVisibility::Hidden);

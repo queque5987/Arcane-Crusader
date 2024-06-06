@@ -120,6 +120,8 @@ struct FTeleportableMapTableRow : public FTableRowBase
 
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FName DestLevelName;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FName LevelName;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString Level;

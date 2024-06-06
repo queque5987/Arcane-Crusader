@@ -6,13 +6,13 @@
 
 UCEnemy_AnimInstance_TB::UCEnemy_AnimInstance_TB()
 {
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RoarFinder			(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/ScreamAnim.ScreamAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder	(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackWingClawAnim.AttackWingClawAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FireFinder (TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackFlameAnim.AttackFlameAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FlyFireFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/FlyAttackAnim.FlyAttackAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/LandingAnim.LandingAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> TakeOffFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/TakeOffAnim.TakeOffAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackMouthFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackMouthAnim.AttackMouthAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RoarFinder			(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/ScreamAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder	(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackWingClawAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FireFinder (TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackFlameAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FlyFireFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/FlyAttackAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/LandingAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> TakeOffFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/TakeOffAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackMouthFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheTerrorBringer/AttackMouthAnim"));
 	
 	if (RoarFinder.Succeeded())			AnimSequenceRoar = RoarFinder.Object;
 	if (AttackHandFinder.Succeeded())	AnimSequenceAttackHand = AttackHandFinder.Object;

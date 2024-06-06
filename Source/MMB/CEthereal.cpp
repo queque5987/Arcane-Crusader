@@ -8,7 +8,9 @@ ACEthereal::ACEthereal() : Super()
 {
 	SetActorEnableCollision(true);
 
-	//ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Sculptures/SM_Scultpture_Angel_01.SM_Scultpture_Angel_01"));
+	//
+	// 
+	// ::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Sculptures/SM_Scultpture_Angel_01.SM_Scultpture_Angel_01"));
 	//if (SMFinder.Succeeded())
 	//{
 	//	StaticMeshComponent->SetStaticMesh(SMFinder.Object);

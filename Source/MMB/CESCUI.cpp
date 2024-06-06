@@ -28,11 +28,12 @@ void UCESCUI::OnGameResumeClicked()
 
 void UCESCUI::OnToMainClicked()
 {
-	FSoftObjectPath path = FSoftObjectPath("/Game/Resources/Levels/MainUILevel.MainUILevel");
-	TSoftObjectPtr<UWorld> MenuLevel(path);
+	//FSoftObjectPath path = FSoftObjectPath("/Game/Resources/Levels/MainUILevel.MainUILevel");
+	//TSoftObjectPtr<UWorld> MenuLevel(path);
 	//if (AMainUIGameMode* GM = Cast<AMainUIGameMode>(GetWorld()->GetAuthGameMode()))
 	//{
-	UGameplayStatics::OpenLevelBySoftObjectPtr(this, MenuLevel);
+	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, MenuLevel);
+	UGameplayStatics::OpenLevel(this, "MainUILevel");
 	UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
 	GI->SelectedSaveSlot = -1;
 	//	if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))

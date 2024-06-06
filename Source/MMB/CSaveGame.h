@@ -40,5 +40,6 @@ public:
 	int32 SavedGold;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SaveData")
-	FString SavedLevel;
+	FName SavedLevel;
+	//FString SavedLevel;
 };

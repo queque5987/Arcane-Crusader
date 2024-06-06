@@ -7,17 +7,20 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "IWidgetInteract.h"
 #include "CTeleportableMapData.h"
 #include "CTeleportableMap.generated.h"
 
 UCLASS()
-class MMB_API UCTeleportableMap : public UUserWidget, public IUserObjectListEntry
+class MMB_API UCTeleportableMap : public UUserWidget, public IUserObjectListEntry, public IIWidgetInteract
 {
 	GENERATED_BODY()
 public:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
-protected:
+	virtual void SwitchPressed(bool Pressed) override;
+	virtual bool GetbPressed() override;
+
 	virtual void NativeOnInitialized() override;
 protected:
 	class UCTeleportableMapData* MapData;
@@ -33,5 +36,5 @@ protected:
 
 	const FSlateBrush* SB_Normal;
 	const FSlateBrush* SB_Pressed;
-	bool Pressed;
+	bool bPressed;
 };

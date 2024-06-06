@@ -15,6 +15,7 @@ const FName ACEnemyAIController::bHostile(TEXT("bHostile"));
 const FName ACEnemyAIController::bBusy(TEXT("bBusy"));
 const FName ACEnemyAIController::bAttacking(TEXT("bAttacking"));
 const FName ACEnemyAIController::PlayerCharacter(TEXT("PlayerCharacter"));
+const FName ACEnemyAIController::CornAheadPos(TEXT("CornAheadPos"));
 
 ACEnemyAIController::ACEnemyAIController(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -23,7 +24,9 @@ ACEnemyAIController::ACEnemyAIController(const FObjectInitializer& ObjectInitial
 	RoarCooldown = 30.f;
 	CanRoar = true;
 
-	//ConstructorHelpers::FObjectFinder<UBehaviorTree>BTAssetFinder(TEXT("/Game/Enemy/NightMare/AIController/BT_Enemy.BT_Enemy"));
+	//ConstructorHelpers::FObjectFinder<UBehaviorTree>BTAssetFinder(TEXT("
+	// 
+	// Enemy/NightMare/AIController/BT_Enemy.BT_Enemy"));
 	//ConstructorHelpers::FObjectFinder<UBlackboardData>BBAssetFinder(TEXT("/Game/Enemy/NightMare/AIController/BB_Enemy.BB_Enemy"));
 	//if (BTAssetFinder.Succeeded())
 	//{
@@ -91,6 +94,10 @@ void ACEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 void ACEnemyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	FVector tempVector = GetCharacter()->GetActorLocation() + GetCharacter()->GetViewRotation().RotateVector(FVector::ForwardVector);
+	UE_LOG(LogTemp, Log, TEXT("Character Rotation : %s"), *tempVector.ToString());
+	Blackboard->SetValueAsVector(CornAheadPos, tempVector);
 }
 
 //void ACEnemyAIController::SetPerceptionComponent(UAIPerceptionComponent& InPerceptionComponent)

@@ -15,8 +15,11 @@ void ACDynamicNPC::BeginPlay()
 {
 	Super::BeginPlay();
 	//SKComponent->PlayAnimation(Idle, true);
-	SKComponent->SetAnimClass(NPCAnimBluperint->GeneratedClass);
-	NPCAnimInstance = Cast<UCNPCAnimInstance>(SKComponent->GetAnimInstance());
+	if (NPCAnimBluperint != nullptr)
+	{
+		SKComponent->SetAnimClass(NPCAnimBluperint->GeneratedClass);
+		NPCAnimInstance = Cast<UCNPCAnimInstance>(SKComponent->GetAnimInstance());
+	}
 
 	Initialize();
 }

@@ -34,7 +34,7 @@ void UCNPCConversation::NativeConstruct()
 	BtnQuestLeave->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonQuestLeaveClicked);
 	BtnQuestAccept->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonQuestAcceptClicked);
 	BtnQuestRewardAccept->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonQuestRewardAcceptClicked);
-		
+	
 	ShoppingBox->SetVisibility(ESlateVisibility::Hidden);
 
 	SwingbyAlertBox->SetVisibility(ESlateVisibility::Hidden);
@@ -132,6 +132,20 @@ void UCNPCConversation::SetItemList(ACStaticNPC** e)
 	}
 }
 
+void UCNPCConversation::SetLoadedMapIndex(int e)
+{
+	LoadedMapIndex = e;
+
+	TArray<UUserWidget*> tempMaps = TeleportableMapList->GetDisplayedEntryWidgets();
+	for (int i = 0; i < tempMaps.Num(); i++)
+	{
+		if (i == e) continue;
+		IIWidgetInteract* IW = Cast<IIWidgetInteract>(tempMaps[i]);
+		if (IW == nullptr) continue;
+		IW->SwitchPressed(false);
+	}
+}
+
 void UCNPCConversation::OnButtonYesClicked()
 {
 	//Quest Select Mode
@@ -172,7 +186,7 @@ void UCNPCConversation::OnButtonYesClicked()
 				int temp = 0;
 				for (FTeleportableMapTableRow* R : Arr)
 				{
-					ID = NewObject<UCTeleportableMapData>(this, UCTeleportableMapData::StaticClass(), R->LevelName);
+					ID = NewObject<UCTeleportableMapData>(this, UCTeleportableMapData::StaticClass(), R->DestLevelName);
 					if (ID != nullptr)
 					{
 						FSoftObjectPath path = FSoftObjectPath(R->Level);
@@ -185,11 +199,12 @@ void UCNPCConversation::OnButtonYesClicked()
 						//{
 							//ID->SetDestLevel(W);
 						//}
-						ID->SetDestLevelName(R->LevelName);
+						ID->SetDestLevelName(R->DestLevelName);
 						ID->SetDestLocation(R->Pos);
 						ID->SetArrIndex(temp++);
 						ID->SetPreviewSlateBrush(R->PreviewSlateBrush);
 						ID->SetRelatedQuestIndex(R->RelatedQuestIndex);
+						ID->SetLevelName(R->LevelName);
 						TeleportableMapList->AddItem(ID);
 					}
 				}
@@ -280,6 +295,14 @@ void UCNPCConversation::OnButtonTeleportCloseClicked()
 	PlayNPCAnimation(1);
 	SetLineFromDialogues(0);
 	TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
+
+	TArray<UUserWidget*> tempMaps = TeleportableMapList->GetDisplayedEntryWidgets();
+	for (int i = 0; i < tempMaps.Num(); i++)
+	{
+		IIWidgetInteract* IW = Cast<IIWidgetInteract>(tempMaps[i]);
+		if (IW == nullptr) continue;
+		IW->SwitchPressed(false);
+	}
 }
 
 void UCNPCConversation::OnButtonTeleportSendClicked()
@@ -295,63 +318,66 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 		//FString MapName = dLevel->GetMapName();
 		// 
 		//Depricated
-		if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevelName().ToString())
+		//if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevelName().ToString())
+		//{
+		//	//Just Location
+		//	//UE_LOG(LogTemp, Log, TEXT("Teleporting to %s At %s"),
+		//	//	*LoadedMap->GetDestLevel()->GetMapName(),
+		//	//	*LoadedMap->GetDestLocation().ToString()
+		//	//);
+
+		//	AController* ACC = GetOwningPlayer();
+		//	if (ACC == nullptr) return;
+		//	ACharacter* AC = ACC->GetCharacter();
+		//	if (AC == nullptr) return;
+		//	AC->SetActorLocation(LoadedMap->GetDestLocation());
+
+		//	//If With Quest
+		//	int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
+		//	if (RelatedQuestIndex < 0)
+		//	{
+		//		OnButtonLeaveClicked();
+		//		return;
+		//	}
+		//	TArray<FQuestsRow*> Quests = NPC->GetQuest();
+		//	if (!Quests.IsValidIndex(RelatedQuestIndex))
+		//	{
+		//		OnButtonLeaveClicked();
+		//		return;
+		//	}
+		//	if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
+		//	{
+		//		FQuestsRow* Quest = Quests[RelatedQuestIndex];
+		//		if (Quest != nullptr)
+		//		{
+		//			PCC->AddQuest(Quest);
+		//		}
+		//	}
+
+		//	OnButtonLeaveClicked();
+		//}
+		//else
+		//{
+		AController* ACC = GetOwningPlayer();
+		if (ACC == nullptr) return;
+		ACharacter* AC = ACC->GetCharacter();
+		if (AC == nullptr) return;
+
+		//TSoftObjectPtr<UWorld> World = LoadedMap->GetDestLevel();
+		//UGameplayStatics::OpenLevelBySoftObjectPtr(AC, LoadedMap->GetDestLevel());
+		UGameplayStatics::OpenLevel(this, LoadedMap->GetLevelName());
+
+		UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
+
+		GI->BattleQuestRowIndex = LoadedMap->GetRelatedQuestIndex();
+		GI->SpawnMonsterClass = ACEnemy_Nightmare::StaticClass();
+		IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+		if (PCC != nullptr)
 		{
-			//Just Location
-			UE_LOG(LogTemp, Log, TEXT("Teleporting to %s At %s"),
-				*LoadedMap->GetDestLevel()->GetMapName(),
-				*LoadedMap->GetDestLocation().ToString()
-			);
-
-			AController* ACC = GetOwningPlayer();
-			if (ACC == nullptr) return;
-			ACharacter* AC = ACC->GetCharacter();
-			if (AC == nullptr) return;
-			AC->SetActorLocation(LoadedMap->GetDestLocation());
-
-			//If With Quest
-			int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
-			if (RelatedQuestIndex < 0)
-			{
-				OnButtonLeaveClicked();
-				return;
-			}
-			TArray<FQuestsRow*> Quests = NPC->GetQuest();
-			if (!Quests.IsValidIndex(RelatedQuestIndex))
-			{
-				OnButtonLeaveClicked();
-				return;
-			}
-			if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
-			{
-				FQuestsRow* Quest = Quests[RelatedQuestIndex];
-				if (Quest != nullptr)
-				{
-					PCC->AddQuest(Quest);
-				}
-			}
-
-			OnButtonLeaveClicked();
+			if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
+			else PCC->SaveGame(GI->SelectedSaveSlot);
 		}
-		else
-		{
-			AController* ACC = GetOwningPlayer();
-			if (ACC == nullptr) return;
-			ACharacter* AC = ACC->GetCharacter();
-			if (AC == nullptr) return;
-			TSoftObjectPtr<UWorld> World = LoadedMap->GetDestLevel();
-			UGameplayStatics::OpenLevelBySoftObjectPtr(AC, LoadedMap->GetDestLevel());
-			UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
-
-			GI->BattleQuestRowIndex = LoadedMap->GetRelatedQuestIndex();
-			GI->SpawnMonsterClass = ACEnemy_Nightmare::StaticClass();
-			IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
-			if (PCC != nullptr)
-			{
-				if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
-				else PCC->SaveGame(GI->SelectedSaveSlot);
-			}
-		}
+		//}
 	}
 }
 

@@ -14,6 +14,7 @@ class MMB_API ACEnemy_TerrorBringer : public ACEnemyCharacter, public IIFlyMonst
 	GENERATED_BODY()
 	
 	ACEnemy_TerrorBringer();
+	virtual void PostInitializeComponents() override;
 private:
 	bool IsFlying;
 

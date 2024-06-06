@@ -29,7 +29,7 @@ void UCTeleportableMap::NativeOnListItemObjectSet(UObject* ListItemObject)
 			SB_Pressed = &btnStyle->Pressed;
 		}
 	}
-	Pressed = false;
+	bPressed = false;
 }
 
 void UCTeleportableMap::NativeOnInitialized()
@@ -43,16 +43,42 @@ void UCTeleportableMap::OnButtonClicked()
 
 	IIPlayerUIController* IAC = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (IAC == nullptr) return;
-	if (!Pressed)
+	if (!bPressed)
 	{
-		Pressed = true;
+		bPressed = true;
 		IAC->SetSelectedPortal(MapData->GetArrIndex());
 		BtnMapPreview->WidgetStyle.SetNormal(*SB_Pressed);
 	}
 	else
 	{
-		Pressed = false;
+		bPressed = false;
 		IAC->SetSelectedPortal(-1);
 		BtnMapPreview->WidgetStyle.SetNormal(*SB_Normal);
 	}
+}
+
+void UCTeleportableMap::SwitchPressed(bool Pressed)
+{
+	if (MapData == nullptr) return;
+
+	if (Pressed)
+	{
+		IIPlayerUIController* IAC = Cast<IIPlayerUIController>(GetOwningPlayer());
+		if (IAC == nullptr) return;
+
+		bPressed = true;
+		IAC->SetSelectedPortal(MapData->GetArrIndex());
+		BtnMapPreview->WidgetStyle.SetNormal(*SB_Pressed);
+	}
+	else
+	{
+		bPressed = false;
+		//IAC->SetSelectedPortal(-1);
+		BtnMapPreview->WidgetStyle.SetNormal(*SB_Normal);
+	}
+}
+
+bool UCTeleportableMap::GetbPressed()
+{
+	return bPressed;
 }

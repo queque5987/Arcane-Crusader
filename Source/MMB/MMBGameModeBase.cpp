@@ -22,9 +22,9 @@ AMMBGameModeBase::AMMBGameModeBase()
 	DropItemMaterialsRarity.SetNum(MAX_ITEM_RARITY_NUM);
 	//SlateBrushArr.SetNum(MAX_SB_NUM);
 
-	ConstructorHelpers::FObjectFinder<UTexture2D>StaffIconFinder(TEXT("/Game/Resources/staff.staff"));
-	ConstructorHelpers::FObjectFinder<UTexture2D>BattleStaffIconFinder(TEXT("/Game/Resources/Textrue_BattleStaff.Textrue_BattleStaff"));
-	ConstructorHelpers::FObjectFinder<UTexture2D>DroppedItemIconFinder(TEXT("/Game/Resources/Texture_DroppedItem.Texture_DroppedItem"));
+	ConstructorHelpers::FObjectFinder<UTexture2D>StaffIconFinder(TEXT("/Game/Resources/staff"));
+	ConstructorHelpers::FObjectFinder<UTexture2D>BattleStaffIconFinder(TEXT("/Game/Resources/Textrue_BattleStaff"));
+	ConstructorHelpers::FObjectFinder<UTexture2D>DroppedItemIconFinder(TEXT("/Game/Resources/Texture_DroppedItem"));
 
 	if (StaffIconFinder.Succeeded())		PreLoadedTextures[TEXTURE_STAFF]		= (StaffIconFinder.Object);
 	if (BattleStaffIconFinder.Succeeded())	PreLoadedTextures[TEXTURE_BATTLESTAFF]	= (BattleStaffIconFinder.Object);
@@ -32,10 +32,10 @@ AMMBGameModeBase::AMMBGameModeBase()
 
 	DefaultIconDroppedItem = DroppedItemIconFinder.Object;
 
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> NormalMat(TEXT("/Game/Resources/Material/MI_Normal.MI_Normal"));
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> RareMat(TEXT("/Game/Resources/Material/MI_Rare.MI_Rare"));
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> EpicMat(TEXT("/Game/Resources/Material/MI_Epic.MI_Epic"));
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> LegendaryMat(TEXT("/Game/Resources/Material/MI_Legendary.MI_Legendary"));
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> NormalMat(TEXT("/Game/Resources/Material/MI_Normal"));
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> RareMat(TEXT("/Game/Resources/Material/MI_Rare"));
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> EpicMat(TEXT("/Game/Resources/Material/MI_Epic"));
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> LegendaryMat(TEXT("/Game/Resources/Material/MI_Legendary"));
 	
 	if (NormalMat.Succeeded())		DropItemMaterialsRarity[ITEM_NORMAL] = NormalMat.Object;
 	if (RareMat.Succeeded())		DropItemMaterialsRarity[ITEM_RARE] = RareMat.Object;
@@ -45,7 +45,7 @@ AMMBGameModeBase::AMMBGameModeBase()
 	//ConstructorHelpers::FObjectFinder<USlateBrushAsset>SB_DesertFinder(TEXT("/Game/Resources/Image/SB_Desert.SB_Desert"));
 	//if (SB_DesertFinder.Succeeded())	SlateBrushArr[SB_DESERT] = SB_DesertFinder.Object;
 
-	ConstructorHelpers::FObjectFinder<UDataTable> ItemTableFinder(TEXT("/Game/Resources/DataTables/DT_ItemTable.DT_ItemTable"));
+	ConstructorHelpers::FObjectFinder<UDataTable> ItemTableFinder(TEXT("/Game/Resources/DataTables/DT_ItemTable"));
 	if (ItemTableFinder.Succeeded())	ItemTable = ItemTableFinder.Object;
 
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");

@@ -68,10 +68,10 @@ void ACEnemyCharacter::Tick(float DeltaTime)
 
 			if (FMath::Abs(GetActorRotation().Yaw - PlayerHeadingRotation.Yaw) > 1.f)
 			{
-				SetActorRotation(FRotator(GetActorRotation().Pitch, TargetRotation.Yaw, GetActorRotation().Roll));
+				//SetActorRotation(FRotator(GetActorRotation().Pitch, TargetRotation.Yaw, GetActorRotation().Roll));
+				//UE_LOG(LogTemp, Log, TEXT("Curr Yaw : %f, Target Yaw : %f"), GetActorRotation().Yaw, TargetRotation.Yaw);
+				//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Rotate Character To Rotation : %s"), *TargetRotation.ToString()));
 			}
-			
-			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Rotate Pawn To Rotation : %s"), *TargetRotation.ToString()));
 		}
 	}
 }

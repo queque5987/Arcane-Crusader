@@ -54,6 +54,7 @@ public:
 	static const FName bBusy;
 	static const FName bAttacking;
 	static const FName PlayerCharacter;
+	static const FName CornAheadPos;
 
 	FTimerHandle RoarTimerHandle;
 	void RoarCooldownTimer() { CanRoar = true; }

@@ -18,11 +18,11 @@ AMainUIGameMode::AMainUIGameMode()
 	LevelToLoad = testlevel;
 
 
-	ConstructorHelpers::FObjectFinder<UDataTable> ItemTableFinder(TEXT("/Game/Resources/DataTables/DT_ItemTable.DT_ItemTable"));
+	ConstructorHelpers::FObjectFinder<UDataTable> ItemTableFinder(TEXT("/Game/Resources/DataTables/DT_ItemTable"));
 	if (ItemTableFinder.Succeeded())	ItemTable = ItemTableFinder.Object;
 
 
-	ConstructorHelpers::FObjectFinder<UTexture2D>DroppedItemIconFinder(TEXT("/Game/Resources/Texture_DroppedItem.Texture_DroppedItem"));
+	ConstructorHelpers::FObjectFinder<UTexture2D>DroppedItemIconFinder(TEXT("/Game/Resources/Texture_DroppedItem"));
 
 	if (DroppedItemIconFinder.Succeeded()) DefaultIconDroppedItem = DroppedItemIconFinder.Object;
 

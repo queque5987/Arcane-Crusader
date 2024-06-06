@@ -17,7 +17,7 @@ ACEntrance_Cinematic::ACEntrance_Cinematic() : Super()
 	SetActorEnableCollision(true);
 	Collider->SetBoxExtent(FVector(800.f, 10.f, 800.f));
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> GatePrag(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Runes/SM_Temple_Rune_02.SM_Temple_Rune_02"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> GatePrag(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Runes/SM_Temple_Rune_02"));
 	int j = 1;
 	float c = 0.f;
 	for (int i = 0; i < GateNum; i++)

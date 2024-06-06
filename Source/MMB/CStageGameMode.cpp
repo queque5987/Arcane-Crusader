@@ -6,7 +6,7 @@
 
 ACStageGameMode::ACStageGameMode() : Super()
 {
-	ConstructorHelpers::FObjectFinder<UDataTable> QuestTableFinder(TEXT("/Game/Resources/DataTables/DT_BattleField_QuestsTable.DT_BattleField_QuestsTable"));
+	ConstructorHelpers::FObjectFinder<UDataTable> QuestTableFinder(TEXT("/Game/Resources/DataTables/DT_BattleField_QuestsTable"));
 	if (QuestTableFinder.Succeeded())	QuestTable = QuestTableFinder.Object;
 }
 

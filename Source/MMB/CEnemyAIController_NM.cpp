@@ -8,8 +8,8 @@
 
 ACEnemyAIController_NM::ACEnemyAIController_NM(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	ConstructorHelpers::FObjectFinder<UBehaviorTree>BTAssetFinder(TEXT("/Game/Enemy/NightMare/AIController/BT_Enemy_Nightmare.BT_Enemy_Nightmare"));
-	ConstructorHelpers::FObjectFinder<UBlackboardData>BBAssetFinder(TEXT("/Game/Enemy/NightMare/AIController/BB_Enemy.BB_Enemy"));
+	ConstructorHelpers::FObjectFinder<UBehaviorTree>BTAssetFinder(TEXT("/Game/Enemy/NightMare/AIController/BT_Enemy_Nightmare"));
+	ConstructorHelpers::FObjectFinder<UBlackboardData>BBAssetFinder(TEXT("/Game/Enemy/NightMare/AIController/BB_Enemy"));
 	if (BTAssetFinder.Succeeded())
 	{
 		BTAsset = BTAssetFinder.Object;

@@ -22,7 +22,14 @@ void UCMainUI::OnGameStartClicked()
 {
 	if (AMainUIGameMode* GM = Cast<AMainUIGameMode>(GetWorld()->GetAuthGameMode()))
 	{
-		UGameplayStatics::OpenLevelBySoftObjectPtr(this, GM->LevelToLoad);
+		FString LevelName = L"/Game/Resources/Levels/Startlevel";
+		//UWorld* Loaded = LoadObject<UWorld>(nullptr, *LevelName);
+		//if (Loaded != nullptr)
+		//{
+			//UGameplayStatics::OpenLevelBySoftObjectPtr(this, Loaded);
+		//}
+		UGameplayStatics::OpenLevel(GetOwningPlayer(), *LevelName, true);
+		//UGameplayStatics::OpenLevelBySoftObjectPtr(GetOwningPlayer()->GetWorld(), GM->LevelToLoad);
 		if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))
 		{
 			e->MainUI->SetVisibility(ESlateVisibility::Hidden);

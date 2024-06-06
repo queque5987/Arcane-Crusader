@@ -13,8 +13,8 @@ const FName ACEnemyAIController_TB::bIsOnAir(TEXT("IsOnAir"));
 
 ACEnemyAIController_TB::ACEnemyAIController_TB(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	ConstructorHelpers::FObjectFinder<UBehaviorTree>BTAssetFinder(TEXT("/Game/Enemy/TerrorBringer/AIController/BT_Enemy_TB.BT_Enemy_TB"));
-	ConstructorHelpers::FObjectFinder<UBlackboardData>BBAssetFinder(TEXT("/Game/Enemy/TerrorBringer/AIController/BB_Enemy_TB.BB_Enemy_TB"));
+	ConstructorHelpers::FObjectFinder<UBehaviorTree>BTAssetFinder(TEXT("/Game/Enemy/TerrorBringer/AIController/BT_Enemy_TB"));
+	ConstructorHelpers::FObjectFinder<UBlackboardData>BBAssetFinder(TEXT("/Game/Enemy/TerrorBringer/AIController/BB_Enemy_TB"));
 
 	if (BTAssetFinder.Succeeded())
 	{

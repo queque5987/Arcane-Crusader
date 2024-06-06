@@ -6,10 +6,10 @@
 
 UCEnemy_AnimInstance_Nightmare::UCEnemy_AnimInstance_Nightmare() : Super()
 {
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RoarFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/ScreamAnim.ScreamAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHandAnim.AttackHandAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHeadFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHornAnim.AttackHornAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackMouthFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackMouthAnim.AttackMouthAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RoarFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/ScreamAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHandAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHeadFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHornAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackMouthFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackMouthAnim"));
 
 	if (RoarFinder.Succeeded())			AnimSequenceRoar = RoarFinder.Object;
 	if (AttackHandFinder.Succeeded())	AnimSequenceAttackHand = AttackHandFinder.Object;

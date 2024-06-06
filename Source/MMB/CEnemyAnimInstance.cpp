@@ -15,7 +15,8 @@ UCEnemyAnimInstance::UCEnemyAnimInstance()
 
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RoarFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/ScreamAnim.ScreamAnim"));
 	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHandAnim.AttackHandAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHeadFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHornAnim.AttackHornAnim"));
+	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHeadFinder(TEXT("
+	// FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHornAnim.AttackHornAnim"));
 	//if (RoarFinder.Succeeded())
 	//{
 	//	AnimSequenceRoar = RoarFinder.Object;

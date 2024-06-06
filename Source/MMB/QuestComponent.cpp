@@ -66,6 +66,22 @@ void UQuestComponent::Init_Quest0()
 	ACEntrance_Quest* TutorialGate = Cast<ACEntrance_Quest>(tempActor);
 	if (TutorialGate == nullptr) return;
 	TutorialGate->SetOpenGate(true);
+
+
+	AActor* tempSpawner = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("MonsterSpawner"));
+
+	ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempSpawner);
+	if (Spawner == nullptr) return;
+	ACEnemyCharacter* EC = Spawner->SpawnMonster(ACEnemy_Nightmare::StaticClass());
+	ACEnemy_Nightmare* cEC = Cast<ACEnemy_Nightmare>(EC);
+	if (cEC == nullptr) return;
+	MonsterConfigure Config = MonsterConfigure();
+
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
+	if (DT != nullptr) Config._DropTable = DT;
+	Config._HP = 80.f;
+	Config._MaxHP = 200.f;
+	cEC->SetMonsterConfig(Config);
 }
 
 void UQuestComponent::Init_Quest1()
@@ -81,7 +97,7 @@ void UQuestComponent::Init_Quest1()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 1.f;
 	cEC->SetMonsterConfig(Config);
@@ -111,7 +127,7 @@ void UQuestComponent::Init_Quest3()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 200.f;
 	Config._MaxHP = 200.f;
@@ -131,7 +147,7 @@ void UQuestComponent::Init_Quest4()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 200.f;
 	Config._MaxHP = 200.f;

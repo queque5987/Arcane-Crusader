@@ -12,33 +12,33 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	PawnAnimRadian = 0.f;
 
 
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim.Attack01Anim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim.Attack03StartAnim"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastOngoingFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03MaintainAnim.Attack03MaintainAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> LMBAttackFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack01Anim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastStartFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03StartAnim"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RMBCastOngoingFinder(TEXT("/Game/BattleWizardPolyart/Animations/Attack03MaintainAnim"));
 
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeComboFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_Melee_Combo_Attack_Ver__2.Standing_Melee_Combo_Attack_Ver__2"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeComboFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_Melee_Combo_Attack_Ver__2"));
 
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo1Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_1.Mage_Standing_Melee_Combo_Attack_1"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo2Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_2.Mage_Standing_Melee_Combo_Attack_2"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo3Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_3.Mage_Standing_Melee_Combo_Attack_3"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo1Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_1"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo2Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_2"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> MeleeCombo3Finder(TEXT("/Game/Player/Animation/BS_Combo/Mage_Standing_Melee_Combo_Attack_3"));
 
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FinishAttackFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Sword_And_Shield_Slash.Sword_And_Shield_Slash"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo1AttackFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_1H_Magic_Attack_01.Standing_1H_Magic_Attack_01"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo2AttackFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_1H_Magic_Attack_03.Standing_1H_Magic_Attack_03"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> StandToRollFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Sprinting_Forward_Roll.Sprinting_Forward_Roll"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Falling_Back_Death.Falling_Back_Death"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/Player/Guard/Animation/Hostile/Stand_Up.Stand_Up"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Injured_Idle.Injured_Idle"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FinishAttackFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Sword_And_Shield_Slash"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo1AttackFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_1H_Magic_Attack_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> Combo2AttackFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_1H_Magic_Attack_03"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> StandToRollFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Sprinting_Forward_Roll"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Falling_Back_Death"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitDownRecover(TEXT("/Game/Player/Guard/Animation/Hostile/Stand_Up"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DizzyFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Injured_Idle"));
 	
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RopeClimbFinder(TEXT("/Game/Player/Guard/Animation/Climbing_A_Rope.Climbing_A_Rope"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointReadyFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/JumpReady.JumpReady"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointJumpFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Mutant_Jumping.Mutant_Jumping"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointLandFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Hard_Landing.Hard_Landing"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RopeClimbFinder(TEXT("/Game/Player/Guard/Animation/Climbing_A_Rope"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointReadyFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/JumpReady"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointJumpFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Mutant_Jumping"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> JumpPointLandFinder(TEXT("/Game/Player/Guard/Animation/Jump/JumpPoints/Hard_Landing"));
 	
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DieAnimFinder(TEXT("/Game/Player/Guard/Animation/Sword_And_Shield_Death.Sword_And_Shield_Death"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DieAnimFinder(TEXT("/Game/Player/Guard/Animation/Sword_And_Shield_Death"));
 
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitReactFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_React_Large_Gut.Standing_React_Large_Gut"));
-	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PickUpFinder(TEXT("/Game/Player/Guard/Animation/Picking_Up.Picking_Up"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitReactFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_React_Large_Gut"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PickUpFinder(TEXT("/Game/Player/Guard/Animation/Picking_Up"));
 	
 
 	if(LMBAttackFinder.Succeeded())			AnimSequenceLMBAttack = LMBAttackFinder.Object;

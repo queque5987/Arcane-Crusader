@@ -15,4 +15,6 @@ class MMB_API ACEnemy_Nightmare : public ACEnemyCharacter
 	GENERATED_BODY()
 	
 	ACEnemy_Nightmare();
+
+	virtual void PostInitializeComponents() override;
 };

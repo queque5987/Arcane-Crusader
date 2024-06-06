@@ -973,7 +973,7 @@ void ACPlayerController::SaveGame(int32 SlotIndex)
 		{
 			SaveGameInstance->SavedGold = PC->GetPlayerGold();
 		}
-		SaveGameInstance->SavedLevel = GetWorld()->GetCurrentLevel()->GetPathName();
+		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
 	}
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 }
@@ -1015,7 +1015,7 @@ void ACPlayerController::SaveGame(TArray<uint8>& MemoryAddress)
 		{
 			SaveGameInstance->SavedGold = PC->GetPlayerGold();
 		}
-		SaveGameInstance->SavedLevel = GetWorld()->GetCurrentLevel()->GetPathName();
+		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
 	}
 	//UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 	UGameplayStatics::SaveGameToMemory(SaveGameInstance, MemoryAddress);

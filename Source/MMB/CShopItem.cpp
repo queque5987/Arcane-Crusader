@@ -105,7 +105,9 @@ void UCShopItem::OnShopButtonClicked()
 {
 	if (FPlatformTime::Seconds() - ClickedSec <= 0.35f)
 	{
-		BuyItem();
+		//UWidget* RootWidget = GetRootWidget();
+
+		//BuyItem();
 		//ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(this->GetOwningPlayer()->GetCharacter());
 		//UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
 		//ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController());

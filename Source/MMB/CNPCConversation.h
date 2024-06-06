@@ -116,7 +116,7 @@ public:
 	void SetNPC(class ACStaticNPC* e);
 	class ACStaticNPC* GetNPC() { return NPC; }
 	void SetItemList(class ACStaticNPC** e);
-	void SetLoadedMapIndex(int e) { LoadedMapIndex = e; }
+	void SetLoadedMapIndex(int e);
 
 	UFUNCTION()
 	void OnButtonYesClicked();
