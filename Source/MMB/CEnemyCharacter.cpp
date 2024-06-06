@@ -37,13 +37,11 @@ ACEnemyCharacter::ACEnemyCharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
-// Called when the game starts or when spawned
 void ACEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-// Called every frame
 void ACEnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

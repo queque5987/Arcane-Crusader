@@ -22,6 +22,7 @@ EBTNodeResult::Type UCBTTaskEncountered::ExecuteTask(UBehaviorTreeComponent& Own
 	if (!IsValid(ECC)) return EBTNodeResult::Failed;
 	//ECC->SetbBusy(true);
 	ECC->SetCanRoar(false);
+	ECC->SetbAttacking(true);
 	ECC->SetRoarCooldownTimer();
 	EC->DoRoar.ExecuteIfBound();
 	//GetWorld()->GetTimerManager().SetTimer(ECC->RoarTimerHandle, this, &ACEnemyAIController::RoarCooldownTimer, ECC->GetRoarCooldown());

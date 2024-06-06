@@ -23,4 +23,5 @@ public:
 	virtual FVector GetPlayerPos() { return FVector::ZeroVector; }
 	virtual void SetRNG(float e) {}
 	virtual void SetTargetDetected(ACharacter* actor) {}
+	virtual void SetIsStrafe(float e) {}
 };

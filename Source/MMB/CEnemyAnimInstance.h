@@ -35,6 +35,8 @@ protected:
 	float PawnAnimRadian;
 	UPROPERTY(BlueprintReadOnly)
 	bool IsHostile;
+	UPROPERTY(BlueprintReadOnly)
+	float IsStrafe;
 
 	UAnimSequenceBase* AnimSequenceRoar;
 	UAnimSequenceBase* AnimSequenceAttackHand;
@@ -58,6 +60,8 @@ public:
 	virtual void AttackMouth();
 	void SetIsHostile(bool e) { IsHostile = e; }
 	bool GetIsHostile() { return IsHostile; }
+	void SetIsStrafe(float e) { IsStrafe = e; }
+	float GetIsStrafe() { return IsStrafe; }
 
 	UFUNCTION()
 	void SetbAttackingFree(UAnimMontage* Montage, bool bInterrupted);

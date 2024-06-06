@@ -85,7 +85,7 @@ void ACEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 		}
 		else
 		{
-			Blackboard->SetValueAsObject(PlayerCharacter, nullptr);
+			//Blackboard->SetValueAsObject(PlayerCharacter, nullptr);
 			GetWorld()->GetTimerManager().SetTimer(PlayerLoseTimerHandle, this, &ACEnemyAIController::OnPlayerLoseTimer, PlayerLoseInterval);
 		}
 	}
@@ -95,9 +95,11 @@ void ACEnemyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector tempVector = GetCharacter()->GetActorLocation() + GetCharacter()->GetViewRotation().RotateVector(FVector::ForwardVector);
-	UE_LOG(LogTemp, Log, TEXT("Character Rotation : %s"), *tempVector.ToString());
+	FVector tempVector = GetCharacter()->GetActorLocation() + GetCharacter()->GetViewRotation().RotateVector(FVector::ForwardVector * 1000.f);
+	//UE_LOG(LogTemp, Log, TEXT("Character Rotation : %s"), *tempVector.ToString());
 	Blackboard->SetValueAsVector(CornAheadPos, tempVector);
+
+	DrawDebugSphere(GetCharacter()->GetWorld(), tempVector, 300.f, 32, FColor::Red);
 }
 
 //void ACEnemyAIController::SetPerceptionComponent(UAIPerceptionComponent& InPerceptionComponent)
@@ -106,8 +108,8 @@ void ACEnemyAIController::SetPerceptionSystem()
 	SightConfig = CreateOptionalDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
 	SetPerceptionComponent(*CreateOptionalDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception")));
 
-	SightConfig->SightRadius = 3000.f;
-	SightConfig->LoseSightRadius = 500.f;
+	SightConfig->SightRadius = 6000.f;
+	SightConfig->LoseSightRadius = 2000.f;
 	SightConfig->PeripheralVisionAngleDegrees = 120.f;
 	SightConfig->SetMaxAge(5.f);
 	SightConfig->AutoSuccessRangeFromLastSeenLocation = 900.f;
@@ -195,6 +197,15 @@ void ACEnemyAIController::SetTargetDetected(ACharacter* actor)
 	}
 }
 
+void ACEnemyAIController::SetIsStrafe(float e)
+{
+	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(GetPawn());
+	if (EC == nullptr) return;
+	UCEnemyAnimInstance* EA = Cast<UCEnemyAnimInstance>(EC->GetMesh()->GetAnimInstance());
+	if (EA == nullptr) return;
+	EA->SetIsStrafe(e);
+}
+
 void ACEnemyAIController::OnPlayerLoseTimer()
 {
 	//UE_LOG(LogTemp, Log, TEXT("Player Lost"));
@@ -203,5 +214,6 @@ void ACEnemyAIController::OnPlayerLoseTimer()
 	{
 		EC->SetbHostile(false);
 		Blackboard->SetValueAsBool(bHostile, false);
+		Blackboard->SetValueAsObject(PlayerCharacter, nullptr);
 	}
 }

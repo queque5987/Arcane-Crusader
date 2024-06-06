@@ -77,6 +77,7 @@ public:
 	virtual void SetRNG(float e) override;
 	virtual FVector GetPlayerPos() override;
 	virtual void SetTargetDetected(ACharacter* actor) override;
+	virtual void SetIsStrafe(float e) override;
 protected:
 	void OnPlayerLoseTimer();
 	bool CanRoar : true;
