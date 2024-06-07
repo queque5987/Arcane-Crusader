@@ -138,6 +138,7 @@ FVector ACEnemyAIController::GetChasingPlayerPos()
 
 void ACEnemyAIController::SetbBusy(bool e)
 {
+	UE_LOG(LogTemp, Log, TEXT("bBusy Set %s"), e ? TEXT("True") : TEXT("False"));
 	Blackboard->SetValueAsBool(bBusy, e);
 }
 

@@ -70,7 +70,7 @@ void ACEnemyAIController_TB::SwitchFlyMode()
 		//Anim->SetIsOnAir(false);
 		Blackboard->SetValueAsBool(bIsOnAir, false);
 		EC->SetIsFlying(false);
-		AIController->SetbBusy(true);
+		//AIController->SetbBusy(true);
 		Anim->Land();
 
 		SightConfig->SightRadius = 3000.f;
@@ -88,7 +88,7 @@ void ACEnemyAIController_TB::SwitchFlyMode()
 		Anim->SetIsOnAir(true);
 		Blackboard->SetValueAsBool(bIsOnAir, true);
 		EC->SetIsFlying(true);
-		AIController->SetbBusy(true);
+		//AIController->SetbBusy(true);
 		Anim->TakeOff();
 
 		SightConfig->SightRadius = 9000.f;

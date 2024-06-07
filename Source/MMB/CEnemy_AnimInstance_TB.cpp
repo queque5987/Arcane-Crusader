@@ -104,3 +104,13 @@ void UCEnemy_AnimInstance_TB::TakeOff()
 {
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceTakeOff, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
+
+void UCEnemy_AnimInstance_TB::ResetState()
+{
+	if (EnemyCharacter == nullptr) return;
+
+	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(EnemyCharacter->GetController());
+	if (AIController == nullptr) return;
+
+	AIController->SetbBusy(false);
+}

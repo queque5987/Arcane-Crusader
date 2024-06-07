@@ -41,6 +41,8 @@ public:
 	void Land();
 	UFUNCTION()
 	void TakeOff();
+	UFUNCTION()
+	void ResetState();
 
 	bool GetIsOnAir() { return IsOnAir; }
 	void SetIsOnAir(bool e) { IsOnAir = e; }

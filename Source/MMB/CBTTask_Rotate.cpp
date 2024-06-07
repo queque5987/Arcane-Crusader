@@ -45,7 +45,7 @@ EBTNodeResult::Type UCBTTask_Rotate::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 				UE_LOG(LogTemp, Log, TEXT("Execute task : Lotating to %s"), *CurrRot.ToString());
 
 				IIEnemyBBState* BBState = Cast<IIEnemyBBState>(OwnerComp.GetAIOwner());
-				if (BBState != nullptr)
+w				if (BBState != nullptr)
 				{
 					BBState->SetIsStrafe(DirectionalWeight * ToRotateWeight / RotateSpeed);
 				}
