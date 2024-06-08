@@ -61,7 +61,7 @@ void UCEnemy_AnimInstance_TB::UpdateProperties(float Delta)
 
 void UCEnemy_AnimInstance_TB::Roar()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceRoar, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceRoar, "NeckSlot", 0.25f, 0.25f, 1.f);
 }
 
 void UCEnemy_AnimInstance_TB::AttackHand()
@@ -105,12 +105,13 @@ void UCEnemy_AnimInstance_TB::TakeOff()
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceTakeOff, "DefaultSlot", 0.25f, 0.25f, 1.f);
 }
 
-void UCEnemy_AnimInstance_TB::ResetState()
-{
-	if (EnemyCharacter == nullptr) return;
-
-	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(EnemyCharacter->GetController());
-	if (AIController == nullptr) return;
-
-	AIController->SetbBusy(false);
-}
+//Deprecated
+//void UCEnemy_AnimInstance_TB::ResetState()
+//{
+//	if (EnemyCharacter == nullptr) return;
+//
+//	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(EnemyCharacter->GetController());
+//	if (AIController == nullptr) return;
+//
+//	AIController->SetbBusy(false);
+//}

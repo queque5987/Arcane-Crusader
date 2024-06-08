@@ -19,6 +19,13 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyBegin(USkeletalMeshComponent* MeshCo
 	IIFlyMonster* IEC = Cast<IIFlyMonster>(EC);
 	if (IEC == nullptr) return;
 	FireEffect = IEC->GetParticleSystem(E_ENEMYATTACK_FLAMETHROWER);
+	FString SoundAddress = "/Game/Resources/Sound/Dragon/fire-sound-efftect-21991_5.fire-sound-efftect-21991_5";
+	USoundBase* SoundWave = LoadObject<USoundBase>(nullptr, *SoundAddress);
+	if (SoundWave != nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Fire Sound Effect"));
+		UGameplayStatics::PlaySoundAtLocation(MeshComp->GetOwner(), SoundWave, MeshComp->GetOwner()->GetActorLocation());
+	}
 }
 
 void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
@@ -62,6 +69,7 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 		projscaleA
 	);
 	Proj->SetProjCollisionScale(projscale);
+
 
 	UParticleSystemComponent* FEC = UGameplayStatics::SpawnEmitterAttached(
 		FireEffect,

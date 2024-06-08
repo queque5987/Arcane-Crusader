@@ -28,6 +28,7 @@ void UCBTTaskFly::DoFly(ACEnemyAIController* ECC)
 	if (ACEnemyAIController_TB* ACC_TB = Cast<ACEnemyAIController_TB>(ECC))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Switch Fly Mode"));
+		ACC_TB->SetbAttacking(true);
 		ACC_TB->SwitchFlyMode();
 	}
 }

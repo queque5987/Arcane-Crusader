@@ -5,6 +5,7 @@
 #include "IEnemyBBState.h"
 #include "AIController.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
@@ -19,44 +20,44 @@ UCBTTask_Rotate::UCBTTask_Rotate()
 EBTNodeResult::Type UCBTTask_Rotate::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent();
+	FVector TargetLocation;
 	if (BlackboardKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass())
 	{
 		UObject* KeyValue = MyBlackboard->GetValue<UBlackboardKeyType_Object>(BlackboardKey.GetSelectedKeyID());
 		AActor* TargetActor = Cast<AActor>(KeyValue);
-		UE_LOG(LogTemp, Log, TEXT("Execute task : BlackBoard"));
-		if (TargetActor)
+		if (TargetActor) TargetLocation = TargetActor->GetActorLocation();
+	}
+	else if (BlackboardKey.SelectedKeyType == UBlackboardKeyType_Vector::StaticClass())
+	{
+		TargetLocation = MyBlackboard->GetValue<UBlackboardKeyType_Vector>(BlackboardKey.GetSelectedKeyID());
+		UE_LOG(LogTemp, Log, TEXT("Target Location : %s"), *TargetLocation.ToString());
+	}
+	{
+		ACharacter* OwnerCharacter = OwnerComp.GetAIOwner()->GetCharacter();
+		if (OwnerCharacter == nullptr) return EBTNodeResult::Aborted;
+
+		FVector CurrPos = OwnerCharacter->GetActorLocation();
+		FRotator CurrRot = OwnerCharacter->GetActorRotation();
+		FVector TargetDirection = (TargetLocation - CurrPos).GetSafeNormal();
+		FRotator TargetRot = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
+
+
+		if (FMath::Abs(CurrRot.Yaw - TargetRot.Yaw) >= RotateBoundary)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Execute task : TargetActor"));
-			ACharacter* OwnerCharacter = OwnerComp.GetAIOwner()->GetCharacter();
-			if (OwnerCharacter == nullptr) return EBTNodeResult::Aborted;
+			int32 DirectionalWeight = (FMath::Abs(CurrRot.Yaw - TargetRot.Yaw) > 180.f ? -1 : 1) * (CurrRot.Yaw > TargetRot.Yaw ? -1 : 1);
+			float ToRotateWeight = (FMath::Abs(CurrRot.Yaw - TargetRot.Yaw) >= RotateSpeed ? RotateSpeed : FMath::Abs(CurrRot.Yaw - TargetRot.Yaw));
+			CurrRot.Yaw += DirectionalWeight * ToRotateWeight;
+			OwnerCharacter->SetActorRotation(CurrRot);
+			UE_LOG(LogTemp, Log, TEXT("Execute task : Lotating to %s"), *CurrRot.ToString());
 
-			FVector CurrPos = OwnerCharacter->GetActorLocation();
-			FRotator CurrRot = OwnerCharacter->GetActorRotation();
-			FVector TargetDirection = (TargetActor->GetActorLocation() - CurrPos).GetSafeNormal();
-			FRotator TargetRot = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
-
-
-			if (FMath::Abs(CurrRot.Yaw - TargetRot.Yaw) >= RotateBoundary)
+			IIEnemyBBState* BBState = Cast<IIEnemyBBState>(OwnerComp.GetAIOwner());
+			if (BBState != nullptr)
 			{
-				int32 DirectionalWeight = (FMath::Abs(CurrRot.Yaw - TargetRot.Yaw) > 180.f ? -1 : 1) * (CurrRot.Yaw > TargetRot.Yaw ? -1 : 1);
-				float ToRotateWeight = (FMath::Abs(CurrRot.Yaw - TargetRot.Yaw) >= RotateSpeed ? RotateSpeed : FMath::Abs(CurrRot.Yaw - TargetRot.Yaw));
-				CurrRot.Yaw += DirectionalWeight * ToRotateWeight;
-				OwnerCharacter->SetActorRotation(CurrRot);
-				UE_LOG(LogTemp, Log, TEXT("Execute task : Lotating to %s"), *CurrRot.ToString());
-
-				IIEnemyBBState* BBState = Cast<IIEnemyBBState>(OwnerComp.GetAIOwner());
-w				if (BBState != nullptr)
-				{
-					BBState->SetIsStrafe(DirectionalWeight * ToRotateWeight / RotateSpeed);
-				}
+				BBState->SetIsStrafe(DirectionalWeight * ToRotateWeight / RotateSpeed);
 			}
-
-			return EBTNodeResult::Succeeded;
 		}
-		//else
-		//{
-			//UE_VLOG(MyController, LogBehaviorTree, Warning, TEXT("UBTTask_MoveTo::ExecuteTask tried to go to actor while BB %s entry was empty"), *BlackboardKey.SelectedKeyName.ToString());
-		//}
+
+		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;
 }

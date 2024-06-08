@@ -77,6 +77,8 @@ void ACEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 
 			if (ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(GetPawn()))
 			{
+				player->SetLastDealingEnemy(EC);
+
 				EC->SetbHostile(true);
 				Blackboard->SetValueAsBool(bHostile, true);
 				Blackboard->SetValueAsObject(PlayerCharacter, player);

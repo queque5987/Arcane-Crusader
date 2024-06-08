@@ -126,8 +126,8 @@ void UQuestComponent::Init_Quest3()
 	ACEnemy_Nightmare* cEC = Cast<ACEnemy_Nightmare>(EC);
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
-
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
+	
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 200.f;
 	Config._MaxHP = 200.f;
@@ -147,7 +147,7 @@ void UQuestComponent::Init_Quest4()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 200.f;
 	Config._MaxHP = 200.f;

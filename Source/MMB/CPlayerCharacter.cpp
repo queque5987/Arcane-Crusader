@@ -5,6 +5,7 @@
 #include "IWidgetInteract.h"
 #include "PCH.h"
 #include "Engine/LevelStreaming.h"
+#include "IFlyMonster.h"
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
@@ -159,7 +160,6 @@ void ACPlayerCharacter::BeginPlay()
 		else UE_LOG(LogTemp, Log, TEXT("Loading"));
 		}), 0.1f, true
 	);
-	
 }
 
 void ACPlayerCharacter::SetCanGetup()
@@ -380,6 +380,28 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 		FTransform RT = GetCapsuleComponent()->GetRelativeTransform();
 		RT.SetLocation(GetMesh()->GetRelativeTransform().GetLocation() + FVector(0.f, 0.f, 80.f));
 		GetCapsuleComponent()->SetRelativeTransform(RT);
+	}
+
+// IF ENEMY FLYING -> SET CAMERA HIGHER
+	if (LastDealingEnemy != nullptr)
+	{
+		IIFlyMonster* FlyableMonster = Cast<IIFlyMonster>(LastDealingEnemy);
+		if (FlyableMonster != nullptr)
+		{
+			FVector tempPos = CameraComponent->GetRelativeLocation();
+			if (FlyableMonster->GetIsFlying())
+			{
+				tempPos.Z += 180.f * DeltaTime;
+				if (tempPos.Z > 200.f) tempPos.Z = 300.f;
+				CameraComponent->SetRelativeLocation(tempPos);
+			}
+			else
+			{
+				tempPos.Z -= 180.f * DeltaTime;
+				if (tempPos.Z < 0.f) tempPos.Z = 0.f;
+				CameraComponent->SetRelativeLocation(tempPos);
+			}
+		}
 	}
 }
 
