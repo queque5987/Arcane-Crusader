@@ -24,6 +24,7 @@ void UCQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 		QuestInitializeIndex = QD->GetQuestInitializeIndex();
 		QuestRewardDialogueIndex = QD->GetQuestRewardDialogueIndex();
 		GivenNPC = QD->GetGivenNPC();
+		RequiredClassNames = QD->GetRClassName();
 		RefreshQuestRecap();
 	}
 
@@ -44,7 +45,8 @@ bool UCQuest::RefreshQuestRecap(UObject* AchievedObject)
 			}
 		}
 
-		Recap += "\n" + RequiredClasses[i]->GetName() +
+		//Recap += "\n" + RequiredClasses[i]->GetName() +
+		Recap += "\n" + RequiredClassNames[i] +
 			" " + FString::FromInt(AcquiredQuantities[i]) +
 			" / " + FString::FromInt(RequiredQuantities[i]);
 		if (AcquiredQuantities[i] >= RequiredQuantities[i]) Achieved--;
@@ -73,7 +75,8 @@ bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass)
 			}
 		}
 
-		Recap += "\n" + RequiredClasses[i]->GetName() +
+		//Recap += "\n" + RequiredClasses[i]->GetName() +
+		Recap += "\n" + RequiredClassNames[i] +
 			" " + FString::FromInt(AcquiredQuantities[i]) +
 			" / " + FString::FromInt(RequiredQuantities[i]);
 		if (AcquiredQuantities[i] >= RequiredQuantities[i]) Achieved--;

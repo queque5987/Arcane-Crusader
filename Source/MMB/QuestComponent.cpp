@@ -77,7 +77,7 @@ void UQuestComponent::Init_Quest0()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 80.f;
 	Config._MaxHP = 200.f;
@@ -97,7 +97,7 @@ void UQuestComponent::Init_Quest1()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
-	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0"));
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
 	Config._HP = 1.f;
 	cEC->SetMonsterConfig(Config);

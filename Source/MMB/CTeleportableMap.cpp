@@ -25,8 +25,10 @@ void UCTeleportableMap::NativeOnListItemObjectSet(UObject* ListItemObject)
 			//BtnMapPreview->WidgetStyle.SetNormal(SB->Brush);
 			//BtnMapPreview->WidgetStyle.SetHovered(SB->Brush);
 			//BtnMapPreview->WidgetStyle.SetPressed(SB->Brush);
-			SB_Normal = &btnStyle->Normal;
-			SB_Pressed = &btnStyle->Pressed;
+			//SB_Normal = btnStyle->Normal;
+			SB_Normal = BtnMapPreview->WidgetStyle.Normal;
+			SB_Pressed = BtnMapPreview->WidgetStyle.Pressed;
+			//SB_Pressed = btnStyle->Pressed;
 		}
 	}
 	bPressed = false;
@@ -47,13 +49,24 @@ void UCTeleportableMap::OnButtonClicked()
 	{
 		bPressed = true;
 		IAC->SetSelectedPortal(MapData->GetArrIndex());
-		BtnMapPreview->WidgetStyle.SetNormal(*SB_Pressed);
+
+		//const FSlateBrush tempNormalBrush = BtnMapPreview->WidgetStyle.Normal;
+		//const FSlateBrush tempPressedBrush = BtnMapPreview->WidgetStyle.Pressed;
+		//BtnMapPreview->WidgetStyle.SetNormal(tempPressedBrush);
+		//BtnMapPreview->WidgetStyle.SetPressed(tempNormalBrush);
+
+		BtnMapPreview->WidgetStyle.SetNormal(SB_Pressed);
 	}
 	else
 	{
 		bPressed = false;
 		IAC->SetSelectedPortal(-1);
-		BtnMapPreview->WidgetStyle.SetNormal(*SB_Normal);
+
+		//const FSlateBrush tempNormalBrush = BtnMapPreview->WidgetStyle.Normal;
+		//const FSlateBrush tempPressedBrush = BtnMapPreview->WidgetStyle.Pressed;
+		//BtnMapPreview->WidgetStyle.SetNormal(tempPressedBrush);
+		//BtnMapPreview->WidgetStyle.SetPressed(tempNormalBrush);
+		BtnMapPreview->WidgetStyle.SetNormal(SB_Normal);
 	}
 }
 
@@ -68,13 +81,25 @@ void UCTeleportableMap::SwitchPressed(bool Pressed)
 
 		bPressed = true;
 		IAC->SetSelectedPortal(MapData->GetArrIndex());
-		BtnMapPreview->WidgetStyle.SetNormal(*SB_Pressed);
+
+		//const FSlateBrush tempNormalBrush = BtnMapPreview->WidgetStyle.Normal;
+		//const FSlateBrush tempPressedBrush = BtnMapPreview->WidgetStyle.Pressed;
+		//BtnMapPreview->WidgetStyle.SetNormal(tempPressedBrush);
+		//BtnMapPreview->WidgetStyle.SetPressed(tempNormalBrush);
+		BtnMapPreview->WidgetStyle.SetNormal(SB_Pressed);
 	}
 	else
 	{
+		IIPlayerUIController* IAC = Cast<IIPlayerUIController>(GetOwningPlayer());
+		if (IAC == nullptr) return;
 		bPressed = false;
 		//IAC->SetSelectedPortal(-1);
-		BtnMapPreview->WidgetStyle.SetNormal(*SB_Normal);
+
+		//const FSlateBrush tempNormalBrush = BtnMapPreview->WidgetStyle.Normal;
+		//const FSlateBrush tempPressedBrush = BtnMapPreview->WidgetStyle.Pressed;
+		//BtnMapPreview->WidgetStyle.SetNormal(tempPressedBrush);
+		//BtnMapPreview->WidgetStyle.SetPressed(tempNormalBrush);
+		BtnMapPreview->WidgetStyle.SetNormal(SB_Normal);
 	}
 }
 

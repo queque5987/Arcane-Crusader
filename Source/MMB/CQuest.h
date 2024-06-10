@@ -40,6 +40,7 @@ protected:
 	bool bCleared;
 	UClass* GivenNPC;
 	TArray<UClass*> RequiredClasses;
+	TArray<FString> RequiredClassNames;
 	TArray<int> AcquiredQuantities;
 	TArray<int> RequiredQuantities;
 	int QuestRewardIndex;

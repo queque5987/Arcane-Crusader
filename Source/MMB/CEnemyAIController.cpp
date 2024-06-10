@@ -101,7 +101,7 @@ void ACEnemyAIController::Tick(float DeltaTime)
 	//UE_LOG(LogTemp, Log, TEXT("Character Rotation : %s"), *tempVector.ToString());
 	Blackboard->SetValueAsVector(CornAheadPos, tempVector);
 
-	DrawDebugSphere(GetCharacter()->GetWorld(), tempVector, 300.f, 32, FColor::Red);
+	//DrawDebugSphere(GetCharacter()->GetWorld(), tempVector, 300.f, 32, FColor::Red);
 }
 
 //void ACEnemyAIController::SetPerceptionComponent(UAIPerceptionComponent& InPerceptionComponent)

@@ -33,6 +33,8 @@ public:
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<FString> QuestRequiredClass;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<FString> QuestRequiredClassName;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<int> QuestRequiredQuantity;

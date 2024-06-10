@@ -118,8 +118,10 @@ ACPlayerCharacter::ACPlayerCharacter()
 void ACPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	FString AnimBPAdderss = "Class'/Game/Player/Guard/Animation/BP_AnimInstance_Guard.BP_AnimInstance_Guard_C'";
+	/// Script / Engine.AnimBlueprint'/Game/Player/Guard/Animation/BPAnimInstanceGuard.BPAnimInstanceGuard'
+	//FString AnimBPAdderss = "Class'/Game/Player/Guard/Animation/BP_AnimInstance_Guard.BP_AnimInstance_Guard_C'";
+	//UBlueprintGeneratedClass* tempAnimBP = LoadObject<UBlueprintGeneratedClass>(nullptr, *AnimBPAdderss);
+	FString AnimBPAdderss = "Class'/Game/Player/Guard/Animation/BPAnimInstanceGuard.BPAnimInstanceGuard_C'";
 	UClass* tempAnimBP = LoadObject<UClass>(nullptr, *AnimBPAdderss);
 	if (!tempAnimBP) return;
 	GetMesh()->SetAnimInstanceClass(tempAnimBP);
@@ -386,21 +388,19 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	if (LastDealingEnemy != nullptr)
 	{
 		IIFlyMonster* FlyableMonster = Cast<IIFlyMonster>(LastDealingEnemy);
-		if (FlyableMonster != nullptr)
+		if (FlyableMonster == nullptr) return;
+		FVector tempPos = CameraComponent->GetRelativeLocation();
+		if (FlyableMonster->GetIsFlying())
 		{
-			FVector tempPos = CameraComponent->GetRelativeLocation();
-			if (FlyableMonster->GetIsFlying())
-			{
-				tempPos.Z += 180.f * DeltaTime;
-				if (tempPos.Z > 200.f) tempPos.Z = 300.f;
-				CameraComponent->SetRelativeLocation(tempPos);
-			}
-			else
-			{
-				tempPos.Z -= 180.f * DeltaTime;
-				if (tempPos.Z < 0.f) tempPos.Z = 0.f;
-				CameraComponent->SetRelativeLocation(tempPos);
-			}
+			tempPos.Z += 180.f * DeltaTime;
+			if (tempPos.Z > 200.f) tempPos.Z = 300.f;
+			CameraComponent->SetRelativeLocation(tempPos);
+		}
+		else
+		{
+			tempPos.Z -= 180.f * DeltaTime;
+			if (tempPos.Z < 0.f) tempPos.Z = 0.f;
+			CameraComponent->SetRelativeLocation(tempPos);
 		}
 	}
 }

@@ -160,15 +160,15 @@ bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 		}
 	}
 
-	DrawDebugSphere(
-		GetWorld(),
-		EndLocation,
-		Radius,
-		16,
-		bResult? FColor::Red : FColor::Green,
-		false,
-		0.8f
-	);
+	//DrawDebugSphere(
+	//	GetWorld(),
+	//	EndLocation,
+	//	Radius,
+	//	16,
+	//	bResult? FColor::Red : FColor::Green,
+	//	false,
+	//	0.8f
+	//);
 
 	if (bResult)
 	{

@@ -104,6 +104,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FName ItemDTRowName;
 	UPROPERTY(EditAnywhere)
+	FString ItemDTDetail;
+	UPROPERTY(EditAnywhere)
 	FString ItemData_IconTexture;
 	UPROPERTY(EditAnywhere)
 	int32 ItemData_ItemPrice;

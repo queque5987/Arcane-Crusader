@@ -139,8 +139,8 @@ bool ACEnemy_TerrorBringer::FlyTo(FVector Destination, float DeltaSeconds, float
 	//	(Destination - GetActorLocation()).GetSafeNormal()).Rotator()
 	//);
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), 60.f, 32.f, FColor::Cyan, false, 0.2f);
-	DrawDebugSphere(GetWorld(), Destination, 60.f, 32.f, FColor::Black, false, 0.2f);
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), 60.f, 32.f, FColor::Cyan, false, 0.2f);
+	//DrawDebugSphere(GetWorld(), Destination, 60.f, 32.f, FColor::Black, false, 0.2f);
 
 	SetActorLocation(Dest);
 	return FVector::Distance(Dest, Destination) < AcceptableRadius ? true : false;

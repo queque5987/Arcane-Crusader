@@ -581,6 +581,7 @@ void ACPlayerController::HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArra
 	{
 		UCQuestData* QD = Cast<UCQuestData>(Quest);
 		UClass* HoxyClass = QD->GetGivenNPC();
+		if (HoxyClass == nullptr) continue;
 		if (NPC->IsA(HoxyClass))
 		{
 			OutArr.Add(QD);

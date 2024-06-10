@@ -386,6 +386,7 @@ UCInventoryItemData* ACBattleStaff::GetItemData(ACharacter* PC)
 	);
 	ID->SetstrName(WeaponName.ToString());
 	ID->SetItemClass(ACBattleStaff::StaticClass());
+	ID->SetItemDetail(FText::FromString(ItemDTDetail));
 	return ID;
 }
 

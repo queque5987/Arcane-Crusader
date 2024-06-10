@@ -35,7 +35,7 @@ EBTNodeResult::Type UCBTTaskFindPatrolPosFly::ExecuteTask(UBehaviorTreeComponent
 		NextPatrol.Location += FVector(0.f, 0.f, CurrAltitude);
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(ACEnemyAIController::PatrolPosKey, NextPatrol.Location);
 
-		DrawDebugSphere(GetWorld(), NextPatrol.Location, 500.f, 32, FColor::Blue, false, 5.f);
+		//DrawDebugSphere(GetWorld(), NextPatrol.Location, 500.f, 32, FColor::Blue, false, 5.f);
 		return EBTNodeResult::Succeeded;
 	}
 

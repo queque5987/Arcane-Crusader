@@ -20,6 +20,7 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 		RMonsterClass.Add(GetClassFromPath(ClassPath));
 	}
 	RQuantity = Row->QuestRequiredQuantity;
+	RClassName = Row->QuestRequiredClassName;
 	QuestInitializeIndex = Row->QuestInitializeIndex;
 	QuestRewardDialogueIndex = Row->QuestRewardDialogueIndex;
 	QuestRewards = Row->QuestRewards;

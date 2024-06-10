@@ -34,7 +34,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void OnButtonClicked();
 
-	const FSlateBrush* SB_Normal;
-	const FSlateBrush* SB_Pressed;
+	FSlateBrush SB_Normal;
+	FSlateBrush SB_Pressed;
 	bool bPressed;
 };

@@ -32,6 +32,8 @@ class MMB_API UCQuestData : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	TArray<UClass*> RMonsterClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	TArray<FString> RClassName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	TArray<int> RQuantity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	UClass* GivenNPC;
@@ -74,7 +76,8 @@ public:
 	void SetRequiredQuest(TArray<FString> e) { RequiredQuest = e; }
 	TArray<int> GetQuestRewardsQuantity() { return QuestRewardsQuantity; }
 	void SetQuestRewardsQuantity(TArray<int> e) { QuestRewardsQuantity = e; }
-
+	TArray<FString> GetRClassName() { return RClassName; }
+	void SetRClassName(TArray<FString> e) { RClassName = e; }
 
 	void SetQuestState(UINT32 e) { QuestState = e; }
 	UINT32 GetQuestState() { return QuestState; }
