@@ -385,10 +385,9 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	}
 
 // IF ENEMY FLYING -> SET CAMERA HIGHER
-	if (LastDealingEnemy != nullptr)
+	if (LastDealingEnemy != nullptr && LastDealingEnemy->GetClass()->ImplementsInterface(UIFlyMonster::StaticClass()))
 	{
 		IIFlyMonster* FlyableMonster = Cast<IIFlyMonster>(LastDealingEnemy);
-		if (FlyableMonster == nullptr) return;
 		FVector tempPos = CameraComponent->GetRelativeLocation();
 		if (FlyableMonster->GetIsFlying())
 		{
