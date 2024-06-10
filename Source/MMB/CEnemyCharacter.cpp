@@ -195,6 +195,7 @@ void ACEnemyCharacter::HitDamage(float e, ACharacter& Attacker, FVector HitLocat
 		//PC->MonsterKilledCount(this->StaticClass());
 		PC->MonsterKilledCount(this);
 		Die();
+		PC->SetLastDealingEnemy(nullptr);
 	}
 
 	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(GetController());
@@ -231,16 +232,13 @@ void ACEnemyCharacter::Die()
 				CharacterComp->SetComponentTickEnabled(false);
 			}
 
-			SetLifeSpan(10.0f);
+			SetLifeSpan(18.0f);
 			bIsRagdoll = true;
 
 			//Drop Item
-			//UCInventoryItemData* D;
 			FDropTableRow* R;
 			ACDroppedItem* DI;
 			AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
-
-			//float RNG;
 
 			if (DropTable == nullptr) return;
 			for (FName RowName : DropTable->GetRowNames())
@@ -253,67 +251,10 @@ void ACEnemyCharacter::Die()
 				UCInventoryItemData* ID = GM->GetItem(FName(R->ItemCode));
 				if (ID == nullptr) continue;
 				DI->SetPossessingItem(*ID);
-
-				//D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(R->ItemName.ToString()));
-				//D->SetIconTexture(R->ItemTexture);
-				//D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *R->ItemClass));
-				////D->SetItemClass(GM->GetItemClass(R->ItemClass));
-				//D->SetItemCount(1);
-				//D->SetstrName(R->ItemName.ToString());
-				//D->SetAttackDamage(R->ItemAttackDamage);
-				//D->SetPrice(R->ItemPrice);
-				//D->SetRarity(R->Rarity);
-
-				//DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
-				//DI->SetPossessingItem(D);
 			}
-
-			//for (int i = 0; i < DropRates.Num(); i++)
-			//{
-			//	RNG = FMath::RandRange(0.f, 1.f);
-			//	if (RNG < DropRates[i])
-			//	{
-			//		UE_LOG(LogTemp, Log, TEXT("Loss : %f < %f"), RNG, DropRates[i]);
-			//	}
-			//	if (RNG >= DropRates[i])
-			//	{
-			//		UE_LOG(LogTemp, Log, TEXT("Win : %f > %f"), RNG, DropRates[i]);
-			//		R = DropTable->FindRow<FDropTableRow>(DropItemNames[i], FString(""));
-			//		if (R == nullptr) continue;
-			//		D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(R->ItemName.ToString() + FString::FromInt(i)));
-			//		D->SetIconTexture(R->ItemTexture);
-			//		D->SetItemClass(GM->GetItemClass(R->ItemClass));
-			//		D->SetItemCount(1);
-			//		D->SetstrName(R->ItemName.ToString());
-			//		D->SetAttackDamage(R->ItemAttackDamage);
-			//		D->SetPrice(R->ItemPrice);
-			//		D->SetRarity(R->Rarity);
-
-			//		DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
-			//		DI->SetPossessingItem(D);
-			//	}
-			//}
 		}
 	}
 
-	
-
-	/*if (DamageEvent.IsOfType(FPointDamageEvent::ClassID))
-	{
-		FPointDamageEvent PointDmg = *((FPointDamageEvent*)(&DamageEvent));
-		{
-			GetMesh()->AddImpulseAtLocation(PointDmg.ShotDirection * 5000, PointDmg.HitInfo.ImpactPoint, PointDmg.HitInfo.BoneName);
-		}
-	}
-	if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
-	{
-		FRadialDamageEvent RadialDmg = *((FRadialDamageEvent const*)(&DamageEvent));
-		{
-			GetMesh()->AddRadialImpulse(RadialDmg.Origin, RadialDmg.Params.GetMaxRadius(), 100000, ERadialImpulseFalloff::RIF_Linear);
-		}
-	}*/
-
-	//return true;
 }
 
 void ACEnemyCharacter::SetbAttacking(bool e)
