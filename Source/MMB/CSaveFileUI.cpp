@@ -53,9 +53,11 @@ void UCSaveFileUI::OnButtonClicked()
 		//LoadedLevel = FSoftObjectPath("/Game/Resources/Levels/Startlevel.Startlevel");
 		LoadedLevel = "Startlevel";
 	}
-	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, GM->LevelToLoad);
-	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, LoadedLevel);
-	UGameplayStatics::OpenLevel(this, LoadedLevel);
+
+	OnLoadingScreenSet.Broadcast(LoadedLevel);
+
+	//UGameplayStatics::OpenLevel(this, LoadedLevel);
+
 	if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))
 	{
 		e->MainUI->SetVisibility(ESlateVisibility::Hidden);

@@ -12,6 +12,7 @@
 #include "CEnemy_TerrorBringer.h"
 #include "CEnemy_Nightmare.h"
 #include "CDynamicNPC.h"
+#include "Async/Async.h"
 
 void UCNPCConversation::NativeConstruct()
 {
@@ -314,58 +315,15 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 		UCTeleportableMapData* LoadedMap = Cast<UCTeleportableMapData>(TeleportableMapList->GetItemAt(LoadedMapIndex));
 		
 		TSoftObjectPtr<UWorld> dLevel = LoadedMap->GetDestLevel();
-		
-		//FString MapName = dLevel->GetMapName();
-		// 
-		//Depricated
-		//if (GetOwningPlayer()->GetWorld()->GetName() == LoadedMap->GetDestLevelName().ToString())
-		//{
-		//	//Just Location
-		//	//UE_LOG(LogTemp, Log, TEXT("Teleporting to %s At %s"),
-		//	//	*LoadedMap->GetDestLevel()->GetMapName(),
-		//	//	*LoadedMap->GetDestLocation().ToString()
-		//	//);
 
-		//	AController* ACC = GetOwningPlayer();
-		//	if (ACC == nullptr) return;
-		//	ACharacter* AC = ACC->GetCharacter();
-		//	if (AC == nullptr) return;
-		//	AC->SetActorLocation(LoadedMap->GetDestLocation());
-
-		//	//If With Quest
-		//	int RelatedQuestIndex = LoadedMap->GetRelatedQuestIndex();
-		//	if (RelatedQuestIndex < 0)
-		//	{
-		//		OnButtonLeaveClicked();
-		//		return;
-		//	}
-		//	TArray<FQuestsRow*> Quests = NPC->GetQuest();
-		//	if (!Quests.IsValidIndex(RelatedQuestIndex))
-		//	{
-		//		OnButtonLeaveClicked();
-		//		return;
-		//	}
-		//	if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
-		//	{
-		//		FQuestsRow* Quest = Quests[RelatedQuestIndex];
-		//		if (Quest != nullptr)
-		//		{
-		//			PCC->AddQuest(Quest);
-		//		}
-		//	}
-
-		//	OnButtonLeaveClicked();
-		//}
-		//else
-		//{
 		AController* ACC = GetOwningPlayer();
 		if (ACC == nullptr) return;
 		ACharacter* AC = ACC->GetCharacter();
 		if (AC == nullptr) return;
 
-		//TSoftObjectPtr<UWorld> World = LoadedMap->GetDestLevel();
-		//UGameplayStatics::OpenLevelBySoftObjectPtr(AC, LoadedMap->GetDestLevel());
-		UGameplayStatics::OpenLevel(this, LoadedMap->GetLevelName());
+		OnLoadingScreenSet.Broadcast(LoadedMap->GetLevelName());
+		//UGameplayStatics::OpenLevel(this, LoadedMap->GetLevelName());
+
 
 		UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
 

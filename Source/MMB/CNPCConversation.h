@@ -12,6 +12,8 @@
 #include "ITeleportNPC.h"
 #include "CNPCConversation.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadingScreenSet, FName, LoadingMapName);
+
 UCLASS()
 class MMB_API UCNPCConversation : public UUserWidget //, public IUserObjectListEntry
 {
@@ -19,6 +21,9 @@ class MMB_API UCNPCConversation : public UUserWidget //, public IUserObjectListE
 
 	class ACStaticNPC* NPC;
 public:
+
+	UPROPERTY(BlueprintAssignable, Category = "LoadingScreen")
+	FOnLoadingScreenSet OnLoadingScreenSet;
 
 	void SetNPCName(FText e) { NPCName->SetText(e); }
 	void SetNPCLine(FText e) { NPCLine->SetText(e); }

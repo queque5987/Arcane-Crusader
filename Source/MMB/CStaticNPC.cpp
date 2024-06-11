@@ -90,6 +90,7 @@ void ACStaticNPC::RemoveItemFromItemList(UINT32 index)
 void ACStaticNPC::SetNPCConversationItemList(TObjectPtr<UTileView>& NPCTileList)
 {
 	NPCTileList->ClearListItems();
+	if (ItemList.IsEmpty()) return;
 	for (int i = 0; i < ItemList.Num(); i++)
 	{
 		if (ItemList[i] != nullptr)

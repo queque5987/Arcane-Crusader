@@ -11,6 +11,8 @@
 #include "IWidgetInteract.h"
 #include "CSaveFileUI.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadingScreenSet_Load, FName, LoadingMapName);
+
 UCLASS()
 class MMB_API UCSaveFileUI : public UUserWidget, public IUserObjectListEntry, public IIWidgetInteract
 {
@@ -38,6 +40,10 @@ protected:
 	class UCSaveGame* SaveFile;
 
 public:
+
+	UPROPERTY(BlueprintAssignable, Category = "LoadingScreen")
+	FOnLoadingScreenSet_Load OnLoadingScreenSet;
+
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
 	virtual void NativeOnInitialized() override;

@@ -9,6 +9,8 @@
 #include "PCH.h"
 #include "CMainUI.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadingScreenSet_Main, FName, LoadingMapName);
+
 UCLASS()
 class MMB_API UCMainUI : public UUserWidget, public IIWidgetInteract
 {
@@ -16,6 +18,10 @@ class MMB_API UCMainUI : public UUserWidget, public IIWidgetInteract
 
 
 public:
+
+	UPROPERTY(BlueprintAssignable, Category = "LoadingScreen")
+	FOnLoadingScreenSet_Main OnLoadingScreenSet;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> MainPanel;
 
