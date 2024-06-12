@@ -33,8 +33,8 @@ protected:
 
 	UObject* QuestData;
 
-	const FSlateBrush* SB_Normal;
-	const FSlateBrush* SB_Pressed;
+	FSlateBrush SB_Normal;
+	FSlateBrush SB_Pressed;
 
 	TArray<const FSlateColor*> QuestState_BackGroundColorArr;
 	UINT32 QuestState;

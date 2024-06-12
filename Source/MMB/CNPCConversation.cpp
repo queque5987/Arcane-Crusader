@@ -391,14 +391,14 @@ void UCNPCConversation::OnButtonQuestAcceptClicked()
 		break;
 	case(QUEST_ALREADY_HAVE):
 		//Quest Yet UnCleared
-		UIController->AddAlert(FText::FromString(TEXT("퀘스트 깨고와용")));
+		UIController->AddAlert(FText::FromString(TEXT("진행중인 퀘스트입니다.")));
 		break;
 	case(QUEST_ALEARDY_CLEARED):
 		//Already Cleard //TODO
-		UIController->AddAlert(FText::FromString(TEXT("이미 했어용")));
+		UIController->AddAlert(FText::FromString(TEXT("이미 완료한 퀘스트입니다.")));
 		break;
 	case(QUEST_UNQUALIFIED):
-		UIController->AddAlert(FText::FromString(TEXT("아직 못해용")));
+		UIController->AddAlert(FText::FromString(TEXT("아직 수행할 수 없는\n 퀘스트입니다.")));
 		break;
 	case(QUEST_NO_MATCH):
 	default:

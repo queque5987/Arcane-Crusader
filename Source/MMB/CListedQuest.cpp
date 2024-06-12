@@ -37,8 +37,10 @@ void UCListedQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 	if (USlateWidgetStyleAsset* ST = Cast<USlateWidgetStyleAsset>(Style))
 	{
 		BtnQuest->WidgetStyle = *btnStyle;
-		SB_Normal = &btnStyle->Normal;
-		SB_Pressed = &btnStyle->Pressed;
+		//SB_Normal = &btnStyle->Normal;
+		//SB_Pressed = &btnStyle->Pressed;
+		SB_Normal = BtnQuest->WidgetStyle.Normal;
+		SB_Pressed = BtnQuest->WidgetStyle.Pressed;
 	}
 
 	bPressed = false;
@@ -54,13 +56,15 @@ void UCListedQuest::SwitchPressed(bool Pressed)
 	if (Pressed)
 	{
 		bPressed = true;
-		BtnQuest->WidgetStyle.SetNormal(*SB_Pressed);
+		//BtnQuest->WidgetStyle.SetNormal(*SB_Pressed);
+		BtnQuest->WidgetStyle.SetNormal(SB_Pressed);
 		UIController->SetPressedButton(this);
 	}
 	else
 	{
 		bPressed = false;
-		BtnQuest->WidgetStyle.SetNormal(*SB_Normal);
+		//BtnQuest->WidgetStyle.SetNormal(*SB_Normal);
+		BtnQuest->WidgetStyle.SetNormal(SB_Normal);
 	}
 }
 
@@ -116,7 +120,9 @@ void UCListedQuest::ResumeButtonStyle()
 	if (USlateWidgetStyleAsset* ST = Cast<USlateWidgetStyleAsset>(Style))
 	{
 		BtnQuest->WidgetStyle = *btnStyle;
-		SB_Normal = &btnStyle->Normal;
-		SB_Pressed = &btnStyle->Pressed;
+		//SB_Normal = &btnStyle->Normal;
+		//SB_Pressed = &btnStyle->Pressed;
+		SB_Normal = BtnQuest->WidgetStyle.Normal;
+		SB_Pressed = BtnQuest->WidgetStyle.Pressed;
 	}
 }
