@@ -51,6 +51,7 @@ void UCMainUI::OnCloseClicked()
 
 void UCMainUI::OnQuitClicked()
 {
+	FGenericPlatformMisc::RequestExit(false);
 }
 
 void UCMainUI::LoadSaveSlot()
