@@ -12,6 +12,7 @@
 #include "CStageGameMode.h"
 #include "CESCUI.h"
 #include "Blueprint/UserWidget.h"
+#include "CSavePoint.h"
 
 ACPlayerController::ACPlayerController()
 {
@@ -152,35 +153,31 @@ void ACPlayerController::StartBattleMap()
 	UCGameInstance* GInstance = Cast<UCGameInstance>(GetGameInstance());
 	ACStageGameMode* GM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
 	
-	if (GInstance->SpawnMonsterClass)
+	TArray<AActor*> arrOut;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("SavePoint"), arrOut);
+	if (arrOut.Num() > 0)
 	{
-		//AddQuest()
-		FQuestsRow* QR = GM->GetQuestbyIndex(GInstance->BattleQuestRowIndex);
-		if (QR != nullptr)
+		for (AActor* A : arrOut)
 		{
-			AddQuest(QR);
+			ACSavePoint* tempSavePoint = Cast<ACSavePoint>(A);
+			IIPlayerState* IPlayerCharacter = Cast<IIPlayerState>(GetCharacter());
+			if (tempSavePoint != nullptr && IPlayerCharacter != nullptr)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Set Save Point To %s"), *tempSavePoint->GetSavePointPos().ToString());
+				IPlayerCharacter->SetRevivalPoint(tempSavePoint->GetSavePointPos());
+			}
 		}
-		
-		//TArray<AActor*> arrOut;
-		//UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACMonsterSpawner_Manual::StaticClass(), arrOut);
-		//if (arrOut.Num() <= 0)
-		//{
-		//	return;
-		//}
-		//AActor* tempActor = arrOut[FMath::RandRange(0, arrOut.Num())];
-
-		//ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
-		//if (PC == nullptr) return;
-		//ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempActor);
-		//if (Spawner == nullptr) return;
-		//ACEnemyCharacter* EC = Spawner->SpawnMonster(GInstance->SpawnMonsterClass);
-		////ACEnemy_Nightmare* cEC = Cast<ACEnemy_Nightmare>(EC);
-		////if (cEC == nullptr) return;
-		//MonsterConfigure Config = MonsterConfigure();
-
-		//UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DropTable0.DropTable0"));
-		//if (DT != nullptr) Config._DropTable = DT;
-		//EC->SetMonsterConfig(Config);
+	}
+	
+	FQuestsRow* QR = GM->GetQuestbyIndex(GInstance->BattleQuestRowIndex);
+	if (QR != nullptr)
+	{
+		AddQuest(QR);
+	}
+	if (GInstance->StartLevelClock > 0.f)
+	{
+		GM->InitLevelClock(GInstance->StartLevelClock * 60.f);
+		UE_LOG(LogTemp, Log, TEXT("Set StartLevel Clock : %f"), GInstance->StartLevelClock);
 	}
 }
 

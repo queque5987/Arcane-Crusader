@@ -6,6 +6,7 @@
 #include "PCH.h"
 #include "Engine/LevelStreaming.h"
 #include "IFlyMonster.h"
+#include "CStageGameMode.h"
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
@@ -113,6 +114,11 @@ ACPlayerCharacter::ACPlayerCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Block);
 
 	QuestComponent = CreateDefaultSubobject<UQuestComponent>(TEXT("QuestComponent"));
+
+	PointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLightComponent"));
+	PointLight->SetupAttachment(RootComponent);
+	PointLight->SetRelativeLocation(FVector(600.f, 0.f, 150.f));
+	PointLight->SetVisibility(false);
 }
 
 void ACPlayerCharacter::PostInitializeComponents()
@@ -400,6 +406,48 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 			tempPos.Z -= 180.f * DeltaTime;
 			if (tempPos.Z < 0.f) tempPos.Z = 0.f;
 			CameraComponent->SetRelativeLocation(tempPos);
+		}
+	}
+
+// TURN ON LIGHT WHEN NIGHT
+	if (ACStageGameMode* StageGameMode = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		float CurrLevelClock = StageGameMode->GetCurrentLevelClock();
+		//UE_LOG(LogTemp, Log, TEXT("%f"), CurrLevelClock/60.f);
+		if (CurrLevelClock / 60.f > 18.5f || CurrLevelClock / 60.f < 6.5f)
+		{
+			PointLight->SetVisibility(true);
+
+			if (LastDealingEnemy != nullptr && FVector::Distance(GetActorLocation(), LastDealingEnemy->GetActorLocation()) <= 1200.f)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Dealing With Close monster"));
+				PointLight->SetRelativeLocation(FVector(FVector::Distance(GetActorLocation(), LastDealingEnemy->GetActorLocation()) / 2.f, 0.f, 500.f));
+			}
+			else
+			{
+				FVector SpawnPointLightLocation = GetActorLocation() + GetActorForwardVector() * 600.f;
+				FHitResult HitResult;
+				FCollisionQueryParams Params;
+				Params.AddIgnoredActor(this);
+				bool bHit = GetWorld()->LineTraceSingleByProfile(
+					HitResult,
+					GetActorLocation(),
+					SpawnPointLightLocation,
+					GetMesh()->GetCollisionProfileName(),
+					Params
+				);
+				if (bHit)
+				{
+					PointLight->SetRelativeLocation(FVector(FVector::Dist2D(GetActorLocation(), HitResult.Location), 0.f, 150.f));
+					//UE_LOG(LogTemp, Log, TEXT("Traced Actor : %s"), *HitResult.GetActor()->GetName());
+				}
+				else PointLight->SetRelativeLocation(FVector(600.f, 0.f, 150.f));
+				//DrawDebugSphere(GetWorld(), bHit ? HitResult.Location : SpawnPointLightLocation, 120.f, 32.f, bHit ? FColor::Green : FColor::Red);
+			}
+		}
+		else
+		{
+			PointLight->SetVisibility(false);
 		}
 	}
 }

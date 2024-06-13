@@ -13,6 +13,11 @@ ACSavePoint::ACSavePoint()
 	SavePointComponent->SetupAttachment(TempPlayerSpawnPointCheck);
 }
 
+FVector ACSavePoint::GetSavePointPos()
+{
+	return TempPlayerSpawnPointCheck->GetComponentLocation();
+}
+
 void ACSavePoint::BeginPlay()
 {
 	Super::BeginPlay();

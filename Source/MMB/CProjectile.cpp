@@ -65,7 +65,7 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 	{
 		ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(SweepResult.GetActor());
 		if (!IsValid(EC)) return;
-		DrawDebugSphere(GetWorld(), GetActorLocation(), Collider->GetScaledSphereRadius(), 26, FColor::Red);
+		//DrawDebugSphere(GetWorld(), GetActorLocation(), Collider->GetScaledSphereRadius(), 26, FColor::Red);
 		UE_LOG(LogTemp, Log, TEXT("E_Projectile Overlaped Actor : %s"), *SweepResult.GetActor()->GetName());
 		UE_LOG(LogTemp, Log, TEXT("E_Projectile Overlaped Component : %s"), *SweepResult.GetComponent()->GetName());
 
@@ -150,7 +150,7 @@ void ACProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), Collider->GetScaledSphereRadius(), 32, FColor::Blue);
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), Collider->GetScaledSphereRadius(), 32, FColor::Blue);
 
 	if (bSnowball)
 	{

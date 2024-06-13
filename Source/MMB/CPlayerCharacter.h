@@ -23,6 +23,7 @@
 #include "IPlayerState.h"
 #include "IPlayerQuest.h"
 #include "QuestComponent.h" 
+#include "Components/PointLightComponent.h"
 #include "CPlayerCharacter.generated.h"
 
 DECLARE_DELEGATE(FLMBAttack);
@@ -57,6 +58,9 @@ public:
 	ACPlayerCharacter();
 
 	virtual void PostInitializeComponents() override;
+
+	UPROPERTY(EditAnywhere)
+	class UPointLightComponent* PointLight;
 
 	UPROPERTY()
 	class UInputAction* MoveAction;

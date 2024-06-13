@@ -23,6 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Settings")
 	int32 BattleQuestRowIndex;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Settings")
+	float StartLevelClock;
+
 	virtual void Init() override;
 	virtual void Shutdown() override;
 };

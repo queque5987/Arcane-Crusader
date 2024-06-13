@@ -21,6 +21,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent* TempPlayerSpawnPointCheck;
 
+	FVector GetSavePointPos();
 protected:
 	virtual void BeginPlay() override;
 	UFUNCTION()

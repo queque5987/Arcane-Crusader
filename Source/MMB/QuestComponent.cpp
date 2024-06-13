@@ -79,8 +79,8 @@ void UQuestComponent::Init_Quest0()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 80.f;
-	Config._MaxHP = 200.f;
+	Config._HP = 300.f;
+	Config._MaxHP = 2000.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -129,8 +129,8 @@ void UQuestComponent::Init_Quest3()
 	
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 200.f;
-	Config._MaxHP = 200.f;
+	Config._HP = 2000.f;
+	Config._MaxHP = 2000.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -149,8 +149,8 @@ void UQuestComponent::Init_Quest4()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 200.f;
-	Config._MaxHP = 200.f;
+	Config._HP = 2000.f;
+	Config._MaxHP = 2000.f;
 	cEC->SetMonsterConfig(Config);
 }
 

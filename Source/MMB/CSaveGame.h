@@ -41,5 +41,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SaveData")
 	FName SavedLevel;
+
 	//FString SavedLevel;
 };

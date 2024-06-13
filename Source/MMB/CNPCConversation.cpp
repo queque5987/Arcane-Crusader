@@ -206,6 +206,7 @@ void UCNPCConversation::OnButtonYesClicked()
 						ID->SetPreviewSlateBrush(R->PreviewSlateBrush);
 						ID->SetRelatedQuestIndex(R->RelatedQuestIndex);
 						ID->SetLevelName(R->LevelName);
+						ID->SetStartLevelClock(R->LevelClock);
 						TeleportableMapList->AddItem(ID);
 					}
 				}
@@ -329,6 +330,7 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 
 		GI->BattleQuestRowIndex = LoadedMap->GetRelatedQuestIndex();
 		GI->SpawnMonsterClass = ACEnemy_Nightmare::StaticClass();
+		GI->StartLevelClock = LoadedMap->GetStartLevelClock();
 		IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
 		if (PCC != nullptr)
 		{

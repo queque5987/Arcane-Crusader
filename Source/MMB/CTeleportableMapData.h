@@ -33,6 +33,8 @@ class MMB_API UCTeleportableMapData : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	int RelatedQuestIndex;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	float StartLevelClock;
 public:
 	TSoftObjectPtr<UWorld> GetDestLevel() { return DestLevel; }
 	void SetDestLevel(TSoftObjectPtr<UWorld> e) { DestLevel = e; }
@@ -48,4 +50,7 @@ public:
 	void SetPreviewSlateBrush(FString e) { PreviewSlateBrush = e; }
 	int GetRelatedQuestIndex() { return RelatedQuestIndex; }
 	void SetRelatedQuestIndex(int e) { RelatedQuestIndex = e; }
+	float GetStartLevelClock() { return StartLevelClock; }
+	void SetStartLevelClock(float e) { StartLevelClock = e; }
+
 };

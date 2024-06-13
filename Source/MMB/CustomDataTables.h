@@ -50,6 +50,7 @@ public:
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString ClearableNPCClass;
+
 };
 
 USTRUCT(BlueprintType)
@@ -133,6 +134,8 @@ public:
 	FString PreviewSlateBrush;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int RelatedQuestIndex;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float LevelClock;
 };
 
 USTRUCT(BlueprintType)
