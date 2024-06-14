@@ -44,9 +44,15 @@ public:
 	virtual void HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArray<class UCQuestData*>& OutArr) {};
 
 	virtual void EquippedItemStat(struct ItemStat& SumItemStat) {};
+	virtual bool IsSocketEmpty(int ItemType) { return false; }
 
 	virtual void SaveGame(int32 SlotIndex) {};
 	virtual void SaveGame(TArray<uint8>& MemoryAddress) {};
 	virtual void LoadGame(int32 SaveSlot) {};
 	virtual void LoadGame(TArray<uint8> MemoryAddress) {};
+
+	virtual void DragInItem(class UCInventoryItemData* ToDragItem) {};
+	virtual void DragItem(FVector2D WidgetTranslation) {};
+	virtual void DragOutItem() {};
+	virtual class UCInventoryItemData* SetUpQuickSlot() { return nullptr; };
 };

@@ -13,6 +13,7 @@
 #include "CESCUI.h"
 #include "Blueprint/UserWidget.h"
 #include "CSavePoint.h"
+#include "CInventoryItem.h"
 
 ACPlayerController::ACPlayerController()
 {
@@ -27,7 +28,8 @@ ACPlayerController::ACPlayerController()
 	ConstructorHelpers::FClassFinder<UCButtonAction> ButtonActionAssetFinder(TEXT("/Game/Player/UI/BP_UI_ButtonAction"));
 	ConstructorHelpers::FClassFinder<UCItemDetailUI> ItemDetailAssetFinder(TEXT("/Game/Player/UI/BP_UI_InventoryItem_Detail"));
 	ConstructorHelpers::FClassFinder<UCESCUI> ESCAssetFinder(TEXT("/Game/Player/UI/BP_ESC"));
-
+	ConstructorHelpers::FClassFinder<UCInventoryItem> DraggingItemAssetFinder(TEXT("/Game/Player/UI/BP_UI_InventoryItem"));
+	
 
 	if (WidgetAssetFinder.Succeeded())			HUDOverlayAsset = WidgetAssetFinder.Class;
 	if (InventoryAssetFinder.Succeeded())		ItemInventoryAsset = InventoryAssetFinder.Class;
@@ -39,6 +41,7 @@ ACPlayerController::ACPlayerController()
 	if (ButtonActionAssetFinder.Succeeded())	ButtonActionAsset = ButtonActionAssetFinder.Class;
 	if (ItemDetailAssetFinder.Succeeded())		ItemDetailAsset = ItemDetailAssetFinder.Class;
 	if (ESCAssetFinder.Succeeded())				ESCMenuAsset = ESCAssetFinder.Class;
+	if (DraggingItemAssetFinder.Succeeded())	DraggingItemAsset = DraggingItemAssetFinder.Class;
 }
 
 void ACPlayerController::PlayerTick(float DeltaTime)
@@ -99,6 +102,15 @@ void ACPlayerController::BeginPlay()
 			DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+	if (DraggingItemAsset)
+	{
+		DraggingItem = CreateWidget<UCInventoryItem>(this, DraggingItemAsset);
+		if (IsValid(DraggingItem))
+		{
+			DraggingItem->RemoveFromViewport();
+		}
+	}
+
 	UE_LOG(LogTemp, Log, TEXT("%s"), *GetWorld()->GetName());
 	FString CurrentLevel = GetWorld()->GetName();
 	if (CurrentLevel == "MainUILevel")
@@ -934,6 +946,58 @@ void ACPlayerController::EquippedItemStat(ItemStat& SumItemStat)
 	// Sum States to Parameter
 }
 
+bool ACPlayerController::IsSocketEmpty(int ItemType)
+{
+	switch (ItemType)
+	{
+	case(ITEM_TYPE_WEAPON):
+		if (ItemInventory->Weapon->GetNumItems() > 0)
+		{
+			UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemInventory->Weapon->GetItemAt(0));
+			if (ID == nullptr)
+			{
+				UE_LOG(LogTemp, Log, TEXT("PlayerController : Unexpected Item Data"));
+				return false;
+			}
+			RemoveEquippedItem("Weapon", ID);
+			AddInventoryItem(ID);
+			return false;
+		}
+		break;
+	case(ITEM_TYPE_ARTIFACT):
+		if (ItemInventory->Artifact->GetNumItems() > 0)
+		{
+			UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemInventory->Artifact->GetItemAt(0));
+			if (ID == nullptr)
+			{
+				UE_LOG(LogTemp, Log, TEXT("PlayerController : Unexpected Item Data"));
+				return false;
+			}
+			RemoveEquippedItem("Artifact", ID);
+			AddInventoryItem(ID);
+			return false;
+		}
+		break;
+	case(ITEM_TYPE_ARMOR):
+		if (ItemInventory->Armor->GetNumItems() > 0)
+		{
+			UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemInventory->Armor->GetItemAt(0));
+			if (ID == nullptr)
+			{
+				UE_LOG(LogTemp, Log, TEXT("PlayerController : Unexpected Item Data"));
+				return false;
+			}
+			RemoveEquippedItem("Armor", ID);
+			AddInventoryItem(ID);
+			return false;
+		}
+		break;
+	default:
+		break;
+	}
+	return true;
+}
+
 void ACPlayerController::SaveGame(int32 SlotIndex)
 {
 	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
@@ -972,8 +1036,8 @@ void ACPlayerController::SaveGame(int32 SlotIndex)
 			SaveGameInstance->SavedGold = PC->GetPlayerGold();
 		}
 		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 	}
-	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 }
 
 void ACPlayerController::SaveGame(TArray<uint8>& MemoryAddress)
@@ -1014,9 +1078,9 @@ void ACPlayerController::SaveGame(TArray<uint8>& MemoryAddress)
 			SaveGameInstance->SavedGold = PC->GetPlayerGold();
 		}
 		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
+		UGameplayStatics::SaveGameToMemory(SaveGameInstance, MemoryAddress);
 	}
 	//UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
-	UGameplayStatics::SaveGameToMemory(SaveGameInstance, MemoryAddress);
 }
 
 void ACPlayerController::LoadGame(int32 SaveSlot)
@@ -1098,4 +1162,36 @@ void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
 	if (A) EquipItem(ITEM_TYPE_ARTIFACT, *A);
 
 	PC->SetPlayerGold(SaveGameInstance->SavedGold);
+}
+
+void ACPlayerController::DragInItem(UCInventoryItemData* ToDragItem)
+{
+	IIItemManager* GM = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+	if (GM == nullptr) return;
+	UTexture2D* T = GM->IconGetter(ToDragItem->GetIconTexture());
+	if (T == nullptr) return;
+	DraggingItem->ItemImage->SetBrushFromTexture(T);
+
+	DraggingItem->AddToViewport();
+	DraggingItem->SetVisibility(ESlateVisibility::HitTestInvisible);
+	DraggingItemDat = ToDragItem;
+}
+
+void ACPlayerController::DragItem(FVector2D WidgetTranslation)
+{
+	DraggingItem->SetPositionInViewport(WidgetTranslation);
+	//FWidgetTransform tempTransform = DraggingItem->GetRenderTransform();
+	//tempTransform.Translation = WidgetTranslation;
+	//DraggingItem->SetRenderTransform(tempTransform);
+}
+
+void ACPlayerController::DragOutItem()
+{
+	DraggingItem->SetVisibility(ESlateVisibility::Hidden);
+	DraggingItem->RemoveFromViewport();
+}
+
+UCInventoryItemData* ACPlayerController::SetUpQuickSlot()
+{
+	return DraggingItemDat;
 }

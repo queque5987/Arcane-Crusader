@@ -6,9 +6,11 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/Listview.h"
+#include "Components/TileView.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Image.h"
+#include "Components/Button.h"
 #include "CUserWidgetPlayerHUD.generated.h"
 
 /**
@@ -36,6 +38,24 @@ public:
 	TObjectPtr<UListView> QuestList;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> QuickSlot_1_Tile;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> QuickSlot_2_Tile;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> QuickSlot_3_Tile;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QuickSlot_1;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QuickSlot_2;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QuickSlot_3;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> DieUI;
 
 	UPROPERTY(meta = (BindWidget))
@@ -54,4 +74,12 @@ public:
 
 private:
 	bool bContinueRevive;
+
+	UFUNCTION()
+	void OnClickQuickSlot1();
+	UFUNCTION()
+	void OnClickQuickSlot2();
+	UFUNCTION()
+	void OnClickQuickSlot3();
+
 };

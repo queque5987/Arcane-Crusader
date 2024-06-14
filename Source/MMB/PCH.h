@@ -135,6 +135,8 @@
 #define ITEM_TYPE_ARTIFACT	1
 #define ITEM_TYPE_ARMOR		2
 #define ITEM_TYPE_GOLD		3
+#define ITEM_TYPE_GUITAR	4
+#define ITEM_TYPE_USABLE	5
 
 struct AttackResult
 {

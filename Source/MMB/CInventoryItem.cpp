@@ -38,6 +38,8 @@ void UCInventoryItem::NativeOnInitialized()
 	ItemButton->OnClicked.AddDynamic(this, &UCInventoryItem::OnButtonClicked);
 	ItemButton->OnHovered.AddDynamic(this, &UCInventoryItem::OnHovered);
 	ItemButton->OnUnhovered.AddDynamic(this, &UCInventoryItem::OnUnHovered);
+	//ItemButton->OnPressed.AddDynamic(this, &UCInventoryItem::OnButtonPressed);
+	//ItemButton->OnReleased.AddDynamic(this, &UCInventoryItem::OnButtonReleased);
 	ClickedSec = 0.f;
 }
 
@@ -47,6 +49,8 @@ void UCInventoryItem::Equip()
 	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
 	if (!IsValid(ID)) return;
 
+
+	//Spawn and Equip To Character
 	if (ItemType == 0)
 	{
 		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(ID->GetItemClass(), PC->GetActorLocation(), FRotator::ZeroRotator);
@@ -60,10 +64,16 @@ void UCInventoryItem::Equip()
 		PC->Equip(*spawnedActor);
 	}
 
+	//Add To Inventory Widget
 	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(PC->GetController());
-
 	if (PCC == nullptr) return;
+
+	PCC->IsSocketEmpty(ItemType);
 	if (PCC->EquipItem(ItemType, *ID)) PCC->RemoveInventoryItem(ID);
+
+	bPicked = false;
+	SetRenderOpacity(1.f);
+	PCC->DragOutItem();
 }
 
 void UCInventoryItem::UnEquip(FString EquippedSpace)
@@ -77,15 +87,38 @@ void UCInventoryItem::UnEquip(FString EquippedSpace)
 
 void UCInventoryItem::OnButtonClicked()
 {
+	FString ListViewName;
+	if (GetOwningListView() == nullptr) return;
+	GetOwningListView()->GetName(ListViewName);
+
 	if (FPlatformTime::Seconds() - ClickedSec <= 0.35f)
 	{
-		FString ListViewName;
-		GetOwningListView()->GetName(ListViewName);
+		//FString ListViewName;
+		//GetOwningListView()->GetName(ListViewName);
 		if (ListViewName == "ItemList") Equip();
 		else UnEquip(ListViewName);
 
 	}
 	ClickedSec = FPlatformTime::Seconds();
+
+	if (ListViewName != "ItemList") return;
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+	if (ID == nullptr || UIController == nullptr) return;
+	if (!bPicked)
+	{
+		SetRenderOpacity(0.4f);
+		bPicked = true;
+		
+		UIController->DragInItem(ID);
+	}
+	else
+	{
+		bPicked = false;
+		SetRenderOpacity(1.f);
+		UIController->DragOutItem();
+	}
+
 }
 
 void UCInventoryItem::OnHovered()
@@ -117,23 +150,21 @@ void UCInventoryItem::OnUnHovered()
 	if (PlayerState != nullptr)
 	{
 		PlayerState->SetState(PLAYER_INVENTORY_HOVERRING, false);
-
-		//IIPlayerState* PlayerState = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
-		//if (PlayerState == nullptr || PlayerState->GetState(PLAYER_INVENTORY_HOVERRING)) return;
 		PlayerState->SetHoverringUI(nullptr);
-
-		//GetOwningPlayer()->GetWorld()->GetTimerManager().SetTimer(UnHoverTimerHandler, FTimerDelegate::CreateLambda([&]() {
-			//IIPlayerState* PlayerState = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
-			//if (PlayerState == nullptr || PlayerState->GetState(PLAYER_INVENTORY_HOVERRING)) return;
-			//PlayerState->SetHoverringUI(nullptr);
-			//}), 0.5f, false
-		//);
 	}
 
 
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 	UIController->UnShowItemDetailUI();
+}
+
+void UCInventoryItem::OnButtonReleased()
+{
+}
+
+void UCInventoryItem::OnButtonPressed()
+{
 }
 
 void UCInventoryItem::OnRightClicked()
@@ -153,4 +184,26 @@ void UCInventoryItem::OnRightClicked()
 	else UnEquip(ListViewName);
 
 	//Equip();
+}
+
+void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (bPicked == false)
+	{
+		//UE_LOG(LogTemp, Log, TEXT("NativeTick False"));
+		return;
+	}
+
+	FVector2D MousePos;
+	GetOwningPlayer()->GetMousePosition(MousePos.X, MousePos.Y);
+	int32 X, Y;
+	GetOwningPlayer()->GetViewportSize(X, Y);
+	FVector2D ViewportSize = FVector2D(X / 2, Y / 2);
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+
+	UIController->DragItem(MousePos);
+	//SetPositionInViewport(MousePos);
 }

@@ -623,7 +623,10 @@ void ACPlayerCharacter::RMBTriggered()
 		if (WeaponEquipped != nullptr)
 		{
 			AttackResult AR = AttackResult();
-			if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->RMB_Triggered(AR);
+			if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped))
+			{
+				IWeaponEquipped->RMB_Triggered(AR);
+			}
 			StaminaSpend(AR.StaminaUsed);
 			//Stamina -= AR.StaminaUsed;
 		}

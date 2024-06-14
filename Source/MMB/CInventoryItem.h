@@ -23,6 +23,7 @@ protected:
 	UObject* ItemData;
 	double ClickedSec;
 	bool IsInShop;
+	bool bPicked = false;
 
 	int ItemType;
 
@@ -35,6 +36,10 @@ public:
 	void OnHovered();
 	UFUNCTION()
 	void OnUnHovered();
+	UFUNCTION()
+	void OnButtonReleased();
+	UFUNCTION()
+	void OnButtonPressed();
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
 	UPROPERTY(meta = (BindWidget))
@@ -46,4 +51,6 @@ public:
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemQuantity;
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 };

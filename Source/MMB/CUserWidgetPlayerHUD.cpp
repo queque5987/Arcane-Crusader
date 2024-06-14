@@ -2,6 +2,8 @@
 
 
 #include "CUserWidgetPlayerHUD.h"
+#include "IPlayerUIController.h"
+#include "CInventoryItemData.h"
 
 UCUserWidgetPlayerHUD::UCUserWidgetPlayerHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -32,6 +34,10 @@ void UCUserWidgetPlayerHUD::InitializeUI()
 
 	DieSubText->SetVisibility(ESlateVisibility::Hidden);
 	DieSubText->SetRenderOpacity(0.0f);
+
+	QuickSlot_1->OnPressed.AddDynamic(this, &UCUserWidgetPlayerHUD::OnClickQuickSlot1);
+	QuickSlot_2->OnPressed.AddDynamic(this, &UCUserWidgetPlayerHUD::OnClickQuickSlot2);
+	QuickSlot_3->OnPressed.AddDynamic(this, &UCUserWidgetPlayerHUD::OnClickQuickSlot3);
 }
 
 void UCUserWidgetPlayerHUD::ShowDieUI(bool b)
@@ -61,5 +67,44 @@ void UCUserWidgetPlayerHUD::Tick_DieUIAnim(float DeltaTime)
 		if (DieSubTextOpacity >= 1.f) return;
 		if (!bContinueRevive && DieSubTextOpacity >= 0.6f) bContinueRevive = true;
 		DieSubText->SetRenderOpacity(DieSubTextOpacity += 0.35f * DeltaTime);
+	}
+}
+
+void UCUserWidgetPlayerHUD::OnClickQuickSlot1()
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+
+	UCInventoryItemData* QuickSlot1Item = UIController->SetUpQuickSlot();
+	if (QuickSlot1Item != nullptr)
+	{
+		QuickSlot_1_Tile->ClearListItems();
+		QuickSlot_1_Tile->AddItem(QuickSlot1Item);
+	}
+}
+
+void UCUserWidgetPlayerHUD::OnClickQuickSlot2()
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+
+	UCInventoryItemData* QuickSlot2Item = UIController->SetUpQuickSlot();
+	if (QuickSlot2Item != nullptr)
+	{
+		QuickSlot_2_Tile->ClearListItems();
+		QuickSlot_2_Tile->AddItem(QuickSlot2Item);
+	}
+}
+
+void UCUserWidgetPlayerHUD::OnClickQuickSlot3()
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+
+	UCInventoryItemData* QuickSlot3Item = UIController->SetUpQuickSlot();
+	if (QuickSlot3Item != nullptr)
+	{
+		QuickSlot_3_Tile->ClearListItems();
+		QuickSlot_3_Tile->AddItem(QuickSlot3Item);
 	}
 }

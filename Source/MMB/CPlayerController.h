@@ -57,6 +57,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<class UCESCUI> ESCMenuAsset;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<class UCInventoryItem> DraggingItemAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	class UCUserWidgetPlayerHUD* HUDOverlay;
@@ -81,6 +83,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	class UCESCUI* ESCUI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	class UCInventoryItem* DraggingItem;
+	class UCInventoryItemData* DraggingItemDat;
 
 	virtual void PlayerTick(float DeltaTime) override;
 protected:
@@ -161,10 +167,16 @@ public:
 	virtual bool IsQualifiedQuest(TArray<FString> RequiredQuestsArr) override;
 
 	virtual void EquippedItemStat(struct ItemStat& SumItemStat) override;
+	//Also Remove Item From Character
+	virtual bool IsSocketEmpty(int ItemType) override;
 
 	virtual void SaveGame(int SlotIndex) override;
 	virtual void SaveGame(TArray<uint8>& MemoryAddress) override;
 	virtual void LoadGame(int32 SaveSlot) override;
 	virtual void LoadGame(TArray<uint8> MemoryAddress) override;
 
+	virtual void DragInItem(class UCInventoryItemData* ToDragItem) override;
+	virtual void DragItem(FVector2D WidgetTranslation) override;
+	virtual void DragOutItem() override;
+	virtual class UCInventoryItemData* SetUpQuickSlot() override;
 };
