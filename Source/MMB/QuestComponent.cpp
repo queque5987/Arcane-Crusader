@@ -79,8 +79,8 @@ void UQuestComponent::Init_Quest0()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 300.f;
-	Config._MaxHP = 2000.f;
+	Config._HP = 1000.f;
+	Config._MaxHP = 5000.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -129,8 +129,8 @@ void UQuestComponent::Init_Quest3()
 	
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 2000.f;
-	Config._MaxHP = 2000.f;
+	Config._HP = 5000.f;
+	Config._MaxHP = 5000.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -147,10 +147,52 @@ void UQuestComponent::Init_Quest4()
 	if (cEC == nullptr) return;
 	MonsterConfigure Config = MonsterConfigure();
 
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Spike.DropTable_Spike"));
+	if (DT != nullptr) Config._DropTable = DT;
+	Config._HP = 7000.f;
+	Config._MaxHP = 7000.f;
+	cEC->SetMonsterConfig(Config);
+}
+
+void UQuestComponent::Init_Quest5()
+{
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("MonsterSpawner"));
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+	ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempActor);
+	if (Spawner == nullptr) return;
+	ACEnemyCharacter* EC = Spawner->SpawnMonster(ACEnemy_Nightmare::StaticClass());
+	ACEnemy_Nightmare* cEC = Cast<ACEnemy_Nightmare>(EC);
+	if (cEC == nullptr) return;
+	MonsterConfigure Config = MonsterConfigure();
+
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 2000.f;
-	Config._MaxHP = 2000.f;
+	Config._HP = 10000.f;
+	Config._MaxHP = 10000.f;
+	Config._AttackDamage *= 1.5f;
+	cEC->SetMonsterConfig(Config);
+}
+
+void UQuestComponent::Init_Quest6()
+{
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("MonsterSpawner"));
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+	ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempActor);
+	if (Spawner == nullptr) return;
+	ACEnemyCharacter* EC = Spawner->SpawnMonster(ACEnemy_TerrorBringer::StaticClass());
+	ACEnemy_TerrorBringer* cEC = Cast<ACEnemy_TerrorBringer>(EC);
+	if (cEC == nullptr) return;
+	MonsterConfigure Config = MonsterConfigure();
+
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Spike.DropTable_Spike"));
+	if (DT != nullptr) Config._DropTable = DT;
+	Config._HP = 14000.f;
+	Config._MaxHP = 14000.f;
+	Config._AttackDamage *= 1.5f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -228,6 +270,12 @@ void UQuestComponent::OnQuestInitialize(int InitIndex)
 		return;
 	case(4):
 		Init_Quest4();
+		return;
+	case(5):
+		Init_Quest5();
+		return;
+	case(6):
+		Init_Quest6();
 		return;
 	default:
 		return;

@@ -12,13 +12,6 @@ ACStageGameMode::ACStageGameMode() : Super()
 	if (QuestTableFinder.Succeeded())	QuestTable = QuestTableFinder.Object;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bCanEverTick = true;
-}
-
-void ACStageGameMode::BeginPlay()
-{
-	Super::BeginPlay();
-
-	UE_LOG(LogTemp, Log, TEXT("ACStageGameMode : BeginPlay"));
 
 	TArray<AActor*> tempArr;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("DirectionalLight"), tempArr);
@@ -33,6 +26,11 @@ void ACStageGameMode::BeginPlay()
 			DirectionalLight = DL;
 		}
 	}
+}
+
+void ACStageGameMode::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void ACStageGameMode::Tick(float DeltaSeconds)
@@ -58,10 +56,21 @@ FQuestsRow* ACStageGameMode::GetQuestbyIndex(int32 QuestIdx)
 
 void ACStageGameMode::InitLevelClock(float fClock)
 {
-	// On Hour Per Sec
-	LevelClock = fClock;
+	//if (InitOnBeginPlay)
+	//{
+	//	bDelayedInitLevelClock = true;
+	//	fDelayedInitLevelClock = fClock;
+	//	return;
+	//}
+	if (DirectionalLight == nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ACStageGameMode : DirectionalLight Not Found"));
+		return;
+	}
 
-	float Angle = (fClock / MaxClock) * 360.f;
+	float Angle = (FMath::Abs(LevelClock - fClock) / MaxClock) * 360.f;
+
+	LevelClock = fClock;
 
 	FQuat Rot = FQuat(FVector(0.f, 1.f, 0.f), FMath::DegreesToRadians(Angle));
 	DirectionalLight->AddActorLocalRotation(Rot);

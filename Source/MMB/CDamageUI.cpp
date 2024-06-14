@@ -15,6 +15,15 @@ void UCDamageUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 void UCDamageUI::SetDamage(float e)
 {
+	if (e < 10.f)
+	{
+		float tempE = FMath::RoundToFloat(e * 10.f) / 10.f;
+		if (FMath::Frac(tempE) > 0.f)
+		{
+			Damage->SetText(FText::FromString(FString::SanitizeFloat(tempE)));
+			return;
+		}
+	}
 	Damage->SetText(FText::FromString(FString::FromInt(FMath::RoundToInt(e))));
 }
 

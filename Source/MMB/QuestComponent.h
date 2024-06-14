@@ -26,6 +26,8 @@ protected:
 	void Init_Quest3();
 	void Init_Quest4();
 
+	void Init_Quest5();
+	void Init_Quest6();
 private:
 	//Deprecated 20240531 Editor Only Function
 	AActor* FindActorByLabel(TSubclassOf<AActor> FindClass, FString Label);

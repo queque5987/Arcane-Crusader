@@ -824,11 +824,21 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 		UE_LOG(LogTemp, Log, TEXT("Player in Ragdoll"));
 		return false;
 	}
-	HP -= e;
+
+	ItemStat CurrStat = ItemStat();
+
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	UIController->EquippedItemStat(CurrStat);
+
+	UE_LOG(LogTemp, Log, TEXT("Player Defence = %f"), CurrStat._Defence);
+	float DeffencePer = 1 - (CurrStat._Defence / 500.f);
+	if (DeffencePer <= 0.1f) DeffencePer = 0.1f;
+	UE_LOG(LogTemp, Log, TEXT("Player Defence Damage = %f"), DeffencePer);
+	HP -= (e * DeffencePer);
 	SetState(PLAYER_UI_INTERACTING, false);
 	SetLastDealingEnemy(Attacker);
 	
-	ShowDamageUI(e, HitLocation, true);
+	ShowDamageUI(e * DeffencePer, HitLocation, true);
 
 	if (HP <= 0.f) return true;
 	switch (Power)

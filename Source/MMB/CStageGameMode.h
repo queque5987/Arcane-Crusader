@@ -23,6 +23,7 @@ class MMB_API ACStageGameMode : public AMMBGameModeBase
 	float LevelClock;
 	float FullDaySecond = 600.f;
 	float MaxClock = 24.f * 60.f;
+
 public:
 	struct FQuestsRow* GetQuestbyIndex(int32 QuestIdx);
 	void InitLevelClock(float fClock);
