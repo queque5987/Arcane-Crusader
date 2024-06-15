@@ -33,7 +33,7 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 	if (GetOwningPlayer())
 	{
 		ACPlayerCharacter* tempPlayer = Cast<ACPlayerCharacter>(GetOwningPlayer()->GetCharacter());
-		tempPlayer->InventoryOpenedEvent.BindUFunction(this, TEXT("ReleasePutItem"));
+		if (tempPlayer != nullptr) tempPlayer->InventoryOpenedEvent.BindUFunction(this, TEXT("ReleasePutItem"));
 	}
 	//InventoryOpenedEvent
 }
