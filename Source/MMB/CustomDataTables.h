@@ -162,6 +162,8 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float AttackSpeed;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float Potion_HealPoint;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 Rarity;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 ItemType;

@@ -197,7 +197,7 @@ bool ACPlayerController::SetInventoryVisibility()
 {
 	if (ItemInventory)
 	{
-		if (ItemInventory->GetVisibility() == ESlateVisibility::Visible)
+		if (ItemInventory->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
 		{
 			ItemInventory->SetVisibility(ESlateVisibility::Hidden);
 			bShowMouseCursor = false;
@@ -206,7 +206,7 @@ bool ACPlayerController::SetInventoryVisibility()
 		}
 		else
 		{
-			ItemInventory->SetVisibility(ESlateVisibility::Visible);
+			ItemInventory->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 			bShowMouseCursor = true;
 			bEnableClickEvents = true;
 			return true;
@@ -238,7 +238,7 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 	for (UObject* HasItem : ItemInventory->ItemList->GetListItems())
 	{
 		UCInventoryItemData* HasItemData = Cast<UCInventoryItemData>(HasItem);
-		if (HasItemData == ItemData)
+		if (HasItemData->GetstrName() == ItemData->GetstrName())
 		{
 			HasItemData->SetItemCount(HasItemData->GetItemCount() + ItemData->GetItemCount());
 			CheckQuest(ItemData->GetItemClass());
@@ -247,6 +247,40 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 	}
 	ItemInventory->ItemList->AddItem(ItemData);
 	CheckQuest(ItemData->GetItemClass());
+}
+
+int32 ACPlayerController::UseItem(int32 QuickSlotNum)
+{
+	int32 rtn = -1;
+	UCInventoryItemData* ID = nullptr;
+	FString QuickSlotItemName = HUDOverlay->GetItemDataOnQuickSlot(QuickSlotNum);
+	UE_LOG(LogTemp, Log, TEXT("Found Item Index : %s"), *QuickSlotItemName);
+	TArray<UObject*> InventoryItemsArr = ItemInventory->ItemList->GetListItems();
+	TArray<UUserWidget*> InventoryItemWidgetsArr = ItemInventory->ItemList->GetDisplayedEntryWidgets();
+	for (int i = 0; i < InventoryItemsArr.Num(); i++)
+	{
+		ID = Cast<UCInventoryItemData>(InventoryItemsArr[i]);
+		if (ID == nullptr) continue;
+		if (ID->GetstrName() == QuickSlotItemName)
+		{
+			int32 CurrCount = ID->GetItemCount();
+			ID->SetItemCount(--CurrCount);
+			rtn = ID->GetItemType();
+			ItemStat* Stat = ID->GetItemStats();
+			IIPlayerState* tempState = Cast<IIPlayerState>(GetCharacter());
+			if (rtn == ITEM_TYPE_POTION && (Stat != nullptr && PlayerState != nullptr))
+			{
+				tempState->Heal(Stat->_HealPoint);
+			}
+			if (CurrCount <= 0)
+			{
+				RemoveInventoryItem(ID);
+			}
+			UE_LOG(LogTemp, Log, TEXT("Found Item Index : %d"), i);
+		}
+	}
+	ItemInventory->ItemList->RequestRefresh();
+	return rtn;
 }
 
 void ACPlayerController::RemoveInventoryItem(UCInventoryItemData* ItemData)
@@ -1036,6 +1070,24 @@ void ACPlayerController::SaveGame(int32 SlotIndex)
 			SaveGameInstance->SavedGold = PC->GetPlayerGold();
 		}
 		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
+
+		TArray<int32> QuickSlots = { -1, -1, -1 };
+		FString QuickSlot1ItemName = HUDOverlay->GetItemDataOnQuickSlot(1);
+		FString QuickSlot2ItemName = HUDOverlay->GetItemDataOnQuickSlot(2);
+		FString QuickSlot3ItemName = HUDOverlay->GetItemDataOnQuickSlot(3);
+		
+		TArray<UObject*> InventoryItemsArr = ItemInventory->ItemList->GetListItems();
+		UCInventoryItemData* ID;
+		for (int i = 0; i < InventoryItemsArr.Num(); i++)
+		{
+			ID = Cast<UCInventoryItemData>(InventoryItemsArr[i]);
+			if (ID == nullptr) continue;
+			if (ID->GetstrName() == QuickSlot1ItemName) QuickSlots[0] = i;
+			if (ID->GetstrName() == QuickSlot2ItemName) QuickSlots[1] = i;
+			if (ID->GetstrName() == QuickSlot3ItemName) QuickSlots[2] = i;
+		}
+		SaveGameInstance->QuickSlots = QuickSlots;
+
 		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 	}
 }
@@ -1078,6 +1130,24 @@ void ACPlayerController::SaveGame(TArray<uint8>& MemoryAddress)
 			SaveGameInstance->SavedGold = PC->GetPlayerGold();
 		}
 		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
+
+		TArray<int32> QuickSlots = { -1, -1, -1 };
+		FString QuickSlot1ItemName = HUDOverlay->GetItemDataOnQuickSlot(1);
+		FString QuickSlot2ItemName = HUDOverlay->GetItemDataOnQuickSlot(2);
+		FString QuickSlot3ItemName = HUDOverlay->GetItemDataOnQuickSlot(3);
+
+		TArray<UObject*> InventoryItemsArr = ItemInventory->ItemList->GetListItems();
+		UCInventoryItemData* ID;
+		for (int i = 0; i < InventoryItemsArr.Num(); i++)
+		{
+			ID = Cast<UCInventoryItemData>(InventoryItemsArr[i]);
+			if (ID == nullptr) continue;
+			if (ID->GetstrName() == QuickSlot1ItemName) QuickSlots[0] = i;
+			if (ID->GetstrName() == QuickSlot2ItemName) QuickSlots[1] = i;
+			if (ID->GetstrName() == QuickSlot3ItemName) QuickSlots[2] = i;
+		}
+		SaveGameInstance->QuickSlots = QuickSlots;
+
 		UGameplayStatics::SaveGameToMemory(SaveGameInstance, MemoryAddress);
 	}
 	//UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
@@ -1122,6 +1192,32 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 	if (A) EquipItem(ITEM_TYPE_ARTIFACT, *A);
 
 	PC->SetPlayerGold(SaveGameInstance->SavedGold);
+
+	for (int QS : SaveGameInstance->QuickSlots)
+	{
+		if (QS >= 0)
+		{
+			UObject* tempItem = ItemInventory->ItemList->GetItemAt(QS);
+			if (tempItem == nullptr) continue;
+			UCInventoryItemData* tempItemData = Cast<UCInventoryItemData>(tempItem);
+			if (tempItemData == nullptr) continue;
+
+			switch (QS)
+			{
+			case(0):
+				HUDOverlay->SetQuickSlot1(tempItemData);
+				break;
+			case(1):
+				HUDOverlay->SetQuickSlot2(tempItemData);
+				break;
+			case(2):
+				HUDOverlay->SetQuickSlot3(tempItemData);
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
 
 void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
@@ -1162,6 +1258,32 @@ void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
 	if (A) EquipItem(ITEM_TYPE_ARTIFACT, *A);
 
 	PC->SetPlayerGold(SaveGameInstance->SavedGold);
+
+	for (int QS : SaveGameInstance->QuickSlots)
+	{
+		if (QS >= 0)
+		{
+			UObject* tempItem = ItemInventory->ItemList->GetItemAt(QS);
+			if (tempItem == nullptr) continue;
+			UCInventoryItemData* tempItemData = Cast<UCInventoryItemData>(tempItem);
+			if (tempItemData == nullptr) continue;
+
+			switch (QS)
+			{
+			case(0):
+				HUDOverlay->SetQuickSlot1(tempItemData);
+				break;
+			case(1):
+				HUDOverlay->SetQuickSlot2(tempItemData);
+				break;
+			case(2):
+				HUDOverlay->SetQuickSlot3(tempItemData);
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
 
 void ACPlayerController::DragInItem(UCInventoryItemData* ToDragItem)

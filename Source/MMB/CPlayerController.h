@@ -112,6 +112,7 @@ public:
 	virtual bool SetInventoryVisibility() override;
 	virtual void AddInventoryItem(UClass* ItemClass) override;
 	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) override;
+	virtual int32 UseItem(int32 QuickSlotNum) override;
 	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) override;
 	virtual bool RemoveEquippedItem(FString EquippedSpace, class UCInventoryItemData* ItemData) override;
 	virtual void ShowItemDetailUI(class UCInventoryItemData* ItemData) override;

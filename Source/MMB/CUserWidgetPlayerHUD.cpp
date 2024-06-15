@@ -108,3 +108,45 @@ void UCUserWidgetPlayerHUD::OnClickQuickSlot3()
 		QuickSlot_3_Tile->AddItem(QuickSlot3Item);
 	}
 }
+
+FString UCUserWidgetPlayerHUD::GetItemDataOnQuickSlot(int32 QuickSlotNum)
+{
+	//IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	//if (UIController == nullptr) return "";
+
+	UCInventoryItemData* tempID = nullptr;
+	switch (QuickSlotNum)
+	{
+	case(1):
+		tempID = Cast<UCInventoryItemData>(QuickSlot_1_Tile->GetItemAt(0));
+		break;
+	case(2):
+		tempID = Cast<UCInventoryItemData>(QuickSlot_2_Tile->GetItemAt(0));
+		break;
+	case(3):
+		tempID = Cast<UCInventoryItemData>(QuickSlot_3_Tile->GetItemAt(0));
+		break;
+	default:
+		break;
+	}
+	if (tempID == nullptr) return "";
+	return tempID->GetstrName();
+}
+
+void UCUserWidgetPlayerHUD::SetQuickSlot1(UCInventoryItemData* QuickItem)
+{
+	QuickSlot_1_Tile->ClearListItems();
+	QuickSlot_1_Tile->AddItem(QuickItem);
+}
+
+void UCUserWidgetPlayerHUD::SetQuickSlot2(UCInventoryItemData* QuickItem)
+{
+	QuickSlot_2_Tile->ClearListItems();
+	QuickSlot_2_Tile->AddItem(QuickItem);
+}
+
+void UCUserWidgetPlayerHUD::SetQuickSlot3(UCInventoryItemData* QuickItem)
+{
+	QuickSlot_3_Tile->ClearListItems();
+	QuickSlot_3_Tile->AddItem(QuickItem);
+}

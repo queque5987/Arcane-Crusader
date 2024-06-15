@@ -31,6 +31,8 @@ private:
 	class UDataTable* ItemTable;
 
 	class UCGameInstance* GameInstance;
+
+	int32 ItemGetCounter;
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Zone)

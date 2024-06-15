@@ -49,6 +49,9 @@ DECLARE_DELEGATE_OneParam(FClimbingRope, bool);
 DECLARE_DELEGATE(FDie);
 DECLARE_DELEGATE(FHitReact);
 DECLARE_DELEGATE(FPickUp);
+DECLARE_DELEGATE(FDrink);
+
+DECLARE_DELEGATE(FInventoryOpened);
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
 {
@@ -84,6 +87,12 @@ public:
 	class UInputAction* ScrollAction;
 	UPROPERTY()
 	class UInputAction* ESCAction;
+	UPROPERTY()
+	class UInputAction* Quick1Action;
+	UPROPERTY()
+	class UInputAction* Quick2Action;
+	UPROPERTY()
+	class UInputAction* Quick3Action;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmComponent;
@@ -116,6 +125,8 @@ public:
 	FHitReact HitReact;
 	FDie Die;
 	FPickUp PickUp;
+	FDrink Drink;
+	FInventoryOpened InventoryOpenedEvent;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;
@@ -151,6 +162,7 @@ protected:
 	FTimerHandle HitDownRecoverHandle;
 	FTimerHandle StaminaRegainHandle;
 	FTimerHandle StageStartHandle;
+	FTimerHandle PotionTimerHandle;
 	void SetCanGetup();
 	void Getup();
 	void LazyGetUp();
@@ -213,7 +225,11 @@ public:
 	UFUNCTION()
 	void Scroll(const FInputActionValue& Value);
 	void ESC();
-
+	void Quick1();
+	void Quick2();
+	void Quick3();
+	void ItemUsageAction(int32 ItemType);
+	virtual void Heal(float HealPoint) override;
 
 	virtual void Equip(class ACWeapon& ActorToEquip) override;
 	virtual void Equip(class AActor& ActorToEquip) override;

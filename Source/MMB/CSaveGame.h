@@ -42,5 +42,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SaveData")
 	FName SavedLevel;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SaveData")
+	TArray<int32> QuickSlots;
 	//FString SavedLevel;
 };

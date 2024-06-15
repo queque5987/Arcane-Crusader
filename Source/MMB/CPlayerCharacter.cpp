@@ -42,6 +42,9 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ConstructorHelpers::FObjectFinder<UInputAction> AnyKeyFinder(TEXT("/Game/Player/Input/IA_Any"));
 	ConstructorHelpers::FObjectFinder<UInputAction> ScrollFinder(TEXT("/Game/Player/Input/IA_Scroll"));
 	ConstructorHelpers::FObjectFinder<UInputAction> ESCFinder(TEXT("/Game/Player/Input/IA_ESC"));
+	ConstructorHelpers::FObjectFinder<UInputAction> Q1Finder(TEXT("/Game/Player/Input/IA_1"));
+	ConstructorHelpers::FObjectFinder<UInputAction> Q2Finder(TEXT("/Game/Player/Input/IA_2"));
+	ConstructorHelpers::FObjectFinder<UInputAction> Q3Finder(TEXT("/Game/Player/Input/IA_3"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -55,6 +58,9 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (AnyKeyFinder.Succeeded()) AnyKeyAction = AnyKeyFinder.Object;
 	if (ScrollFinder.Succeeded()) ScrollAction = ScrollFinder.Object;
 	if (ESCFinder.Succeeded()) ESCAction = ESCFinder.Object;
+	if (Q1Finder.Succeeded()) Quick1Action = Q1Finder.Object;
+	if (Q2Finder.Succeeded()) Quick2Action = Q2Finder.Object;
+	if (Q3Finder.Succeeded()) Quick3Action = Q3Finder.Object;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	//SpringArmComponent->SetUsingAbsoluteRotation(false);
@@ -256,6 +262,7 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 		return UICheck;
 		break;
 	case(PLAYER_INPUT_TYPE_CLICK):
+		if (GetState(PLAYER_DRINKING_POTION)) return false;
 		//if (notDead) LazyGetUp();
 		//else Anykey_Triggered();
 		//return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
@@ -360,7 +367,7 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 // STAMINA REGAIN
 	if (!CheckIsActing() && !GetWorld()->GetTimerManager().TimerExists(StaminaRegainHandle))
 	{
-		GetWorld()->GetTimerManager().SetTimer(StaminaRegainHandle, this, &ACPlayerCharacter::SetStaminaRegain, 1.6f);
+		GetWorld()->GetTimerManager().SetTimer(StaminaRegainHandle, this, &ACPlayerCharacter::SetStaminaRegain, 2.6f);
 	}
 	else if (CheckIsActing())
 	{
@@ -470,6 +477,9 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::E_Triggered);
 		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &ACPlayerCharacter::Scroll);
 		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::ESC);
+		EnhancedInputComponent->BindAction(Quick1Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick1);
+		EnhancedInputComponent->BindAction(Quick2Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick2);
+		EnhancedInputComponent->BindAction(Quick3Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick3);
 	}
 }
 
@@ -656,6 +666,8 @@ void ACPlayerCharacter::RMBCompleted()
 
 void ACPlayerCharacter::InventoryOpened()
 {
+	InventoryOpenedEvent.ExecuteIfBound();
+
 	if (ACPlayerController* PC = Cast<ACPlayerController>(GetController()))
 	{
 		if (PC->SetInventoryVisibility())
@@ -743,6 +755,62 @@ void ACPlayerCharacter::ESC()
 {
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
 	UIController->SwitchESCMenu();
+}
+
+void ACPlayerCharacter::Quick1()
+{
+	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK) || GetState(PLAYER_ATTACKING)) return;
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	int32 ReactAnim = UIController->UseItem(1);
+	ItemUsageAction(ReactAnim);
+	UE_LOG(LogTemp, Log, TEXT("QuickSlot 1 : Item Type %d"), ReactAnim);
+}
+
+void ACPlayerCharacter::Quick2()
+{
+	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK) || GetState(PLAYER_ATTACKING)) return;
+
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	int32 ReactAnim = UIController->UseItem(2);
+	ItemUsageAction(ReactAnim);
+	UE_LOG(LogTemp, Log, TEXT("QuickSlot 2 : Item Type %d"), ReactAnim);
+}
+
+void ACPlayerCharacter::Quick3()
+{
+	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK) || GetState(PLAYER_ATTACKING)) return;
+
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	int32 ReactAnim = UIController->UseItem(3);
+	ItemUsageAction(ReactAnim);
+	UE_LOG(LogTemp, Log, TEXT("QuickSlot 3 : Item Type %d"), ReactAnim);
+}
+
+void ACPlayerCharacter::ItemUsageAction(int32 ItemType)
+{
+	if (ItemType < 0) return;
+
+	switch(ItemType)
+	{
+	case(ITEM_TYPE_POTION):
+		if (Drink.ExecuteIfBound())
+		{
+			SetState(PLAYER_DRINKING_POTION, true);
+			GetWorld()->GetTimerManager().SetTimer(PotionTimerHandle, FTimerDelegate::CreateLambda([&] {
+				SetState(PLAYER_DRINKING_POTION, false);
+				}), 2.f, false);
+		}
+		break;
+	default:
+		UE_LOG(LogTemp, Log, TEXT("No Action Found On Item Type : %d"), ItemType);
+		break;
+	}
+}
+
+void ACPlayerCharacter::Heal(float HealPoint)
+{
+	HP += HealPoint;
+	if (HP > MaxHP) HP = MaxHP;
 }
 
 void ACPlayerCharacter::Equip(AActor& ActorToEquip)

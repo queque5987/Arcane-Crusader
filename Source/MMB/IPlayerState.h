@@ -37,4 +37,6 @@ public:
 	virtual void UnEquip() {};
 
 	virtual float GetBonusAttackDamage() { return 0.f; }
+
+	virtual void Heal(float HealPoint) {};
 };

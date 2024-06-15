@@ -30,6 +30,12 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 		}
 		ItemType = ID->GetItemType();
 	}
+	if (GetOwningPlayer())
+	{
+		ACPlayerCharacter* tempPlayer = Cast<ACPlayerCharacter>(GetOwningPlayer()->GetCharacter());
+		tempPlayer->InventoryOpenedEvent.BindUFunction(this, TEXT("ReleasePutItem"));
+	}
+	//InventoryOpenedEvent
 }
 
 void UCInventoryItem::NativeOnInitialized()
@@ -186,10 +192,35 @@ void UCInventoryItem::OnRightClicked()
 	//Equip();
 }
 
+void UCInventoryItem::ReleasePutItem()
+{
+	UE_LOG(LogTemp, Log, TEXT("ReleasePutItem"));
+	//if (!bPicked) return;
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+	bPicked = false;
+	SetRenderOpacity(1.f);
+	UIController->DragOutItem();
+}
+
 void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+	if (GetOwningListView() != nullptr)
+	{
+		//FString ListViewName;
+		//GetOwningListView()->GetName(ListViewName);
+		UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+		//if (ListViewName == "ItemList" && ID != nullptr)
+		if (ID != nullptr)
+		{
+			if (ID->GetItemType() >= 3)
+			{
+				ItemQuantity->SetText(FText::FromString(FString::FromInt(ID->GetItemCount())));
+			}
+		}
+	}
 	if (bPicked == false)
 	{
 		//UE_LOG(LogTemp, Log, TEXT("NativeTick False"));

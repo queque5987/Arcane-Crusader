@@ -21,6 +21,7 @@ public:
 	virtual bool SetInventoryVisibility() { return false; };
 	virtual void AddInventoryItem(UClass* ItemClass) {};
 	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) {};
+	virtual int32 UseItem(int32 QuickSlotNum) { return 0; };
 	virtual void ShowItemDetailUI(class UCInventoryItemData* ItemData) {};
 	virtual void UnShowItemDetailUI() {};
 	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) {};
@@ -55,4 +56,5 @@ public:
 	virtual void DragItem(FVector2D WidgetTranslation) {};
 	virtual void DragOutItem() {};
 	virtual class UCInventoryItemData* SetUpQuickSlot() { return nullptr; };
+
 };

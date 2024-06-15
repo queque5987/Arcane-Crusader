@@ -86,5 +86,5 @@ public:
 	FText GetItemDetail() { return ItemDetail; }
 	void SetItemDetail(FText e) { ItemDetail = e; }
 	struct ItemStat* GetItemStats() { return ItemStats; }
-	void SetItemStats(float AttackDamage = 0.f, float Defence = 0.f, float AttackSpeed = 0.f);
+	void SetItemStats(float AttackDamage = 0.f, float Defence = 0.f, float AttackSpeed = 0.f, float HealPoint = 0.f);
 };

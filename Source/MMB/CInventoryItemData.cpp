@@ -16,11 +16,12 @@ float UCInventoryItemData::GetAttackDamage()
 	return ItemStats->_AttackDamage;
 }
 
-void UCInventoryItemData::SetItemStats(float AttackDamage, float Defence, float AttackSpeed)
+void UCInventoryItemData::SetItemStats(float AttackDamage, float Defence, float AttackSpeed, float HealPoint)
 {
 	ItemStats->_AttackDamage = AttackDamage;
 	ItemStats->_Defence = Defence;
 	ItemStats->_AttackSpeed = AttackSpeed;
+	ItemStats->_HealPoint = HealPoint;
 
 
 	//ItemStat temp = ItemStat(

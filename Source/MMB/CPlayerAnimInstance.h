@@ -63,6 +63,7 @@ protected:
 	UAnimSequenceBase* AnimSequenceDie;
 	UAnimSequenceBase* AnimSequenceHitReact;
 	UAnimSequenceBase* AnimSequencePickUp;
+	UAnimSequenceBase* AnimSequenceDrink;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -108,4 +109,6 @@ protected:
 	void HitReact();
 	UFUNCTION()
 	void PickUp();
+	UFUNCTION()
+	void Drink();
 };

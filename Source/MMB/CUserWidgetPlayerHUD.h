@@ -72,6 +72,11 @@ public:
 	void Tick_DieUIAnim(float DeltaTime);
 	bool GetContinueRevive() { return bContinueRevive; }
 
+	FString GetItemDataOnQuickSlot(int32 QuickSlotNum);
+
+	void SetQuickSlot1(class UCInventoryItemData* QuickItem);
+	void SetQuickSlot2(class UCInventoryItemData* QuickItem);
+	void SetQuickSlot3(class UCInventoryItemData* QuickItem);
 private:
 	bool bContinueRevive;
 
@@ -81,5 +86,6 @@ private:
 	void OnClickQuickSlot2();
 	UFUNCTION()
 	void OnClickQuickSlot3();
+
 
 };

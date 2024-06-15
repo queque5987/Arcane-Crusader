@@ -48,6 +48,9 @@ public:
 	FTimerHandle UnHoverTimerHandler;
 
 	virtual void OnRightClicked() override;
+
+	UFUNCTION()
+	void ReleasePutItem();
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemQuantity;

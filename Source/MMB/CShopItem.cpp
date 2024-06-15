@@ -3,6 +3,7 @@
 
 #include "CShopItem.h"
 #include "Styling/SlateWidgetStyleAsset.h"
+#include "IItemManager.h"
 
 void UCShopItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
@@ -71,20 +72,31 @@ void UCShopItem::BuyItem()
 	IIPlayerState* PC = Cast<IIPlayerState>(this->GetOwningPlayer()->GetCharacter());
 	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
 	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+
+	if (ItemManager == nullptr) return;
+	if ((PC == nullptr || PCC == nullptr) || !IsValid(ID)) return;
 
 	int32 PlayerGold = PC->GetPlayerGold();
 	int32 Price = ID->GetPrice();
-	if ((PC == nullptr || PCC == nullptr) || !IsValid(ID)) return;
+
 
 	if (Price > PlayerGold)
 	{
 		PCC->AddAlert(FText::FromString(TEXT("Not Enough Gold")));
 		return;
 	}
-
+	
+	UCInventoryItemData* NewID = ItemManager->GetItem(ID->GetDT_RowName());
+	if (NewID == nullptr)
+	{
+		PCC->AddAlert(FText::FromString(TEXT("Fail To Buy Item")));
+		return;
+	}
 	PC->SetPlayerGold(PlayerGold - Price);
 	ID->SetIsShopItem(false);
-	PCC->AddInventoryItem(ID);
+	//PCC->AddInventoryItem(ID);
+	PCC->AddInventoryItem(NewID);
 	PCC->ResumeShopInventoryItems();
 }
 

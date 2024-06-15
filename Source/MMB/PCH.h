@@ -54,7 +54,7 @@
 #define PLAYER_GETTINGUP			UINT(1) << 20
 #define PLAYER_STAMINA_REGAIN		UINT(1) << 21
 #define PLAYER_DIED					UINT(1) << 22
-//#define UINT(1) << 23
+#define PLAYER_DRINKING_POTION		UINT(1) << 23
 
 #define PLAYER_CLIMBING_ROPE		UINT(1) << 24
 #define PLAYER_JUMPING_POINTS		UINT(1) << 25
@@ -136,7 +136,7 @@
 #define ITEM_TYPE_ARMOR		2
 #define ITEM_TYPE_GOLD		3
 #define ITEM_TYPE_GUITAR	4
-#define ITEM_TYPE_USABLE	5
+#define ITEM_TYPE_POTION	5
 
 struct AttackResult
 {
@@ -182,15 +182,18 @@ struct ItemStat
 	ItemStat(
 		float AttackDamage = 0.f,
 		float Defence = 0.f,
-		float AttackSpeed = 0.f
+		float AttackSpeed = 0.f,
+		float HealPoint = 0.f
 	)
 	{
 		_AttackDamage = AttackDamage;
 		_Defence = Defence;
 		_AttackSpeed = AttackSpeed;
+		_HealPoint = HealPoint;
 	}
 
 	float _AttackDamage;
 	float _Defence;
 	float _AttackSpeed;
+	float _HealPoint;
 };

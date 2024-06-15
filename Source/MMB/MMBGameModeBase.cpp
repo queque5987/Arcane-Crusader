@@ -64,6 +64,7 @@ AMMBGameModeBase::AMMBGameModeBase()
 	//FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
 	//TSoftObjectPtr<UWorld> testlevel(path);
 	//LevelToLoad = testlevel;
+	ItemGetCounter = 0;
 }
 
 void AMMBGameModeBase::BeginPlay()
@@ -89,6 +90,7 @@ void AMMBGameModeBase::BeginPlay()
 		}
 	}*/
 
+	ItemGetCounter = 0;
 }
 
 UTexture2D* AMMBGameModeBase::GetPreLoadedTexture(int32 e)
@@ -123,8 +125,7 @@ UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 	FItemTableRow* Row = ItemTable->FindRow<FItemTableRow>(ItemRowName, FString(""));
 
 	if (Row == nullptr) return nullptr;
-	
-	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName + FString::FromInt(Count)));
+	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName + FString::FromInt(ItemGetCounter++)));
 	D->SetDT_RowName(ItemRowName);
 	D->SetIconTexture(Row->IconTexture);
 	D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *Row->ItemClass));
@@ -138,7 +139,8 @@ UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 	D->SetItemStats(
 		Row->AttackDamage,
 		Row->Defence,
-		Row->AttackSpeed
+		Row->AttackSpeed,
+		Row->Potion_HealPoint
 	);
 	
 	return D;

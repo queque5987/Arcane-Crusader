@@ -39,7 +39,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> HitReactFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_React_Large_Gut"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PickUpFinder(TEXT("/Game/Player/Guard/Animation/Picking_Up"));
-	
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DrinkFinder(TEXT("/Game/Player/Guard/Animation/Drinking"));
 
 	if(LMBAttackFinder.Succeeded())			AnimSequenceLMBAttack = LMBAttackFinder.Object;
 	if(RMBCastStartFinder.Succeeded())		AnimSequenceRMBCastStart = RMBCastStartFinder.Object;
@@ -67,6 +67,7 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if (DieAnimFinder.Succeeded()) AnimSequenceDie = DieAnimFinder.Object;
 	if (HitReactFinder.Succeeded()) AnimSequenceHitReact = HitReactFinder.Object;
 	if (PickUpFinder.Succeeded()) AnimSequencePickUp = PickUpFinder.Object;
+	if (DrinkFinder.Succeeded()) AnimSequenceDrink = DrinkFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -232,6 +233,11 @@ void UCPlayerAnimInstance::PickUp()
 	PlaySlotAnimationAsDynamicMontage(AnimSequencePickUp, "UpperBody", 0.25f, 0.25f, 1.f);
 }
 
+void UCPlayerAnimInstance::Drink()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceDrink, "UpperBody", 0.25f, 0.25f, 1.5f);
+}
+
 void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
 	//Super::NativeInitializeAnimation();
@@ -262,6 +268,7 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->Die.BindUFunction(this, FName("Die"));
 		PC->HitReact.BindUFunction(this, FName("HitReact"));
 		PC->PickUp.BindUFunction(this, FName("PickUp"));
+		PC->Drink.BindUFunction(this, FName("Drink"));
 		PlayerCharacterStateInterface = Cast<IIPlayerState>(PC);
 	}
 }
