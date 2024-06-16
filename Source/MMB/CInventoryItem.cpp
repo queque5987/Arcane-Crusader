@@ -28,6 +28,10 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 		{
 			ItemQuantity->SetText(FText::FromString(FString::FromInt(ID->GetItemCount())));
 		}
+		else
+		{
+			ItemQuantity->SetVisibility(ESlateVisibility::Hidden);
+		}
 		ItemType = ID->GetItemType();
 	}
 	if (GetOwningPlayer())
@@ -218,6 +222,7 @@ void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 			if (ID->GetItemType() >= 3)
 			{
 				ItemQuantity->SetText(FText::FromString(FString::FromInt(ID->GetItemCount())));
+				ItemQuantity->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
 	}

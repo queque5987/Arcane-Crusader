@@ -107,8 +107,17 @@ void UCShopItem::SellItem()
 	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
 	if ((PCC == nullptr || ID == nullptr) || !PCC->IsOnShop()) return;
 	int iItemPrice = ID->GetPrice();
-	PCC->RemoveInventoryItem(ID);
-	PCC->ResumeShopInventoryItems();
+	
+	if (ID->GetItemCount() > 1)
+	{
+		ID->SetItemCount(ID->GetItemCount() - 1);
+	}
+	else
+	{
+		PCC->RemoveInventoryItem(ID);
+		PCC->ResumeShopInventoryItems();
+	}
+
 	PC->GainPlayerGold(iItemPrice);
 	Destruct();
 }

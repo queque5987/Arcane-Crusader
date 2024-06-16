@@ -235,14 +235,17 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 		return;
 	}
 
-	for (UObject* HasItem : ItemInventory->ItemList->GetListItems())
+	if (ItemData->GetItemType() > 3)
 	{
-		UCInventoryItemData* HasItemData = Cast<UCInventoryItemData>(HasItem);
-		if (HasItemData->GetstrName() == ItemData->GetstrName())
+		for (UObject* HasItem : ItemInventory->ItemList->GetListItems())
 		{
-			HasItemData->SetItemCount(HasItemData->GetItemCount() + ItemData->GetItemCount());
-			CheckQuest(ItemData->GetItemClass());
-			return;
+			UCInventoryItemData* HasItemData = Cast<UCInventoryItemData>(HasItem);
+			if (HasItemData->GetstrName() == ItemData->GetstrName())
+			{
+				HasItemData->SetItemCount(HasItemData->GetItemCount() + ItemData->GetItemCount());
+				CheckQuest(ItemData->GetItemClass());
+				return;
+			}
 		}
 	}
 	ItemInventory->ItemList->AddItem(ItemData);
@@ -1311,6 +1314,7 @@ void ACPlayerController::DragOutItem()
 {
 	DraggingItem->SetVisibility(ESlateVisibility::Hidden);
 	DraggingItem->RemoveFromViewport();
+	DraggingItemDat = nullptr;
 }
 
 UCInventoryItemData* ACPlayerController::SetUpQuickSlot()

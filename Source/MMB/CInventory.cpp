@@ -28,6 +28,13 @@ void UCInventory::SetVisibility(ESlateVisibility InVisibility)
 	{
 		PlayerGold->SetText(FText::FromString(FString::FromInt(PC->GetPlayerGold())));
 	}
+
+	for (UUserWidget* UW : ItemList->GetDisplayedEntryWidgets())
+	{
+		UCInventoryItem* II = Cast<UCInventoryItem>(UW);
+		if (II == nullptr) continue;
+		II->ReleasePutItem();
+	}
 }
 
 bool UCInventory::EquipItem(int ItemType, UCInventoryItemData& ToEquipItemData)
