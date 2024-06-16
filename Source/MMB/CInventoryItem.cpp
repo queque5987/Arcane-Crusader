@@ -78,12 +78,12 @@ void UCInventoryItem::Equip()
 	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(PC->GetController());
 	if (PCC == nullptr) return;
 
+	//SwitchbPicked(true, false);
+	ReleasePutItem();
+
 	PCC->IsSocketEmpty(ItemType);
 	if (PCC->EquipItem(ItemType, *ID)) PCC->RemoveInventoryItem(ID);
 
-	bPicked = false;
-	SetRenderOpacity(1.f);
-	PCC->DragOutItem();
 }
 
 void UCInventoryItem::UnEquip(FString EquippedSpace)
@@ -93,6 +93,7 @@ void UCInventoryItem::UnEquip(FString EquippedSpace)
 	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (PCC == nullptr) return;
 	if (PCC->RemoveEquippedItem(EquippedSpace, ID)) PCC->AddInventoryItem(ID);
+	ReleasePutItem();
 }
 
 void UCInventoryItem::OnButtonClicked()
@@ -111,15 +112,28 @@ void UCInventoryItem::OnButtonClicked()
 	}
 	ClickedSec = FPlatformTime::Seconds();
 
-	if (ListViewName != "ItemList") return;
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
 	if (ID == nullptr || UIController == nullptr) return;
+
+	if (ListViewName != "ItemList" || ID->GetItemType() < 5) return;
+
+	//SwitchbPicked();
 	if (!bPicked)
 	{
+		if (GetOwningListView())
+		{
+			for (UUserWidget* UW : GetOwningListView()->GetDisplayedEntryWidgets())
+			{
+				UCInventoryItem* II = Cast<UCInventoryItem>(UW);
+				if (II == nullptr || II == this) continue;
+				II->ReleasePutItem();
+			}
+		}
+
 		SetRenderOpacity(0.4f);
 		bPicked = true;
-		
+		UE_LOG(LogTemp, Log, TEXT("bPicked True 134"));
 		UIController->DragInItem(ID);
 	}
 	else
@@ -128,7 +142,6 @@ void UCInventoryItem::OnButtonClicked()
 		SetRenderOpacity(1.f);
 		UIController->DragOutItem();
 	}
-
 }
 
 void UCInventoryItem::OnHovered()
@@ -198,10 +211,11 @@ void UCInventoryItem::OnRightClicked()
 
 void UCInventoryItem::ReleasePutItem()
 {
-	UE_LOG(LogTemp, Log, TEXT("ReleasePutItem"));
-	//if (!bPicked) return;
+	//UE_LOG(LogTemp, Log, TEXT("ReleasePutItem"));
+	if (!bPicked) return;
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
+	//SwitchbPicked(true, false);
 	bPicked = false;
 	SetRenderOpacity(1.f);
 	UIController->DragOutItem();
@@ -226,11 +240,7 @@ void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 			}
 		}
 	}
-	if (bPicked == false)
-	{
-		//UE_LOG(LogTemp, Log, TEXT("NativeTick False"));
-		return;
-	}
+	if (bPicked == false) return;
 
 	FVector2D MousePos;
 	GetOwningPlayer()->GetMousePosition(MousePos.X, MousePos.Y);
@@ -242,4 +252,32 @@ void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	UIController->DragItem(MousePos);
 	//SetPositionInViewport(MousePos);
+}
+
+void UCInventoryItem::SwitchbPicked(bool bForce, bool e)
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+	if (ID == nullptr || UIController == nullptr) return;
+	if (bForce ? e : !bPicked)
+	{
+		SetRenderOpacity(0.4f);
+		if (GetOwningListView())
+		{
+			for (UUserWidget* UW : GetOwningListView()->GetDisplayedEntryWidgets())
+			{
+				UCInventoryItem* II = Cast<UCInventoryItem>(UW);
+				if (II == nullptr || II == this) continue;
+				II->ReleasePutItem();
+			}
+		}
+		bPicked = true;
+		UIController->DragInItem(ID);
+	}
+	if (bForce ? !e : bPicked)
+	{
+		bPicked = false;
+		SetRenderOpacity(1.f);
+		UIController->DragOutItem();
+	}
 }

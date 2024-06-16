@@ -86,6 +86,21 @@ void UCItemDetailUI::SetDetail(UCInventoryItemData* ItemData)
 		EnterFlag = true;
 	}
 
+	//Potion
+	if (ItemData->GetItemType() == 5 && Stats->_HealPoint != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("체력 회복");
+		if (Stats->_HealPoint > 0) tempStatDesc += "+ ";
+		else tempStatDesc += "- ";
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_HealPoint);
+		EnterFlag = true;
+	}
+
 	ItemStatText->SetText(FText::FromString(tempStat));
 	ItemStatDescText->SetText(FText::FromString(tempStatDesc));
 

@@ -56,4 +56,6 @@ private:
 	TObjectPtr<UTextBlock> ItemQuantity;
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	void SwitchbPicked(bool bForce = false, bool e = false);
 };

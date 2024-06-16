@@ -1291,6 +1291,8 @@ void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
 
 void ACPlayerController::DragInItem(UCInventoryItemData* ToDragItem)
 {
+	DragOutItem();
+
 	IIItemManager* GM = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
 	if (GM == nullptr) return;
 	UTexture2D* T = GM->IconGetter(ToDragItem->GetIconTexture());
@@ -1298,6 +1300,7 @@ void ACPlayerController::DragInItem(UCInventoryItemData* ToDragItem)
 	DraggingItem->ItemImage->SetBrushFromTexture(T);
 
 	DraggingItem->AddToViewport();
+	UE_LOG(LogTemp, Log, TEXT("Adding Viewport"));
 	DraggingItem->SetVisibility(ESlateVisibility::HitTestInvisible);
 	DraggingItemDat = ToDragItem;
 }
@@ -1305,15 +1308,13 @@ void ACPlayerController::DragInItem(UCInventoryItemData* ToDragItem)
 void ACPlayerController::DragItem(FVector2D WidgetTranslation)
 {
 	DraggingItem->SetPositionInViewport(WidgetTranslation);
-	//FWidgetTransform tempTransform = DraggingItem->GetRenderTransform();
-	//tempTransform.Translation = WidgetTranslation;
-	//DraggingItem->SetRenderTransform(tempTransform);
 }
 
 void ACPlayerController::DragOutItem()
 {
 	DraggingItem->SetVisibility(ESlateVisibility::Hidden);
 	DraggingItem->RemoveFromViewport();
+	UE_LOG(LogTemp, Log, TEXT("Removing Viewport"));
 	DraggingItemDat = nullptr;
 }
 
