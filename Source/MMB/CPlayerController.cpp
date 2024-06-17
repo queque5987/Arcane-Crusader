@@ -1196,8 +1196,10 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 
 	PC->SetPlayerGold(SaveGameInstance->SavedGold);
 
+	int32 QuickSlotIdx = -1;
 	for (int QS : SaveGameInstance->QuickSlots)
 	{
+		QuickSlotIdx++;
 		if (QS >= 0)
 		{
 			UObject* tempItem = ItemInventory->ItemList->GetItemAt(QS);
@@ -1205,7 +1207,7 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 			UCInventoryItemData* tempItemData = Cast<UCInventoryItemData>(tempItem);
 			if (tempItemData == nullptr) continue;
 
-			switch (QS)
+			switch (QuickSlotIdx)
 			{
 			case(0):
 				HUDOverlay->SetQuickSlot1(tempItemData);
@@ -1262,8 +1264,10 @@ void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
 
 	PC->SetPlayerGold(SaveGameInstance->SavedGold);
 
+	int32 QuickSlotIdx = -1;
 	for (int QS : SaveGameInstance->QuickSlots)
 	{
+		QuickSlotIdx++;
 		if (QS >= 0)
 		{
 			UObject* tempItem = ItemInventory->ItemList->GetItemAt(QS);
@@ -1271,7 +1275,7 @@ void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
 			UCInventoryItemData* tempItemData = Cast<UCInventoryItemData>(tempItem);
 			if (tempItemData == nullptr) continue;
 
-			switch (QS)
+			switch (QuickSlotIdx)
 			{
 			case(0):
 				HUDOverlay->SetQuickSlot1(tempItemData);
