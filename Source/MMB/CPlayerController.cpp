@@ -976,6 +976,8 @@ void ACPlayerController::EquippedItemStat(ItemStat& SumItemStat)
 	
 	SumItemStat._AttackDamage = AD;
 	SumItemStat._Defence = DF;
+	if (AS > 0.3f) AS = 0.3f + (AS - 0.3f) / 10;
+	if (AS < -0.f) AS /= 10;
 	SumItemStat._AttackSpeed = AS;
 	//ItemStat* temp = (ItemStat*)malloc(sizeof(struct ItemStat));
 	// TO DO //

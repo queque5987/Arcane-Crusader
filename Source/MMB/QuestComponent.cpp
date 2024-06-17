@@ -129,8 +129,8 @@ void UQuestComponent::Init_Quest3()
 	
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 5000.f;
-	Config._MaxHP = 5000.f;
+	Config._HP = 3000.f;
+	Config._MaxHP = 3000.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -149,8 +149,8 @@ void UQuestComponent::Init_Quest4()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Spike.DropTable_Spike"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 7000.f;
-	Config._MaxHP = 7000.f;
+	Config._HP = 5000.f;
+	Config._MaxHP = 5000.f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -169,9 +169,9 @@ void UQuestComponent::Init_Quest5()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Tusk.DropTable_Tusk"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 10000.f;
-	Config._MaxHP = 10000.f;
-	Config._AttackDamage *= 1.5f;
+	Config._HP = 4000.f;
+	Config._MaxHP = 4000.f;
+	Config._AttackDamage *= 1.3f;
 	cEC->SetMonsterConfig(Config);
 }
 
@@ -190,9 +190,9 @@ void UQuestComponent::Init_Quest6()
 
 	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable_Spike.DropTable_Spike"));
 	if (DT != nullptr) Config._DropTable = DT;
-	Config._HP = 14000.f;
-	Config._MaxHP = 14000.f;
-	Config._AttackDamage *= 1.5f;
+	Config._HP = 6500.f;
+	Config._MaxHP = 6500.f;
+	Config._AttackDamage *= 1.3f;
 	cEC->SetMonsterConfig(Config);
 }
 

@@ -60,6 +60,11 @@ void UCInventoryItem::Equip()
 	if (!IsValid(ID)) return;
 
 
+	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(PC->GetController());
+	if (PCC == nullptr) return;
+
+	PCC->IsSocketEmpty(ItemType);
+
 	//Spawn and Equip To Character
 	if (ItemType == 0)
 	{
@@ -75,13 +80,10 @@ void UCInventoryItem::Equip()
 	}
 
 	//Add To Inventory Widget
-	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(PC->GetController());
-	if (PCC == nullptr) return;
 
 	//SwitchbPicked(true, false);
 	ReleasePutItem();
 
-	PCC->IsSocketEmpty(ItemType);
 	if (PCC->EquipItem(ItemType, *ID)) PCC->RemoveInventoryItem(ID);
 
 }
