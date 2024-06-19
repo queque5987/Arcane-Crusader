@@ -75,6 +75,8 @@ void UCInventoryItem::Equip()
 		isWeapon->SetIsEquiped(true);
 		isWeapon->SetWeaponName(FName(ID->GetstrName()));
 		isWeapon->SetAttackDamage(ID->GetAttackDamage());
+		isWeapon->SetItemStat(ID->GetItemStats());
+		isWeapon->SetBulletType(ID->GetBulletType());
 
 		PC->Equip(*spawnedActor);
 	}

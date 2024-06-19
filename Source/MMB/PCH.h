@@ -6,6 +6,7 @@
 #include "CPlayerAnimInstance.h"
 #include "CWeapon.h"
 #include "CBattleStaff.h"
+#include "CRifleStaff.h"
 #include "CStaff.h"
 #include "CEnemyAIController.h"
 #include "CEnemyCharacter.h"
@@ -58,7 +59,7 @@
 
 #define PLAYER_CLIMBING_ROPE		UINT(1) << 24
 #define PLAYER_JUMPING_POINTS		UINT(1) << 25
-//#define UINT(1) << 26
+#define PLAYER_AIMING				UINT(1) << 26
 //#define UINT(1) << 27
 
 #define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
@@ -69,7 +70,7 @@
 #define EnemyAttackChannel		ECollisionChannel::ECC_EngineTraceChannel1
 #define PlayerAttackChannel		ECollisionChannel::ECC_EngineTraceChannel2
 
-
+//BattleStaff Effect
 #define E_MELEEATTACKCOMBO_3_EXPLODE					1
 #define E_MELEEATTACKCOMBO_3_FINALATTACK_EXPLODE		2
 #define E_MELEEATTACKCOMBO_3_FINALATTACK_BONUS_EXPLODE	3
@@ -84,12 +85,21 @@
 #define E_MELLEWEAPON_ATTACK_TRAIL						12
 #define E_MELLEWEAPON_ATTACK_HIT						13
 #define E_MELLEATTACKCOMBO_2_PROJECTILE_HIT				14
-#define MAX_E_WEAPONEFFECT								15
+//RifleStaff Effect
+#define E_RIFLE_TYPE_A_PROJECTILE						1
+#define E_RIFLE_SPAWN_EFFECT							2
+#define E_RIFLE_EXPLODE_EFFECT							3
+#define E_RIFLE_LAUNCH_EFFECT							4
 
+#define MAX_E_WEAPONEFFECT								15
+//BattleStaff Sound Effect
 #define SE_MELEEATTACKCOMBO_3_EXPLODE					0
 #define SE_MELEEATTACKCOMBO_2_EXPLODE					1
 #define SE_MELEEATTACKCOMBO_2_LAUNCH					2
 #define SE_MELEEATTACKCOMBO_1_LAUNCH					3
+//RifleStaff Sound Effect
+#define SE_RIFLE_TYPE_A_SHOT	1
+#define SE_RIFLE_TYPE_A_Hit		2
 #define MAX_SE_WEAPON									4
 
 #define E_ENEMYATTACK_FLAMETHROWER	0

@@ -39,4 +39,6 @@ public:
 	virtual float GetBonusAttackDamage() { return 0.f; }
 
 	virtual void Heal(float HealPoint) {};
+
+	virtual void StaminaSpend(float RequiredStamina) {};
 };

@@ -57,6 +57,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FText ItemDetail;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int32 BulletType;
+
 	class ACStaticNPC* Owner;
 public:
 	int32 GetIndex() { return Index; }
@@ -87,4 +90,6 @@ public:
 	void SetItemDetail(FText e) { ItemDetail = e; }
 	struct ItemStat* GetItemStats() { return ItemStats; }
 	void SetItemStats(float AttackDamage = 0.f, float Defence = 0.f, float AttackSpeed = 0.f, float HealPoint = 0.f);
+	int32 GetBulletType() { return BulletType; }
+	void SetBulletType(int32 e) { BulletType = e; }
 };

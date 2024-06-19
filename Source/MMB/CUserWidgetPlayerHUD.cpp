@@ -127,6 +127,11 @@ FString UCUserWidgetPlayerHUD::GetItemDataOnQuickSlot(int32 QuickSlotNum)
 	return tempID->GetstrName();
 }
 
+void UCUserWidgetPlayerHUD::SetAimVisibility(bool e)
+{
+	AimSpot->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+}
+
 void UCUserWidgetPlayerHUD::SetQuickSlot1(UCInventoryItemData* QuickItem)
 {
 	QuickSlot_1_Tile->ClearListItems();

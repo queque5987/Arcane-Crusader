@@ -167,6 +167,9 @@ public:
 	int32 Rarity;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 ItemType;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 BulletType;
 };
 
 UCLASS()

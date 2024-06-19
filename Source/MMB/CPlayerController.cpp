@@ -1185,6 +1185,8 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 			isWeapon->SetIsEquiped(true);
 			isWeapon->SetWeaponName(FName(W->GetstrName()));
 			isWeapon->SetAttackDamage(W->GetAttackDamage());
+			isWeapon->SetItemStat(W->GetItemStats());
+			isWeapon->SetBulletType(W->GetBulletType());
 
 			PC->Equip(*spawnedActor);
 		}
@@ -1253,6 +1255,8 @@ void ACPlayerController::LoadGame(TArray<uint8> MemoryAddress)
 			isWeapon->SetIsEquiped(true);
 			isWeapon->SetWeaponName(FName(W->GetstrName()));
 			isWeapon->SetAttackDamage(W->GetAttackDamage());
+			isWeapon->SetItemStat(W->GetItemStats());
+			isWeapon->SetBulletType(W->GetBulletType());
 
 			PC->Equip(*spawnedActor);
 		}

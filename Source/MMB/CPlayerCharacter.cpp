@@ -10,6 +10,7 @@
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
+const FName ACPlayerCharacter::RifleSocket(TEXT("RifleSocket"));
 
 ACPlayerCharacter::ACPlayerCharacter()
 {
@@ -63,16 +64,9 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (Q3Finder.Succeeded()) Quick3Action = Q3Finder.Object;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	//SpringArmComponent->SetUsingAbsoluteRotation(false);
-	/*SpringArmComponent->bUsePawnControlRotation = false;
-	SpringArmComponent->bInheritRoll = false;
-	SpringArmComponent->AddRelativeRotation(FRotator(-25.f, 0.f, 0.f));*/
 	SpringArmComponent->TargetArmLength = 550.f;
-	//SpringArmComponent->SetRelativeLocation(FVector(0.f, 75.f, 100.f));
 	SpringArmComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
-	//SpringArmComponent->SetRelativeTransform(FTransform(FRotator(0.f, -15.f, 0.f), FVector(0.f, 0.f, 0.f)));
 	SpringArmComponent->bUsePawnControlRotation = true;
-	//SpringArmComponent->SetUsingAbsoluteRotation(true);
 	SpringArmComponent->SetupAttachment(GetCapsuleComponent());
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
@@ -83,22 +77,10 @@ ACPlayerCharacter::ACPlayerCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 	
-	//ConstructorHelpers::FObjectFinder<USkeletalMesh> SMWizard(TEXT("/Game/BattleWizardPolyart/Meshes/WizardSM.WizardSM"));
-	//if (SMWizard.Succeeded()) GetMesh()->SetSkeletalMesh(SMWizard.Object);
-	//GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -87.f), FRotator(0.f, -90.f, 0.f));
-	//ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMWizrdAnimBPFinder(TEXT("/Game/Player/Animation/BP_AnimInstance.BP_AnimInstance"));
-	//GetMesh()->SetAnimClass(SMWizrdAnimBPFinder.Object->GeneratedClass);
-
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SMKnightMage(TEXT("/Game/Player/Guard/castle_guard_01"));
 	if (SMKnightMage.Succeeded()) GetMesh()->SetSkeletalMesh(SMKnightMage.Object);
 
-	//ConstructorHelpers::FClassFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("/Game/Player/Guard/Animation/BP_AnimInstance_Guard"));
-	//ConstructorHelpers::FObjectFinder<UAnimBlueprint> SMKnightMageAnimBPFinder(TEXT("AnimBlueprint'/Game/Player/Guard/Animation/BP_AnimInstance_Guard'"));
-	//if (SMKnightMageAnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(SMKnightMageAnimBPFinder.Object->GeneratedClass);
-
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -87.f), FRotator(0.f, -90.f, 0.f));
-
-	//SetActorRelativeScale3D(FVector(1.3f, 1.3f, 1.3f));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
@@ -112,10 +94,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (ParticleFinder.Succeeded()) ParticleSystemAimCircle->SetTemplate(ParticleFinder.Object);
 	ParticleSystemAimCircle->SetRelativeScale3D(FVector(0.7f, 0.7f, 0.7f));
 	ParticleSystemAimCircle->SetVisibility(false);
-	//ParticleSystemAimCircle->Deactivate();
 
-	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	//LMBPressedPointer = &ACPlayerCharacter::testLMB;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(EnemyAttackChannel, ECollisionResponse::ECR_Overlap);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Block);
 
@@ -130,9 +109,6 @@ ACPlayerCharacter::ACPlayerCharacter()
 void ACPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	/// Script / Engine.AnimBlueprint'/Game/Player/Guard/Animation/BPAnimInstanceGuard.BPAnimInstanceGuard'
-	//FString AnimBPAdderss = "Class'/Game/Player/Guard/Animation/BP_AnimInstance_Guard.BP_AnimInstance_Guard_C'";
-	//UBlueprintGeneratedClass* tempAnimBP = LoadObject<UBlueprintGeneratedClass>(nullptr, *AnimBPAdderss);
 	FString AnimBPAdderss = "Class'/Game/Player/Guard/Animation/BPAnimInstanceGuard.BPAnimInstanceGuard_C'";
 	UClass* tempAnimBP = LoadObject<UClass>(nullptr, *AnimBPAdderss);
 	if (!tempAnimBP) return;
@@ -203,6 +179,14 @@ void ACPlayerCharacter::LazyGetUp()
 	}
 }
 
+int32 ACPlayerCharacter::GetEquippedWeaponType()
+{
+	if (WeaponEquipped == nullptr) return 0;
+	else if (WeaponEquipped->IsA(ACBattleStaff::StaticClass())) return 1;
+	else if (WeaponEquipped->IsA(ACRifleStaff::StaticClass())) return 2;
+	return 0;
+}
+
 void ACPlayerCharacter::StopAnimMontage(UAnimMontage* AnimMontage)
 {
 	Super::StopAnimMontage(AnimMontage);
@@ -223,7 +207,10 @@ void ACPlayerCharacter::GetLineTraceResult(FHitResult& HitResult, float AttackRa
 	FVector StartLocation = CameraComponent->GetComponentLocation() + GetBaseAimRotation().Vector() * 550.f; //Spring Arm Length;
 	FVector EndLocation = StartLocation + GetBaseAimRotation().Vector() * AttackRange;
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_Pawn))
+	FCollisionQueryParams CollQuery;
+	CollQuery.AddIgnoredActor(this);
+	if (WeaponEquipped != nullptr) CollQuery.AddIgnoredActor(WeaponEquipped);
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_Pawn, CollQuery))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Line Trace ActorName : %s"), *HitResult.GetActor()->GetName());	
 	}
@@ -250,13 +237,14 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 	bool notStaminaRunout = !GetState(PLAYER_STAMINA_RUNOUT);
 	bool notClimbing = !GetState(PLAYER_CLIMBING_ROPE) && !GetState(PLAYER_JUMPING_POINTS); // or jumping
 	bool notDead = !GetState(PLAYER_DIED);
+	bool notAiming = !GetState(PLAYER_AIMING);
 
 	switch (InputType)
 	{
 	case(PLAYER_INPUT_TYPE_SHIFT):
 		if (notDead) Getup();
 		else Anykey_Triggered();
-		return notDead && UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout && notClimbing;
+		return notAiming && notDead && UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout && notClimbing;
 		break;
 	case(PLAYER_INPUT_TYPE_LOOK):
 		return UICheck;
@@ -301,12 +289,10 @@ void ACPlayerCharacter::UpdateHUDStates()
 	{
 		if (PCC->HUDOverlay->GetVisibility() == ESlateVisibility::Visible)
 		{
+			// HP BAR
+
 			PCC->HUDOverlay->HPBar->SetPercent(HP / MaxHP);
 			PCC->HUDOverlay->StaminaBar->SetPercent(Stamina / MaxStamina);
-			//FProgressBarStyle Style = PCC->HUDOverlay->StaminaBar->GetWidgetStyle();
-			//FSlateBrush Brush = Style.FillImage;
-			////Brush.
-			//PCC->HUDOverlay->StaminaBar->SetWidgetStyle(FProgressBarStyle());
 
 			if (LastDealingEnemy != nullptr)
 			{
@@ -317,6 +303,9 @@ void ACPlayerCharacter::UpdateHUDStates()
 			{
 				PCC->HUDOverlay->EnemyHPBar->SetVisibility(ESlateVisibility::Hidden);
 			}
+
+			// AIM SPOT
+			PCC->HUDOverlay->SetAimVisibility(GetState(PLAYER_AIMING));
 		}
 	}
 }
@@ -457,6 +446,32 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 			PointLight->SetVisibility(false);
 		}
 	}
+
+//ON RIFLE STAFF
+	
+	if (GetState(PLAYER_AIMING) && (WeaponEquipped != nullptr && WeaponEquipped->IsA(ACRifleStaff::StaticClass())))
+	{
+		if (CameraComponent->FieldOfView > 60.f)
+		{
+			CameraComponent->SetFieldOfView(CameraComponent->FieldOfView - 20.f * DeltaTime);
+		}
+		else
+		{
+			CameraComponent->SetFieldOfView(60.f);
+		}
+	}
+	else
+	{
+		if (CameraComponent->FieldOfView < 90.f)
+		{
+			CameraComponent->SetFieldOfView(CameraComponent->FieldOfView + 8.f * DeltaTime);
+		}
+		else
+		{
+			CameraComponent->SetFieldOfView(90.f);
+		}
+
+	}
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -498,8 +513,10 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 	SetState(PLAYER_INPUT_D, MovementVector.X > 0 ? true : false);
 	SetState(PLAYER_INPUT_A, MovementVector.X < 0 ? true : false);
 
-	if (GetState(PLAYER_ATTACKING) || GetState(PLAYER_ROLLING)) return;
+	// NO ATTACK or ROLLING BUT AIMING IS FINE 
+	if ((!GetState(PLAYER_AIMING) && GetState(PLAYER_ATTACKING)) || GetState(PLAYER_ROLLING)) return;
 
+	//CLIMB ROPE
 	if (GetState(PLAYER_CLIMBING_ROPE))
 	{
 		ACPlayerController* PC = Cast<ACPlayerController>(GetController());
@@ -531,6 +548,7 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 		}
 	}
 
+	//MOVE
 	if (Controller != nullptr && PlayerInputCheck(PLAYER_INPUT_TYPE_MOVE))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -539,11 +557,13 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		AddMovementInput(ForwardDirection, GetState(PLAYER_AIMING) ? MovementVector.Y * 0.1f : MovementVector.Y * CameraComponent->FieldOfView / 90.f);
+		AddMovementInput(RightDirection, GetState(PLAYER_AIMING) ? MovementVector.X * 0.1f : MovementVector.X * CameraComponent->FieldOfView / 90.f);
 
 		float TempSpeed = GetCharacterMovement()->MaxWalkSpeed * (1 + AccMovementSpeedAcc);
 		if (MaxMoveMentSpeed >= TempSpeed) GetCharacterMovement()->MaxWalkSpeed = TempSpeed;
+
+		//UE_LOG(LogTemp, Log, TEXT("%s"), *Rotation.ToString());
 	}
 }
 
@@ -813,7 +833,9 @@ void ACPlayerCharacter::Heal(float HealPoint)
 void ACPlayerCharacter::Equip(AActor& ActorToEquip)
 {
 	IIWeapon* WTE = Cast<IIWeapon>(&ActorToEquip);
-	ActorToEquip.AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), MeleeSocket);
+	FName AttachSocket = MeleeSocket;
+	if (ActorToEquip.IsA(ACRifleStaff::StaticClass())) AttachSocket = RifleSocket;
+	ActorToEquip.AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), AttachSocket);
 	CurrentWeaponMode = WeaponSocket;
 	UE_LOG(LogTemp, Log, TEXT("Equiped %s"), *ActorToEquip.GetName());
 	WeaponEquipped = &ActorToEquip;
@@ -839,6 +861,19 @@ void ACPlayerCharacter::SetState(UINT StateType, bool b)
 	{
 		if (b) State += StateType;
 		else State -= StateType;
+	}
+
+
+	//Exceptions
+
+	switch (StateType)
+	{
+	case(PLAYER_AIMING):
+		bUseControllerRotationYaw = b;
+		GetCharacterMovement()->bOrientRotationToMovement = !b;
+		break;
+	default:
+		break;
 	}
 }
 

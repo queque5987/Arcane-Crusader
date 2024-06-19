@@ -16,12 +16,13 @@ void UCAnimNotify_BS_Combo1Projectile::Notify(USkeletalMeshComponent* MeshComp, 
 		FHitResult HitResult;
 		FVector TargetLocation = PC->CameraComponent->GetComponentLocation() + PC->GetBaseAimRotation().RotateVector(FVector::ForwardVector * (AttackRange + 550.f));
 
-		DrawDebugLine(GetWorld(), SpawnLocation, TargetLocation, FColor::Cyan, false, 1.2f, 0U, 3.f);
+		//DrawDebugLine(GetWorld(), SpawnLocation, TargetLocation, FColor::Cyan, false, 1.2f, 0U, 3.f);
 
 		PC->GetLineTraceResult(HitResult, AttackRange);
-		if (HitResult.bBlockingHit)
+		if (HitResult.bBlockingHit && (HitResult.GetActor() && HitResult.GetActor()->IsA(ACEnemyCharacter::StaticClass())))
 		{
 			TargetLocation = HitResult.Location;
+			UE_LOG(LogTemp, Log, TEXT("TargetLocation : %s"), *HitResult.GetActor()->GetName());
 		}
 
 		FRotator ProjRotator = (TargetLocation - LIndexSocketLocation).Rotation();

@@ -52,6 +52,8 @@ DECLARE_DELEGATE(FPickUp);
 DECLARE_DELEGATE(FDrink);
 
 DECLARE_DELEGATE(FInventoryOpened);
+DECLARE_DELEGATE(FFireRifle);
+
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
 {
@@ -100,7 +102,11 @@ public:
 	class UCameraComponent* CameraComponent;
 	UPROPERTY()
 	class UInputMappingContext* DefaultMappingContext;
+	UPROPERTY(BlueprintReadOnly)
 	AActor* WeaponEquipped;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetEquippedWeaponType();
 
 	virtual void StopAnimMontage(class UAnimMontage* AnimMontage = nullptr);
 
@@ -127,6 +133,7 @@ public:
 	FPickUp PickUp;
 	FDrink Drink;
 	FInventoryOpened InventoryOpenedEvent;
+	FFireRifle FireRifle;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;
@@ -173,9 +180,9 @@ protected:
 		GetMesh()->bPauseAnims = false;
 	}
 	UPROPERTY(EditAnyWhere)
-	float DefaultMovementSpeed = 500.f;
+	float DefaultMovementSpeed = 400.f;
 	UPROPERTY(EditAnyWhere)
-	float AccMovementSpeedAcc = 0.05f;
+	float AccMovementSpeedAcc = 0.015f;
 	UPROPERTY(EditAnyWhere)
 	float MaxMoveMentSpeed = 800.f;
 
@@ -190,6 +197,7 @@ protected:
 
 	static const FName WeaponSocket;
 	static const FName MeleeSocket;
+	static const FName RifleSocket;
 
 	FName CurrentWeaponMode;
 
@@ -271,7 +279,7 @@ public:
 	void AxisAdjustOnScreenRotation(float DeltaTime = 1/60);
 
 	void OnHitDown();
-	void StaminaSpend(float RequiredStamina);
+	virtual void StaminaSpend(float RequiredStamina) override;
 	void MonsterKilledCount(class ACEnemyCharacter* MonsterKilled);
 	void OnGraspRope(FTransform GraspLocation);
 	void OnLooseRope();

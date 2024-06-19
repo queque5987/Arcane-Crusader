@@ -67,12 +67,17 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> DieSubText;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> AimSpot;
+
 	void InitializeUI();
 	void ShowDieUI(bool b);
 	void Tick_DieUIAnim(float DeltaTime);
 	bool GetContinueRevive() { return bContinueRevive; }
 
 	FString GetItemDataOnQuickSlot(int32 QuickSlotNum);
+
+	void SetAimVisibility(bool e);
 
 	void SetQuickSlot1(class UCInventoryItemData* QuickItem);
 	void SetQuickSlot2(class UCInventoryItemData* QuickItem);

@@ -30,6 +30,8 @@ protected:
 public:
 	virtual void SetAttackDamage(float e) { }
 	virtual float GetAttackDamage() { return 0.f; }
+	virtual void SetBulletType(int32 e) {}
+	virtual void SetItemStat(struct ItemStat* ItemStats) {};
 	virtual void SetWeaponName(FName e) { }
 	virtual FName GetWeaponName() { return FName(); }
 	//BattleStaff Combo1 Projectile Dmage

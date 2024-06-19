@@ -58,7 +58,8 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 		UE_LOG(LogTemp, Log, TEXT("Projectile Overlaped Actor : %s"), *SweepResult.GetActor()->GetName());
 		UE_LOG(LogTemp, Log, TEXT("Projectile Overlaped Component : %s"), *SweepResult.GetComponent()->GetName());
 
-		EC->HitDamage(TotalDamage, *PC, SweepResult.Location);
+		//EC->HitDamage(TotalDamage, *PC, SweepResult.Location);
+		EC->HitDamage(TotalDamage, *PC, GetActorLocation());
 		Explode(true);
 	}
 	else if(ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
@@ -69,7 +70,8 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 		UE_LOG(LogTemp, Log, TEXT("E_Projectile Overlaped Actor : %s"), *SweepResult.GetActor()->GetName());
 		UE_LOG(LogTemp, Log, TEXT("E_Projectile Overlaped Component : %s"), *SweepResult.GetComponent()->GetName());
 
-		EC->HitDamage(TotalDamage, Attacker, SweepResult.Location, PlayerReactPower);
+		//EC->HitDamage(TotalDamage, Attacker, SweepResult.Location, PlayerReactPower);
+		EC->HitDamage(TotalDamage, Attacker, GetActorLocation(), PlayerReactPower);
 		Explode(true);
 	}
 }
@@ -133,17 +135,21 @@ void ACProjectile::SweepOnLaunch()
 		{
 			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
 			if (!IsValid(EC)) return;
-			EC->HitDamage(TotalDamage, *PC, HitResult.Location);
+			//EC->HitDamage(TotalDamage, *PC, HitResult.Location);
+			EC->HitDamage(TotalDamage, *PC, GetActorLocation());
 			Explode(true);
 		}
 		else if (ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
 		{
 			ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(HitResult.GetActor());
 			if (!IsValid(EC)) return;
-			EC->HitDamage(TotalDamage, Attacker, HitResult.Location, PlayerReactPower);
+			//EC->HitDamage(TotalDamage, Attacker, HitResult.Location, PlayerReactPower);
+			EC->HitDamage(TotalDamage, Attacker, GetActorLocation(), PlayerReactPower);
 			Explode(true);
 		}
+		//UE_LOG(LogTemp, Log, TEXT("Hit Actor : %s"), *HitResult.GetActor()->GetName());
 	}
+	//UE_LOG(LogTemp, Log, TEXT("Did Not Hit"));
 }
 
 void ACProjectile::Tick(float DeltaTime)

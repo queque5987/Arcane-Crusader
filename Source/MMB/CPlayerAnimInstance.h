@@ -35,8 +35,14 @@ protected:
 	bool bHitDown;
 	UPROPERTY(BlueprintReadOnly)
 	bool Died;
+	UPROPERTY(BlueprintReadOnly)
+	bool Aiming;
+	UPROPERTY(BlueprintReadOnly)
+	float AimingYaw;
 
 	class IIPlayerState* PlayerCharacterStateInterface;
+
+// BattleStaff Anim
 
 	UAnimSequenceBase* AnimSequenceLMBAttack;
 	UAnimSequenceBase* AnimSequenceRMBCastStart;
@@ -51,6 +57,11 @@ protected:
 	UAnimSequenceBase* AnimSequenceMelee1ComboAttack;
 	UAnimSequenceBase* AnimSequenceMelee2ComboAttack;
 	UAnimSequenceBase* AnimSequenceStandToRoll;
+
+// Rifle Anim
+	UAnimSequenceBase* AnimSequenceFire;
+
+// Default Anim
 	UAnimSequenceBase* AnimSequenceHitDown;
 	UAnimSequenceBase* AnimSequenceHitDownRecover;
 	UAnimSequenceBase* AnimSequenceDizzy;
@@ -64,6 +75,8 @@ protected:
 	UAnimSequenceBase* AnimSequenceHitReact;
 	UAnimSequenceBase* AnimSequencePickUp;
 	UAnimSequenceBase* AnimSequenceDrink;
+
+
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -111,4 +124,6 @@ protected:
 	void PickUp();
 	UFUNCTION()
 	void Drink();
+	UFUNCTION()
+	void Fire();
 };

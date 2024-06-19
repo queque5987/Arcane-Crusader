@@ -142,6 +142,7 @@ UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 		Row->AttackSpeed,
 		Row->Potion_HealPoint
 	);
+	D->SetBulletType(Row->BulletType);
 	
 	return D;
 }

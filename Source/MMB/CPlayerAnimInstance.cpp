@@ -41,6 +41,8 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PickUpFinder(TEXT("/Game/Player/Guard/Animation/Picking_Up"));
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> DrinkFinder(TEXT("/Game/Player/Guard/Animation/Drinking"));
 
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase> FireFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Rifle/Firing_Rifle__2_"));
+
 	if(LMBAttackFinder.Succeeded())			AnimSequenceLMBAttack = LMBAttackFinder.Object;
 	if(RMBCastStartFinder.Succeeded())		AnimSequenceRMBCastStart = RMBCastStartFinder.Object;
 	if(RMBCastOngoingFinder.Succeeded())	AnimSequenceRMBCastOngoing = RMBCastOngoingFinder.Object;
@@ -68,6 +70,8 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if (HitReactFinder.Succeeded()) AnimSequenceHitReact = HitReactFinder.Object;
 	if (PickUpFinder.Succeeded()) AnimSequencePickUp = PickUpFinder.Object;
 	if (DrinkFinder.Succeeded()) AnimSequenceDrink = DrinkFinder.Object;
+
+	if (FireFinder.Succeeded()) AnimSequenceFire = FireFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -238,6 +242,11 @@ void UCPlayerAnimInstance::Drink()
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceDrink, "UpperBody", 0.25f, 0.25f, 1.5f);
 }
 
+void UCPlayerAnimInstance::Fire()
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceFire, "UpperBody", 0.25f, 0.25f, 1.f);
+}
+
 void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
 	//Super::NativeInitializeAnimation();
@@ -269,6 +278,7 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->HitReact.BindUFunction(this, FName("HitReact"));
 		PC->PickUp.BindUFunction(this, FName("PickUp"));
 		PC->Drink.BindUFunction(this, FName("Drink"));
+		PC->FireRifle.BindUFunction(this, FName("Fire"));
 		PlayerCharacterStateInterface = Cast<IIPlayerState>(PC);
 	}
 }
@@ -294,5 +304,12 @@ void UCPlayerAnimInstance::UpdateProperties(float Delta)
 		Died = PlayerCharacterStateInterface->GetState(PLAYER_DIED);
 		bHitDown = PlayerCharacterStateInterface->GetState(PLAYER_RAGDOLL) ||
 			PlayerCharacterStateInterface->GetState(PLAYER_CANGETUP);
+		Aiming = PlayerCharacterStateInterface->GetState(PLAYER_AIMING);
+
+		AimingYaw = Pawn->GetViewRotation().Pitch;
+		if (AimingYaw >= 270.f)
+		{
+			AimingYaw -= 360.f;
+		}
 	}
 }
