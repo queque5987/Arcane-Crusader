@@ -125,14 +125,16 @@ void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
 	{
 		//Rifle Bullet
 	case(0):
-		PS->StaminaSpend(5.f);
+		//PS->StaminaSpend(5.f);
+		AttackResult.StaminaUsed = 5.f;
 		PC->FireRifle.ExecuteIfBound();
 		Fire();
 		AttackCoolDown = 0.f;
 		break;
 		//ShotGun Bullet
 	case(1):
-		PS->StaminaSpend(12.f);
+		AttackResult.StaminaUsed = 12.f;
+		//PS->StaminaSpend(12.f);
 		PC->FireRifle.ExecuteIfBound();
 		for (int i = 0; i < 20; i++)
 		{

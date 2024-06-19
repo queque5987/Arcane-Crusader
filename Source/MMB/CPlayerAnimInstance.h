@@ -42,6 +42,8 @@ protected:
 
 	class IIPlayerState* PlayerCharacterStateInterface;
 
+	FTimerHandle DizzyTimerHandle;
+
 // BattleStaff Anim
 
 	UAnimSequenceBase* AnimSequenceLMBAttack;

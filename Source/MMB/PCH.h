@@ -60,7 +60,7 @@
 #define PLAYER_CLIMBING_ROPE		UINT(1) << 24
 #define PLAYER_JUMPING_POINTS		UINT(1) << 25
 #define PLAYER_AIMING				UINT(1) << 26
-//#define UINT(1) << 27
+#define PLAYER_DIZZY				UINT(1) << 27
 
 #define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
 //#define UINT(1) << 29

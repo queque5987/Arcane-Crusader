@@ -198,6 +198,13 @@ void UCPlayerAnimInstance::HitDownRecover()
 void UCPlayerAnimInstance::Dizzy()
 {
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceDizzy, "DefaultSlot", -1.f, 0.25f, 1.f);
+	float DizzyLength = AnimSequenceDizzy->GetPlayLength();
+	GetWorld()->GetTimerManager().SetTimer(DizzyTimerHandle, FTimerDelegate::CreateLambda([&] {
+		if (PlayerCharacterStateInterface != nullptr)
+		{
+			PlayerCharacterStateInterface->SetState(PLAYER_DIZZY, false);
+		}
+		}), DizzyLength, false);
 }
 
 void UCPlayerAnimInstance::RopeClimb()

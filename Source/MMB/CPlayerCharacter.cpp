@@ -516,6 +516,14 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 	// NO ATTACK or ROLLING BUT AIMING IS FINE 
 	if ((!GetState(PLAYER_AIMING) && GetState(PLAYER_ATTACKING)) || GetState(PLAYER_ROLLING)) return;
 
+	// STAMINA RAN OUT OVERED
+	if (GetState(PLAYER_DIZZY) && !GetState(PLAYER_STAMINA_RUNOUT))
+	{
+		SetState(PLAYER_DIZZY, false);
+		StopAnimMontage();
+	}
+
+
 	//CLIMB ROPE
 	if (GetState(PLAYER_CLIMBING_ROPE))
 	{
@@ -1113,11 +1121,13 @@ void ACPlayerCharacter::StaminaSpend(float RequiredStamina)
 	if (RequiredStamina <= 0.f) return;
 	if (Stamina <= 0.f)
 	{
+		SetState(PLAYER_AIMING, false);
 		StopAnimMontage();
 		if (Dizzy.ExecuteIfBound())
 		{
 			SetState(PLAYER_STAMINA_REGAIN, false);
 			SetState(PLAYER_STAMINA_RUNOUT, true);
+			SetState(PLAYER_DIZZY, true);
 		}
 	}
 	else Stamina -= RequiredStamina;
