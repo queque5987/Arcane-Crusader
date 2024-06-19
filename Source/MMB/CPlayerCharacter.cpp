@@ -387,23 +387,23 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	}
 
 // IF ENEMY FLYING -> SET CAMERA HIGHER
-	if (LastDealingEnemy != nullptr && LastDealingEnemy->GetClass()->ImplementsInterface(UIFlyMonster::StaticClass()))
-	{
-		IIFlyMonster* FlyableMonster = Cast<IIFlyMonster>(LastDealingEnemy);
-		FVector tempPos = CameraComponent->GetRelativeLocation();
-		if (FlyableMonster->GetIsFlying())
-		{
-			tempPos.Z += 180.f * DeltaTime;
-			if (tempPos.Z > 200.f) tempPos.Z = 300.f;
-			CameraComponent->SetRelativeLocation(tempPos);
-		}
-		else
-		{
-			tempPos.Z -= 180.f * DeltaTime;
-			if (tempPos.Z < 0.f) tempPos.Z = 0.f;
-			CameraComponent->SetRelativeLocation(tempPos);
-		}
-	}
+	//if (LastDealingEnemy != nullptr && LastDealingEnemy->GetClass()->ImplementsInterface(UIFlyMonster::StaticClass()))
+	//{
+	//	IIFlyMonster* FlyableMonster = Cast<IIFlyMonster>(LastDealingEnemy);
+	//	FVector tempPos = CameraComponent->GetRelativeLocation();
+	//	if (FlyableMonster->GetIsFlying())
+	//	{
+	//		tempPos.Z += 180.f * DeltaTime;
+	//		if (tempPos.Z > 200.f) tempPos.Z = 300.f;
+	//		CameraComponent->SetRelativeLocation(tempPos);
+	//	}
+	//	else
+	//	{
+	//		tempPos.Z -= 180.f * DeltaTime;
+	//		if (tempPos.Z < 0.f) tempPos.Z = 0.f;
+	//		CameraComponent->SetRelativeLocation(tempPos);
+	//	}
+	//}
 
 // TURN ON LIGHT WHEN NIGHT
 	if (ACStageGameMode* StageGameMode = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode()))
@@ -453,7 +453,7 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	{
 		if (CameraComponent->FieldOfView > 60.f)
 		{
-			CameraComponent->SetFieldOfView(CameraComponent->FieldOfView - 20.f * DeltaTime);
+			CameraComponent->SetFieldOfView(CameraComponent->FieldOfView - 30.f * DeltaTime);
 		}
 		else
 		{
@@ -464,7 +464,7 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	{
 		if (CameraComponent->FieldOfView < 90.f)
 		{
-			CameraComponent->SetFieldOfView(CameraComponent->FieldOfView + 8.f * DeltaTime);
+			CameraComponent->SetFieldOfView(CameraComponent->FieldOfView + 4.f * DeltaTime);
 		}
 		else
 		{
@@ -879,6 +879,7 @@ void ACPlayerCharacter::SetState(UINT StateType, bool b)
 	case(PLAYER_AIMING):
 		bUseControllerRotationYaw = b;
 		GetCharacterMovement()->bOrientRotationToMovement = !b;
+		if (!b) AimOff.ExecuteIfBound();
 		break;
 	default:
 		break;

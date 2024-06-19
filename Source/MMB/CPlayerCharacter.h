@@ -53,6 +53,7 @@ DECLARE_DELEGATE(FDrink);
 
 DECLARE_DELEGATE(FInventoryOpened);
 DECLARE_DELEGATE(FFireRifle);
+DECLARE_DELEGATE(FAimOff);
 
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
@@ -134,6 +135,7 @@ public:
 	FDrink Drink;
 	FInventoryOpened InventoryOpenedEvent;
 	FFireRifle FireRifle;
+	FAimOff AimOff;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;

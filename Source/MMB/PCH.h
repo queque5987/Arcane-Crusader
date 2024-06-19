@@ -98,8 +98,10 @@
 #define SE_MELEEATTACKCOMBO_2_LAUNCH					2
 #define SE_MELEEATTACKCOMBO_1_LAUNCH					3
 //RifleStaff Sound Effect
+#define SE_RIFLE_TYPE_A_CHARGE	0
 #define SE_RIFLE_TYPE_A_SHOT	1
 #define SE_RIFLE_TYPE_A_Hit		2
+#define SE_RIFLE_TYPE_B_SHOT	3
 #define MAX_SE_WEAPON									4
 
 #define E_ENEMYATTACK_FLAMETHROWER	0

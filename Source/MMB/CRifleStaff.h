@@ -33,6 +33,7 @@ public:
 	virtual void SetBulletType(int32 e) override;
 	virtual void SetItemStat(struct ItemStat* ItemStats) override;
 	virtual void SetWeaponName(FName e) override { WeaponName = e; }
+	virtual void SetOwner(AActor* NewOwner) override;
 	//UFUNCTION()
 	//void OnPickUp(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 protected:
@@ -48,6 +49,11 @@ protected:
 	float BulletSpeed = 100.f;
 	float ConstAttackCoolDown = 0.8f;
 	//
+	bool LMBLock = false;
+	float LMBCharge = 0.f;
+	int32 ChargeSoundFX = 0;
+	class UAudioComponent* ChargeAudio;
+
 	float tempDamage0;
 	float tempDamage1;
 	float tempDamage2;
@@ -79,7 +85,8 @@ protected:
 	float DamageScale;
 
 	void Fire();
-	void BuckShot();
+	void BuckShot(int32 i = 0);
+	void SetLMBLock(bool e);
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
