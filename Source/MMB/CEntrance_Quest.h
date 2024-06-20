@@ -59,6 +59,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float CameraMoveSpeed;
 
+	class USoundCue* OpeningSoundEffect;
+	TArray<class UAudioComponent*> OpeningSEArr;
 	class ACPlayerCharacter* tempCharacter;
 	class ACPlayerController* tempController;
 public:

@@ -26,6 +26,7 @@ private:
 	TArray<UTexture2D*> PreLoadedTextures;
 	TArray<UMaterialInstance*> DropItemMaterialsRarity;
 	TMap<FString, UTexture2D*> PreLoadedTextureMap;
+	TMap<FString, class USoundBase*> PreBGMMap;
 	//TArray<USlateBrushAsset*> SlateBrushArr;
 
 	class UDataTable* ItemTable;

@@ -42,6 +42,8 @@ ACPlayerController::ACPlayerController()
 	if (ItemDetailAssetFinder.Succeeded())		ItemDetailAsset = ItemDetailAssetFinder.Class;
 	if (ESCAssetFinder.Succeeded())				ESCMenuAsset = ESCAssetFinder.Class;
 	if (DraggingItemAssetFinder.Succeeded())	DraggingItemAsset = DraggingItemAssetFinder.Class;
+
+	CurrentItemStat = (ItemStat*)malloc(sizeof(struct ItemStat));
 }
 
 void ACPlayerController::PlayerTick(float DeltaTime)
@@ -293,24 +295,40 @@ void ACPlayerController::RemoveInventoryItem(UCInventoryItemData* ItemData)
 
 bool ACPlayerController::RemoveEquippedItem(FString EquippedSpace, UCInventoryItemData* ItemData)
 {
+	bool rtn = false;
+
 	if (EquippedSpace == "Weapon")
 	{
 		ItemInventory->Weapon->RemoveItem(ItemData);
 		IIPlayerState* IPlayerState = Cast<IIPlayerState>(GetCharacter());
 		IPlayerState->UnEquip();
-		return true;
+		rtn = true;
 	}
 	else if (EquippedSpace == "Artifact")
 	{
 		ItemInventory->Artifact->RemoveItem(ItemData);
-		return true;
+		rtn = true;
 	}
 	else if (EquippedSpace == "Armor")
 	{
 		ItemInventory->Armor->RemoveItem(ItemData);
-		return true;
+		rtn = true;
 	}
-	return false;
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
+	AActor* EquippedWeapon = nullptr;
+	if (PC != nullptr) EquippedWeapon = PC->GetWeaponEquipped();
+	if (EquippedWeapon != nullptr)
+	{
+		IIWeapon* IEW = Cast<IIWeapon>(EquippedWeapon);
+		if (IEW != nullptr)
+		{
+			EquippedItemStat(*CurrentItemStat);
+			IEW->SetItemStat(CurrentItemStat);
+		}
+	}
+
+	return rtn;
 }
 
 void ACPlayerController::ShowItemDetailUI(UCInventoryItemData* ItemData)
@@ -399,30 +417,22 @@ bool ACPlayerController::EquipItem(int ItemType, UCInventoryItemData& ItemData)
 {
 	if (ItemInventory->EquipItem(ItemType, ItemData))
 	{
+		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
+		AActor* EquippedWeapon = nullptr;
+		if (PC != nullptr) EquippedWeapon = PC->GetWeaponEquipped();
+		if (EquippedWeapon != nullptr)
+		{
+			IIWeapon* IEW = Cast<IIWeapon>(EquippedWeapon);
+			if (IEW != nullptr)
+			{
+				EquippedItemStat(*CurrentItemStat);
+				IEW->SetItemStat(CurrentItemStat);
+			}
+		}
 		RemoveInventoryItem(&ItemData);
 		return true;
 	}
 	return false;
-	//ItemInventory->Weapon->AddItem(&ItemData);
-	//RemoveInventoryItem(&ItemData);
-	//return true;
-	//switch (ItemType)
-	//{
-	//case(ITEM_TYPE_WEAPON):
-	//	ItemInventory->Weapon->AddItem(&ItemData);
-	//	RemoveInventoryItem(&ItemData);
-	//	return true;
-	//case(ITEM_TYPE_ARTIFACT):
-	//	ItemInventory->Artifact->AddItem(&ItemData);
-	//	RemoveInventoryItem(&ItemData);
-	//	return true;
-	//case(ITEM_TYPE_ARMOR):
-	//	ItemInventory->Armor->AddItem(&ItemData);
-	//	RemoveInventoryItem(&ItemData);
-	//	return true;
-	//default:
-	//	return false;
-	//}
 }
 
 void ACPlayerController::SetPressedButton(UUserWidget* SelectedButton)
@@ -699,32 +709,6 @@ void ACPlayerController::NPCInteract_ShowAndInputReady(ACStaticNPC* NPC)
 void ACPlayerController::NPCInteract_Interact()
 {
 	if (ButtonActionUI == nullptr) return;
-	//bool flag = false;
-	//TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
-	//for (UUserWidget* QuestWidget : QuestWidgets)
-	//{
-	//	UCQuest* WQ = Cast<UCQuest>(QuestWidget);
-	//	if (WQ == nullptr) continue;
-	//	if (WQ->IsCleared() && WQ->GetGivenNPC() == ButtonActionUI->GetNPC())
-	//	{
-	//		flag = true;
-	//		IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
-	//		if (QuestManage == nullptr) continue;
-	//		QuestManage->QuestClear(WQ->GetQuestRewardIndex());
-	//		HUDOverlay->QuestList->RemoveItem(WQ->GetListItem());
-	//		WQ->Destruct();
-
-	//		UE_LOG(LogTemp, Log, TEXT("Quest Reward"));
-
-	//		// TO DO
-	//		// Data Table =+ Reward Dialogue Post Line
-	//		// PostLine -> Reward() Bind
-	//		//
-	//	}
-	//}
-	//HUDOverlay->QuestList->RequestRefresh();
-	//if (flag) return;
-
 	SetNPCConversationVisibility(true, ButtonActionUI->GetNPC());
 	NPCInteract_UnShow();
 }
@@ -979,6 +963,10 @@ void ACPlayerController::EquippedItemStat(ItemStat& SumItemStat)
 	if (AS > 0.3f) AS = 0.3f + (AS - 0.3f) / 10;
 	if (AS < -0.f) AS /= 10;
 	SumItemStat._AttackSpeed = AS;
+
+	//CurrentItemStat._AttackDamage = AD;
+	//CurrentItemStat._Defence= DF;
+	//CurrentItemStat._AttackSpeed = AS;
 	//ItemStat* temp = (ItemStat*)malloc(sizeof(struct ItemStat));
 	// TO DO //
 	// Iterate Equippped Item

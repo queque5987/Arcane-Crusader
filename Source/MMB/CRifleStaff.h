@@ -49,10 +49,9 @@ protected:
 	float BulletSpeed = 100.f;
 	float ConstAttackCoolDown = 0.8f;
 	//
-	bool LMBLock = false;
 	float LMBCharge = 0.f;
 	int32 ChargeSoundFX = 0;
-	class UAudioComponent* ChargeAudio;
+	TArray<FTimerHandle> MachineGunTimerHandler;
 
 	float tempDamage0;
 	float tempDamage1;
@@ -86,9 +85,13 @@ protected:
 
 	void Fire();
 	void BuckShot(int32 i = 0);
-	void SetLMBLock(bool e);
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+public:
+	class UAudioComponent* ChargeAudio;
+	bool LMBLock = false;
+	virtual void Tick(float DeltaTime) override;
+	void SetLMBLock(bool e);
+	int32 GetBulletType() { return BulletType; };
+	float GetLMBCharge() { return LMBCharge; }
+	virtual void UpdateCharacterStat() override;
 };

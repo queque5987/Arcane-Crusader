@@ -10,6 +10,7 @@
 #include "Modules/ModuleManager.h"
 #include "CInventoryItemData.h"
 #include "CGameInstance.h"
+#include "Sound/SoundBase.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 AMMBGameModeBase::AMMBGameModeBase()
@@ -61,6 +62,18 @@ AMMBGameModeBase::AMMBGameModeBase()
 		PreLoadedTextureMap.Add(Dat.AssetName.ToString(), tempTexture);
 	}
 
+	TArray<FAssetData> AssetData_BGM;
+	FARFilter Filter_BGM;
+	Filter_BGM.PackagePaths.Add("/Game/Resources/Sound/BGM/");
+	AssetRegistryModule.Get().GetAssets(Filter_BGM, AssetData_BGM);
+	USoundBase* tempBGM;
+	for (FAssetData Dat : AssetData_BGM)
+	{
+		tempBGM = Cast<USoundBase>(Dat.GetAsset());
+		if (tempBGM == nullptr) continue;
+		PreBGMMap.Add(Dat.AssetName.ToString(), tempBGM);
+	}
+
 	//FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
 	//TSoftObjectPtr<UWorld> testlevel(path);
 	//LevelToLoad = testlevel;
@@ -81,6 +94,11 @@ void AMMBGameModeBase::BeginPlay()
 
 	GameInstance = Cast<UCGameInstance>(GetGameInstance());
 
+	UE_LOG(LogTemp, Log, TEXT("Loaded Map : %s"), *GetWorld()->GetName());
+	if (PreBGMMap.Contains(GetWorld()->GetName()))
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), PreBGMMap[GetWorld()->GetName()]);
+	}
 	/*for (auto& NPC : NPCs)
 	{
 		ACStaticNPC* NPCt = Cast<ACStaticNPC>(NPC);

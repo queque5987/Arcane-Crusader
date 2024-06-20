@@ -48,4 +48,5 @@ public:
 	virtual class UStaticMeshSocket* GetSocket(FName e) { return nullptr; }
 	virtual class UStaticMeshComponent* GetStaticMeshComponent() { return nullptr; }
 	virtual void GetSocketTransform(FTransform& SocketTransform, FName SocketName) {}
+	virtual void UpdateCharacterStat() {}
 };

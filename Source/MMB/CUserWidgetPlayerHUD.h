@@ -70,6 +70,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> AimSpot;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> AimCharge;
+
 	void InitializeUI();
 	void ShowDieUI(bool b);
 	void Tick_DieUIAnim(float DeltaTime);

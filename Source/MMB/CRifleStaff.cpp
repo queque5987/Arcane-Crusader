@@ -76,6 +76,12 @@ ACRifleStaff::ACRifleStaff()
 	UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
 	if (SM != nullptr) FireSocket = SM->FindSocket("FireSocket");
 
+	MachineGunTimerHandler.SetNum(6);
+	for (auto& TimerHandler : MachineGunTimerHandler)
+	{
+		TimerHandler = FTimerHandle();
+	}
+	ChargeAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 }
 
 void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
@@ -91,18 +97,34 @@ void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
 	if (AttackCoolDown < ConstAttackCoolDown) return;
 
 	PS->SetState(PLAYER_ATTACKING, true);
+
+	float Delay = 0.01f;
 	switch (BulletType)
 	{
 	case(0)://Rifle Bullet
-		SetLMBLock(true);
+		if (!LMBLock)
+		{
+			SetLMBLock(true);
+		}
 		AttackResult.StaminaUsed = 0.08f;
 		break;
 	case(1)://ShotGun Bullet
 		AttackResult.StaminaUsed = 12.f;
 		PC->FireRifle.ExecuteIfBound();
-		for (int i = 0; i < 20; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			BuckShot(i);
+		}
+		AttackCoolDown = 0.f;
+		break;
+	case(2)://MachineGun Bullet
+		AttackResult.StaminaUsed = 5.f;
+		PC->FireRifle.ExecuteIfBound();
+
+		for (auto& H : MachineGunTimerHandler)
+		{
+			GetWorld()->GetTimerManager().SetTimer(H, this, &ACRifleStaff::Fire, Delay);
+			Delay += 1.f / 6.f;
 		}
 		AttackCoolDown = 0.f;
 		break;
@@ -136,13 +158,13 @@ void ACRifleStaff::LMB_Completed(AttackResult& AttackResult)
 		break;
 		//ShotGun Bullet
 	case(1):
-		AttackResult.StaminaUsed = 12.f;
-		PC->FireRifle.ExecuteIfBound();
-		for (int i = 0; i < 20; i++)
-		{
-			BuckShot(i);
-		}
-		AttackCoolDown = 0.f;
+		//AttackResult.StaminaUsed = 12.f;
+		//PC->FireRifle.ExecuteIfBound();
+		//for (int i = 0; i < 20; i++)
+		//{
+		//	BuckShot(i);
+		//}
+		//AttackCoolDown = 0.f;
 		break;
 	default:
 		break;
@@ -163,7 +185,14 @@ void ACRifleStaff::RMB_Completed(AttackResult& AttackResult)
 
 	PS->SetState(PLAYER_AIMING, false);
 	PS->SetState(PLAYER_ATTACKING, false);
-	SetLMBLock(false);
+	if (LMBLock) SetLMBLock(false);
+	if (BulletType == 2)
+	{
+		for (auto& H : MachineGunTimerHandler)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(H);
+		}
+	}
 }
 
 void ACRifleStaff::SetIsEquiped(bool e)
@@ -178,14 +207,19 @@ void ACRifleStaff::SetBulletType(int32 e)
 	switch (BulletType)
 	{
 	case(0):
-		AttackRange = 2500.f;
-		BulletSpeed = 100.f;
+		AttackRange = 3000.f;
+		BulletSpeed = 120.f;
 		ConstAttackCoolDown = 0.8f * (1 - ItemStatus->_AttackSpeed);
 		break;
 	case(1):
 		AttackRange = 500.f;
 		BulletSpeed = 60.f;
 		ConstAttackCoolDown = 1.4f * (1 - ItemStatus->_AttackSpeed);
+		break;
+	case(2):
+		AttackRange = 2500.f;
+		BulletSpeed = 90.f;
+		ConstAttackCoolDown = 1.1f * (1 - ItemStatus->_AttackSpeed);
 		break;
 	default:
 		break;
@@ -195,6 +229,9 @@ void ACRifleStaff::SetBulletType(int32 e)
 void ACRifleStaff::SetItemStat(ItemStat* ItemStats)
 {
 	ItemStatus = ItemStats;
+	SetBulletType(BulletType);
+	UE_LOG(LogTemp, Log, TEXT("updated item stat : AS : %f"), ItemStats->_AttackSpeed);
+	UE_LOG(LogTemp, Log, TEXT("updated item stat : AD : %f"), ItemStats->_AttackDamage);
 }
 
 void ACRifleStaff::SetOwner(AActor* NewOwner)
@@ -202,16 +239,17 @@ void ACRifleStaff::SetOwner(AActor* NewOwner)
 	Super::SetOwner(NewOwner);
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(NewOwner);
 	if (PC == nullptr) return;
-	PC->AimOff.BindLambda([&]() {
-		SetLMBLock(false);
-		});
+	//PC->AimOff.BindLambda([&]() {
+	//	if (LMBLock) SetLMBLock(false);
+	//	});
 }
 
 // Called when the game starts or when spawned
 void ACRifleStaff::BeginPlay()
 {
 	Super::BeginPlay();	
-	ChargeAudio = UGameplayStatics::SpawnSoundAttached(WeaponSoundEffect[SE_RIFLE_TYPE_A_CHARGE], StaticMeshComponent, "FireSocket");
+	//ChargeAudio = UGameplayStatics::SpawnSoundAttached(WeaponSoundEffect[SE_RIFLE_TYPE_A_CHARGE], StaticMeshComponent, "FireSocket");
+	ChargeAudio = UGameplayStatics::SpawnSound2D(GetWorld(), WeaponSoundEffect[SE_RIFLE_TYPE_A_CHARGE], 1.f, 1.f, 0.f, nullptr, false, false);
 	ChargeAudio->Stop();
 }
 
@@ -239,20 +277,22 @@ void ACRifleStaff::Fire()
 	FRotator ProjRotator = (TargetLocation - SpawnLocation).Rotation();
 
 	ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(), SpawnLocation, ProjRotator);
+	
+	float tempAD = ItemStatus->_AttackDamage;
 
 	Proj->SetLaunch(
 		PC,
 		WeaponEffect[E_RIFLE_TYPE_A_PROJECTILE],
 		WeaponEffect[E_RIFLE_EXPLODE_EFFECT],
-		WeaponEffect[E_RIFLE_SPAWN_EFFECT],
 		nullptr,
-		AttackDamage + (AttackDamage * LMBCharge * 2.f),
-		AttackRange,
+		nullptr,
+		(BulletType == 0) ? tempAD + (tempAD * LMBCharge * 15.f) : tempAD,
+		(BulletType == 0) ? AttackRange + (AttackRange * LMBCharge / 4.f) : AttackRange,
 		BulletSpeed,
 		-1.f, nullptr, false, false, false, 0.01f, WeaponSoundEffect[SE_RIFLE_TYPE_A_Hit]
 	);
-	Proj->SetActorRelativeScale3D(FVector(1.f, 1.f, 1.f) * (1 + LMBCharge / 2));
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSoundEffect[SE_RIFLE_TYPE_A_SHOT], SpawnLocation, 1+LMBCharge);
+	if (BulletType == 0) Proj->SetActorRelativeScale3D(FVector(1.f, 1.f, 1.f) * (1 + LMBCharge / 2));
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSoundEffect[SE_RIFLE_TYPE_A_SHOT], SpawnLocation, (BulletType == 0) ? 1+LMBCharge : 1.f);
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_RIFLE_LAUNCH_EFFECT], SpawnLocation);
 }
 
@@ -279,8 +319,8 @@ void ACRifleStaff::BuckShot(int32 i)
 	}
 
 	FRotator ProjRotator = (SpawnLocation - TargetLocation).Rotation();
-	DrawDebugSphere(GetWorld(), SpawnLocation, 100.f, 26, FColor::Green, false, 2.f);
-	DrawDebugSphere(GetWorld(), TargetLocation, 100.f, 26, FColor::Red, false, 2.f);
+	//DrawDebugSphere(GetWorld(), SpawnLocation, 100.f, 26, FColor::Green, false, 2.f);
+	//DrawDebugSphere(GetWorld(), TargetLocation, 100.f, 26, FColor::Red, false, 2.f);
 
 
 	FVector RandomVector = UKismetMathLibrary::RandomUnitVectorInConeInDegrees((TargetLocation - SpawnLocation).GetSafeNormal(), 45.f);
@@ -290,9 +330,9 @@ void ACRifleStaff::BuckShot(int32 i)
 		PC,
 		WeaponEffect[E_RIFLE_TYPE_A_PROJECTILE],
 		WeaponEffect[E_RIFLE_EXPLODE_EFFECT],
-		WeaponEffect[E_RIFLE_SPAWN_EFFECT],
 		nullptr,
-		AttackDamage,
+		nullptr,
+		0.6f * ItemStatus->_AttackDamage,
 		AttackRange,
 		BulletSpeed,
 		-1.f, nullptr, false, false, false, 0.01f, WeaponSoundEffect[SE_RIFLE_TYPE_A_Hit]
@@ -304,30 +344,33 @@ void ACRifleStaff::BuckShot(int32 i)
 	}
 }
 
+//DEPRECATED
+void ACRifleStaff::UpdateCharacterStat()
+{
+	//ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	//if (PC == nullptr) return;
+	//IIPlayerUIController* UIController = Cast<IIPlayerUIController>(PC->GetController());
+	//if (UIController == nullptr) return;
+	//UIController->EquippedItemStat(ItemStatus);
+}
+
 void ACRifleStaff::SetLMBLock(bool e)
 {
-	//UE_LOG(LogTemp, Log, TEXT("Set LMB Lock %s"), e ? TEXT("True") : TEXT("False"));
-
-	if (e == LMBLock) return;
-
 	if (e)
 	{
 		FireSocketEffectComponent->Activate();
-		if (ChargeAudio != nullptr)
-		{
-			ChargeAudio->Play();
-		}
+		if (ChargeAudio == nullptr)
+		ChargeAudio->Play();
+		LMBLock = e;
 	}
 	else
 	{
 		FireSocketEffectComponent->Deactivate();
 		LMBCharge = 0.f;
-		if (ChargeAudio != nullptr)
-		{
-			ChargeAudio->Stop();
-		}
+		if (ChargeAudio == nullptr) return;
+		if (ChargeAudio->IsPlaying()) ChargeAudio->Stop();
+		LMBLock = e;
 	}
-	LMBLock = e;
 }
 
 void ACRifleStaff::Tick(float DeltaTime)
@@ -338,7 +381,7 @@ void ACRifleStaff::Tick(float DeltaTime)
 	if (LMBLock)
 	{
 		LMBCharge += DeltaTime * (1 + ItemStatus->_AttackSpeed);
-		UE_LOG(LogTemp, Log, TEXT("LMBCharge : %f"), LMBCharge);
+		//UE_LOG(LogTemp, Log, TEXT("LMBCharge : %f"), LMBCharge);
 
 		if (ChargeAudio != nullptr)
 		{
@@ -354,7 +397,7 @@ void ACRifleStaff::Tick(float DeltaTime)
 		LMBCharge /= 2.f;
 		Fire();
 		AttackCoolDown = 0.f;
-		SetLMBLock(false);
+		if (LMBLock) SetLMBLock(false);
 	}
 
 	AttackCoolDown += DeltaTime;
@@ -364,6 +407,16 @@ void ACRifleStaff::Tick(float DeltaTime)
 		//if (PS == nullptr) return;
 		AttackCoolDown = ConstAttackCoolDown;
 		//PS->SetState(PLAYER_ATTACKING, false);
+	}
+
+	IIPlayerState* PS = Cast<IIPlayerState>(GetOwner());
+	if (PS == nullptr) return;
+	if (PS->GetState(PLAYER_STAMINA_RUNOUT) && BulletType == 2)
+	{
+		for (auto& H : MachineGunTimerHandler)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(H);
+		}
 	}
 }
 

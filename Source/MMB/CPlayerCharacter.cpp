@@ -306,6 +306,19 @@ void ACPlayerCharacter::UpdateHUDStates()
 
 			// AIM SPOT
 			PCC->HUDOverlay->SetAimVisibility(GetState(PLAYER_AIMING));
+			ACRifleStaff* RS = Cast<ACRifleStaff>(WeaponEquipped);
+			if (RS != nullptr && RS->GetBulletType() == 0)
+			{
+				float Charged = RS->GetLMBCharge();
+				UE_LOG(LogTemp, Log, TEXT("%f"), Charged);
+				if (Charged < 0.05f) PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
+				else
+				{
+					PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::HitTestInvisible);
+					PCC->HUDOverlay->AimCharge->SetPercent(Charged / 2.f);
+				}
+			}
+			else PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 }
@@ -879,7 +892,15 @@ void ACPlayerCharacter::SetState(UINT StateType, bool b)
 	case(PLAYER_AIMING):
 		bUseControllerRotationYaw = b;
 		GetCharacterMovement()->bOrientRotationToMovement = !b;
-		if (!b) AimOff.ExecuteIfBound();
+		if (!b)
+		{
+			ACRifleStaff* RS = Cast<ACRifleStaff>(WeaponEquipped);
+			if (RS != nullptr)
+			{
+				RS->SetLMBLock(false);
+			}
+			//AimOff.ExecuteIfBound();
+		}
 		break;
 	default:
 		break;

@@ -199,24 +199,8 @@ void ACProjectile::Tick(float DeltaTime)
 	if (bPenetrate && ElipsedTime >= PenetrationTick * (PenetrationTickCounter + 1))
 	{
 		PenetrationTickCounter++;
-		//if (!bPenetrate || SweepActor == nullptr) return;
 
 		SweepOnLaunch();
-
-		//if (Cast<ACPlayerCharacter>(PC))
-		//{
-		//	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(SweepActor);
-		//	if (!IsValid(EC)) return;
-		//	EC->HitDamage(TotalDamage, *PC, HitLocation);
-		//	Explode(true);
-		//}
-		//else if (ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
-		//{
-		//	ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(SweepActor);
-		//	if (!IsValid(EC)) return;
-		//	EC->HitDamage(TotalDamage, Attacker, HitLocation, PlayerReactPower);
-		//	Explode(true);
-		//}
 	}
 }
 

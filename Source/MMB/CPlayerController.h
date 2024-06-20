@@ -108,6 +108,7 @@ protected:
 	void DequeueDamageUI();
 
 	void StartBattleMap();
+	struct ItemStat* CurrentItemStat;
 public:
 	virtual bool SetInventoryVisibility() override;
 	virtual void AddInventoryItem(UClass* ItemClass) override;

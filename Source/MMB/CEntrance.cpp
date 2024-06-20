@@ -35,6 +35,7 @@ ACEntrance::ACEntrance()
 		if (j < 0) c += GateWidth;
 		RandomGateOpenSequence.Add(new float());
 	}
+
 }
 
 void ACEntrance::Tick(float DeltaTime)
@@ -83,7 +84,7 @@ void ACEntrance::OnGateOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 					{
 						PCC->AlertSwingby(3.f, (*DialogueTableRow).NPCDialogue);
 					}
-					UE_LOG(LogTemp, Log, TEXT("%s : %s"), *(*DialogueTableRow).NPCName.ToString(), *(*DialogueTableRow).NPCDialogue.ToString());
+					//UE_LOG(LogTemp, Log, TEXT("%s : %s"), *(*DialogueTableRow).NPCName.ToString(), *(*DialogueTableRow).NPCDialogue.ToString());
 				}
 
 			}

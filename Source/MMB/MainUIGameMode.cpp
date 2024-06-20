@@ -6,6 +6,7 @@
 #include "CustomDataTables.h"
 #include "CInventoryItemData.h"
 #include "CGameInstance.h"
+#include "Sound/SoundBase.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 AMainUIGameMode::AMainUIGameMode()
@@ -38,6 +39,18 @@ AMainUIGameMode::AMainUIGameMode()
 		if (tempTexture == nullptr) continue;
 		PreLoadedTextureMap.Add(Dat.AssetName.ToString(), tempTexture);
 	}
+
+	TArray<FAssetData> AssetData_BGM;
+	FARFilter Filter_BGM;
+	Filter_BGM.PackagePaths.Add("/Game/Resources/Sound/BGM/");
+	AssetRegistryModule.Get().GetAssets(Filter_BGM, AssetData_BGM);
+	USoundBase* tempBGM;
+	for (FAssetData Dat : AssetData_BGM)
+	{
+		tempBGM = Cast<USoundBase>(Dat.GetAsset());
+		if (tempBGM == nullptr) continue;
+		PreBGMMap.Add(Dat.AssetName.ToString(), tempBGM);
+	}
 }
 
 void AMainUIGameMode::BeginPlay()
@@ -45,6 +58,12 @@ void AMainUIGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	GameInstance = Cast<UCGameInstance>(GetGameInstance());
+
+	UE_LOG(LogTemp, Log, TEXT("Loaded Map : %s"), *GetWorld()->GetName());
+	if (PreBGMMap.Contains(GetWorld()->GetName()))
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), PreBGMMap[GetWorld()->GetName()]);
+	}
 }
 
 UTexture2D* AMainUIGameMode::IconGetter(FString IconAssetName)

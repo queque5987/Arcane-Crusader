@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
+#include "Sound/SoundCue.h"
 #include "PCH.h"
 #include "CEntrance.generated.h"
 UCLASS()

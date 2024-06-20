@@ -2,6 +2,7 @@
 
 
 #include "CEntrance_Cinematic.h"
+#include "Components/AudioComponent.h"
 
 ACEntrance_Cinematic::ACEntrance_Cinematic() : Super()
 {
@@ -36,6 +37,8 @@ ACEntrance_Cinematic::ACEntrance_Cinematic() : Super()
 		RandomGateOpenSequence.Add(new float());
 	}
 
+	ConstructorHelpers::FObjectFinder <USoundCue> OpeningSoundEffectFinder(TEXT("/Game/Resources/Sound/Rock/cinderblockmove-91891_Cue.cinderblockmove-91891_Cue"));
+	if (OpeningSoundEffectFinder.Succeeded()) OpeningSoundEffect = OpeningSoundEffectFinder.Object;
 
 	EnterCollider = CreateDefaultSubobject<UBoxComponent>(FName("EnterCollider"));
 
@@ -66,7 +69,13 @@ void ACEntrance_Cinematic::Tick(float DeltaTime)
 		else Speed = OpenGateSpeed;
 		FTransform T = SM->GetRelativeTransform();
 		FVector L = T.GetLocation();
-		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0)) continue;
+		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0))
+		{
+			if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Stop();
+			continue;
+		}
+		if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && !OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Play();
+
 		L += FVector(0.f, 0.f, DeltaTime * Speed * (OpenGate ? -1 : 1));
 		T.SetLocation(L);
 		SM->SetRelativeTransform(T);
@@ -128,9 +137,13 @@ void ACEntrance_Cinematic::OnGateOverlapBegin(UPrimitiveComponent* OverlappedCom
 void ACEntrance_Cinematic::SetOpenGate(bool e)
 {
 	OpenGate = e;
+	OpeningSEArr.Empty();
 	for (float* Sequence : RandomGateOpenSequence)
 	{
 		*Sequence = FMath::RandRange(0.f, OpenGateSpeed);
+		UAudioComponent* Audio = UGameplayStatics::SpawnSoundAtLocation(GetWorld(), OpeningSoundEffect, GetActorLocation());
+		Audio->bAutoActivate = false;
+		OpeningSEArr.Add(Audio);
 	}
 }
 

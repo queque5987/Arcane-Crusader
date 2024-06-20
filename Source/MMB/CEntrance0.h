@@ -38,6 +38,8 @@ protected:
 	float GateWidth;
 	int GateNum;
 
+	class USoundCue* OpeningSoundEffect;
+	TArray<class UAudioComponent*> OpeningSEArr;
 	virtual void BeginPlay() override;
 public:
 	UFUNCTION()
@@ -45,8 +47,6 @@ public:
 
 	UPROPERTY()
 	class UBoxComponent* EnterCollider;
-	//UPROPERTY()
-	//class UBoxComponent* ExitCollider;
 
 public:
 	virtual void SetOpenGate(bool e) override;

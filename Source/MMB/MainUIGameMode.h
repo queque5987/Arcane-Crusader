@@ -20,6 +20,7 @@ class MMB_API AMainUIGameMode : public AGameModeBase, public IIItemManager
 	class UCGameInstance* GameInstance;
 	UTexture2D* DefaultIconDroppedItem;
 	TMap<FString, UTexture2D*> PreLoadedTextureMap;
+	TMap<FString, class USoundBase*> PreBGMMap;
 
 public:
 

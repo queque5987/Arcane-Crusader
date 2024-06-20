@@ -36,6 +36,8 @@ protected:
 	float GateWidth;
 	int GateNum;
 
+	class USoundCue* OpeningSoundEffect;
+	TArray<class UAudioComponent*> OpeningSEArr;
 	virtual void BeginPlay() override;
 public:
 

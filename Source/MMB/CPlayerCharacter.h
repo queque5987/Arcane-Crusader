@@ -296,4 +296,5 @@ public:
 
 	virtual float GetBonusAttackDamage() override;
 	virtual void FallToRevivalPoint(class AActor* AttachedCamera, float Damage = 0.f) override;
+	AActor* GetWeaponEquipped() { return WeaponEquipped; }
 };
