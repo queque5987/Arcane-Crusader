@@ -68,10 +68,10 @@ void ACEntrance0::Tick(float DeltaTime)
 		FVector L = T.GetLocation();
 		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0))
 		{
-			if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Stop();
+			//if (OpeningSEArr.IsValidIndex(i) && OpeningSEArr[i] != nullptr && OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Stop();
 			continue;
 		}
-		if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && !OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Play();
+		//if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && !OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Play();
 		L += FVector(0.f, 0.f, DeltaTime * Speed * (OpenGate ? -1 : 1));
 		T.SetLocation(L);
 		SM->SetRelativeTransform(T);
@@ -85,9 +85,13 @@ void ACEntrance0::SetOpenGate(bool e)
 	for (float* Sequence : RandomGateOpenSequence)
 	{
 		*Sequence = FMath::RandRange(0.f, OpenGateSpeed);
-		UAudioComponent* Audio = UGameplayStatics::SpawnSoundAtLocation(GetWorld(), OpeningSoundEffect, GetActorLocation());
-		Audio->bAutoActivate = false;
-		OpeningSEArr.Add(Audio);
+		FTimerHandle newTH = FTimerHandle();
+		GetWorld()->GetTimerManager().SetTimer(newTH, FTimerDelegate::CreateLambda([&] {
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), OpeningSoundEffect, GetActorLocation());
+			}), FMath::RandRange(0.1f, 0.8f), false);
+		//UAudioComponent* Audio = UGameplayStatics::SpawnSoundAtLocation(GetWorld(), OpeningSoundEffect, GetActorLocation());
+		//Audio->bAutoActivate = false;
+		//OpeningSEArr.Add(Audio);
 	}
 }
 
