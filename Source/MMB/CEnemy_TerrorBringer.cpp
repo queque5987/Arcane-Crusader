@@ -67,12 +67,10 @@ void ACEnemy_TerrorBringer::PostInitializeComponents()
 void ACEnemy_TerrorBringer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//return;
 	UCEnemy_AnimInstance_TB* EA = Cast<UCEnemy_AnimInstance_TB>(GetMesh()->GetAnimInstance());
 	if (EA == nullptr) return;
 	IIEnemyBBState* AIController = Cast<IIEnemyBBState>(GetController());
 	if (AIController == nullptr) return;
-	//FVector CurrLoc = GetActorLocation();
 	FVector CurrLoc = GetMesh()->GetRelativeLocation();
 	if (IsFlying)
 	{
@@ -98,14 +96,11 @@ void ACEnemy_TerrorBringer::Tick(float DeltaTime)
 					FVector::UpVector * CurrentAltitude :
 					-FVector::UpVector * VirtialAcc * DeltaTime)
 			);
-			//SetActorLocation(CurrLoc + (CurrentAltitude < 0.f ? FVector::UpVector * CurrentAltitude : -FVector::UpVector * VirtialAcc * DeltaTime));
-			//SetActorRelativeLocation(CurrentAltitude < 0.f ? FVector::UpVector * CurrentAltitude : -FVector::UpVector * VirtialAcc * DeltaTime);
 			if (CurrentAltitude <= 30.f)
 			{
 				GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 				EA->SetIsOnAir(false);
 			}
-			//UE_LOG(LogTemp, Log, TEXT("Getting Down : %f"), CurrentAltitude);
 		}
 	}
 }

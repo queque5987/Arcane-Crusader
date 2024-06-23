@@ -149,7 +149,6 @@ UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 	D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *Row->ItemClass));
 	D->SetItemCount(Count);
 	D->SetstrName(Row->ItemName);
-	//D->SetAttackDamage(Row->AttackDamage);
 	D->SetPrice(Row->ItemPrice);
 	D->SetItemType(Row->ItemType);
 	D->SetRarity(Row->Rarity);

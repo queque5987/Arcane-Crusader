@@ -64,7 +64,6 @@ void ACStaticNPC::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
 		{
-			//PCC->SetNPCConversationVisibility(true, this);
 			PCC->NPCInteract_ShowAndInputReady(this);
 		}
 	}
@@ -76,7 +75,6 @@ void ACStaticNPC::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* Othe
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
 		{
-			//PCC->SetNPCConversationVisibility(false, this);
 			PCC->NPCInteract_UnShow();
 		}
 	}

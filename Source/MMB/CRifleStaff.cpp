@@ -319,12 +319,12 @@ void ACRifleStaff::BuckShot(int32 i)
 	}
 
 	FRotator ProjRotator = (SpawnLocation - TargetLocation).Rotation();
-	//DrawDebugSphere(GetWorld(), SpawnLocation, 100.f, 26, FColor::Green, false, 2.f);
-	//DrawDebugSphere(GetWorld(), TargetLocation, 100.f, 26, FColor::Red, false, 2.f);
 
 
-	FVector RandomVector = UKismetMathLibrary::RandomUnitVectorInConeInDegrees((TargetLocation - SpawnLocation).GetSafeNormal(), 45.f);
-	ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(), SpawnLocation, RandomVector.Rotation());
+	FVector RandomVector = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(
+		(TargetLocation - SpawnLocation).GetSafeNormal(), 45.f);
+	ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(),
+		SpawnLocation, RandomVector.Rotation());
 	//UE_LOG(LogTemp, Log, TEXT("Random vector : %s"), *RandomVector.ToString());
 	Proj->SetLaunch(
 		PC,

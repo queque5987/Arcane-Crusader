@@ -139,7 +139,6 @@ void ACBattleStaff::RMB_Triggered(struct AttackResult& AttackResult)
 			Stamina = 8.f;
 			PC->SetState(PLAYER_ATTACKING, true);
 			DamageScale = 1.2f;
-			//CreateParticleSystem();
 		}
 	}
 	else if (PC->GetState(PLAYER_COMBO_STACK_2))

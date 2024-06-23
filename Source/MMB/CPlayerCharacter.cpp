@@ -422,15 +422,21 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 	if (ACStageGameMode* StageGameMode = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		float CurrLevelClock = StageGameMode->GetCurrentLevelClock();
-		//UE_LOG(LogTemp, Log, TEXT("%f"), CurrLevelClock/60.f);
 		if (CurrLevelClock / 60.f > 18.5f || CurrLevelClock / 60.f < 6.5f)
 		{
 			PointLight->SetVisibility(true);
 
+			// Distance < 1200
 			if (LastDealingEnemy != nullptr && FVector::Distance(GetActorLocation(), LastDealingEnemy->GetActorLocation()) <= 1200.f)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Dealing With Close monster"));
-				PointLight->SetRelativeLocation(FVector(FVector::Distance(GetActorLocation(), LastDealingEnemy->GetActorLocation()) / 2.f, 0.f, 500.f));
+				PointLight->SetRelativeLocation(
+					FVector(
+						FVector::Distance(GetActorLocation(), LastDealingEnemy->GetActorLocation()) / 2.f,
+						0.f,
+						500.f
+					)
+				);
 			}
 			else
 			{
@@ -447,7 +453,13 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 				);
 				if (bHit)
 				{
-					PointLight->SetRelativeLocation(FVector(FVector::Dist2D(GetActorLocation(), HitResult.Location), 0.f, 150.f));
+					PointLight->SetRelativeLocation(
+						FVector(
+							FVector::Dist2D(GetActorLocation(), HitResult.Location),
+							0.f,
+							150.f
+						)
+					);
 					//UE_LOG(LogTemp, Log, TEXT("Traced Actor : %s"), *HitResult.GetActor()->GetName());
 				}
 				else PointLight->SetRelativeLocation(FVector(600.f, 0.f, 150.f));
@@ -578,8 +590,10 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(ForwardDirection, GetState(PLAYER_AIMING) ? MovementVector.Y * 0.1f : MovementVector.Y * CameraComponent->FieldOfView / 90.f);
-		AddMovementInput(RightDirection, GetState(PLAYER_AIMING) ? MovementVector.X * 0.1f : MovementVector.X * CameraComponent->FieldOfView / 90.f);
+		AddMovementInput(ForwardDirection, GetState(PLAYER_AIMING) ? 
+			MovementVector.Y * 0.1f : MovementVector.Y * CameraComponent->FieldOfView / 90.f);
+		AddMovementInput(RightDirection, GetState(PLAYER_AIMING) ? 
+			MovementVector.X * 0.1f : MovementVector.X * CameraComponent->FieldOfView / 90.f);
 
 		float TempSpeed = GetCharacterMovement()->MaxWalkSpeed * (1 + AccMovementSpeedAcc);
 		if (MaxMoveMentSpeed >= TempSpeed) GetCharacterMovement()->MaxWalkSpeed = TempSpeed;
@@ -985,11 +999,9 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 		break;
 	case(PLAYER_HIT_REACT_HITDOWN):
 		StopAnimMontage();
-		
 		SetState(PLAYER_RAGDOLL, false);
 		SetState(PLAYER_CANGETUP, true);
 		HitDown.ExecuteIfBound();
-		//OnHitDown();
 		break;
 	}
 	return true;
@@ -1106,16 +1118,7 @@ void ACPlayerCharacter::OnHitDown()
 	{
 		SetState(PLAYER_RAGDOLL, false);
 		SetState(PLAYER_CANGETUP, false);
-		//FHitResult SweepResult;
-		//FCollisionShape CS;
-		//CS.SetCapsule(34.f, 88.f);
-		//if (GetWorld()->SweepSingleByChannel(SweepResult, GetActorLocation(), GetActorLocation(), FQuat::Identity, DefaultCollisionChannel, CS))
-		//{
-		//	if (Cast<ACharacter>(SweepResult.GetActor()))
-		//	{
-		//		UE_LOG(LogTemp, Log, TEXT("Sweep Result : %s"), *SweepResult.GetActor()->GetName());
-		//	}
-		//}
+
 		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 
 		GetMesh()->SetCollisionProfileName(TEXT("CharacterMesh"));

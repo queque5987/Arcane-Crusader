@@ -652,7 +652,6 @@ void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem& Dropped, UCI
 	{
 		DroppedItemList->SetVisibility(ESlateVisibility::Visible);
 		DroppedItemList->ItemList->AddItem(ItemData);
-		//if (Dropped == nullptr) return;
 		DroppedItemPtrArr.Add(&Dropped);
 		PickUpItemInteract_ShowAndInputReady();
 	}
@@ -818,7 +817,6 @@ void ACPlayerController::PickUpItemInteract_Interact()
 		tempItem = Cast<UCInventoryItemData>(temp);
 		if (tempItem == nullptr) continue;
 		AddInventoryItem(tempItem);
-		//UE_LOG(LogTemp, Log, TEXT("PickUpItem : %s"), *tempItem->GetstrName())
 	}
 	for (auto& temp : DroppedItemPtrArr)
 	{
@@ -845,14 +843,8 @@ void ACPlayerController::SetSelectedPortal(int ArrIndex)
 
 UINT32 ACPlayerController::IsPossesQuestCleared(FString QuestName)
 {
-	//bool Flag_Match = false;
-	//bool Flag_Cleared = false;
-	//bool Flag_AleardyCleared = false; // TODO
-
-	//for (UCQuest* ClearedQuest : ClearedQuestArr)
 	for (FString ClearedQuest : ClearedQuestArr)
 	{
-		//if (ClearedQuest->GetQuestName() == QuestName) return QUEST_ALEARDY_CLEARED;
 		if (ClearedQuest == QuestName) return QUEST_ALEARDY_CLEARED;
 	}
 
@@ -864,16 +856,11 @@ UINT32 ACPlayerController::IsPossesQuestCleared(FString QuestName)
 
 		if (WQ->GetQuestName() == QuestName)
 		{
-			//Flag_Match = true;
-			if (WQ->IsCleared()) return QUEST_CLEARED; //Flag_Cleared = true;
+			if (WQ->IsCleared()) return QUEST_CLEARED;
 			return QUEST_ALREADY_HAVE;
 		}
 	}
 	return QUEST_NO_MATCH;
-	//if (!Flag_Match) return QUEST_NO_MATCH;
-	//if (!Flag_Cleared) return QUEST_ALREADY_HAVE;
-	//return QUEST_CLEARED;
-	//return QUEST_ALEARDY_CLEARED; TODO
 }
 
 void ACPlayerController::MoveQuestToClearedByQuestName(FString QuestName)
@@ -963,14 +950,6 @@ void ACPlayerController::EquippedItemStat(ItemStat& SumItemStat)
 	if (AS > 0.3f) AS = 0.3f + (AS - 0.3f) / 10;
 	if (AS < -0.f) AS /= 10;
 	SumItemStat._AttackSpeed = AS;
-
-	//CurrentItemStat._AttackDamage = AD;
-	//CurrentItemStat._Defence= DF;
-	//CurrentItemStat._AttackSpeed = AS;
-	//ItemStat* temp = (ItemStat*)malloc(sizeof(struct ItemStat));
-	// TO DO //
-	// Iterate Equippped Item
-	// Sum States to Parameter
 }
 
 bool ACPlayerController::IsSocketEmpty(int ItemType)
@@ -1143,7 +1122,6 @@ void ACPlayerController::SaveGame(TArray<uint8>& MemoryAddress)
 
 		UGameplayStatics::SaveGameToMemory(SaveGameInstance, MemoryAddress);
 	}
-	//UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
 }
 
 void ACPlayerController::LoadGame(int32 SaveSlot)
@@ -1155,7 +1133,8 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 
 	for (int i = 0; i < SaveGameInstance->SavedItemList.Num(); i++)
 	{
-		UCInventoryItemData* ID = GM->GetItem(SaveGameInstance->SavedItemList[i], SaveGameInstance->SavedItemListQ[i]);
+		UCInventoryItemData* ID = GM->GetItem(SaveGameInstance->SavedItemList[i],
+			SaveGameInstance->SavedItemListQ[i]);
 		if (ID == nullptr) continue;
 		AddInventoryItem(ID);
 	}
@@ -1166,7 +1145,8 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 	UCInventoryItemData* W = GM->GetItem(SaveGameInstance->SavedWeapon);
 	if (W)
 	{
-		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(W->GetItemClass(), GetCharacter()->GetActorLocation(), FRotator::ZeroRotator);
+		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(W->GetItemClass(),
+			GetCharacter()->GetActorLocation(), FRotator::ZeroRotator);
 		IIWeapon* isWeapon = Cast<IIWeapon>(spawnedActor);
 		if (isWeapon != nullptr)
 		{

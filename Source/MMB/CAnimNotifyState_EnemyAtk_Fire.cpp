@@ -50,7 +50,8 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 	FVector JawToHead = (JawLocation - HeadLocation).GetSafeNormal();
 	FRotator HeadRotation = FRotationMatrix::MakeFromX(JawToHead).Rotator();
 
-	ACProjectile* Proj = MeshComp->GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(), JawLocation, HeadRotation);
+	ACProjectile* Proj = MeshComp->GetWorld()->SpawnActor<ACProjectile>(
+		ACProjectile::StaticClass(), JawLocation, HeadRotation);
 
 	Proj->SetLaunch(
 		EC,

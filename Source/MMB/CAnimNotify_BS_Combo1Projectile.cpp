@@ -28,7 +28,8 @@ void UCAnimNotify_BS_Combo1Projectile::Notify(USkeletalMeshComponent* MeshComp, 
 		FRotator ProjRotator = (TargetLocation - LIndexSocketLocation).Rotation();
 
 		
-		ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(), LIndexSocketLocation + FVector::UpVector * 30.f, ProjRotator);
+		ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(
+			ACProjectile::StaticClass(), LIndexSocketLocation + FVector::UpVector * 30.f, ProjRotator);
 		struct DELAY_START_PROJECTILE_CONFIGURE DelayConfig = DELAY_START_PROJECTILE_CONFIGURE();
 		DelayConfig.AccCoefficient = 4.5f;
 		DelayConfig.LaunchClock = 0.4f;

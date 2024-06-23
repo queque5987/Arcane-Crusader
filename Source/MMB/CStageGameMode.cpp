@@ -45,8 +45,6 @@ void ACStageGameMode::Tick(float DeltaSeconds)
 	float Angle = 360.f / FullDaySecond * DeltaSeconds;
 	FQuat Rot = FQuat(FVector(0.f, 1.f, 0.f), FMath::DegreesToRadians(Angle));
 	DirectionalLight->AddActorLocalRotation(Rot);
-
-	//UE_LOG(LogTemp, Log, TEXT("Hour : %f"), LevelClock / 60.f)
 }
 
 FQuestsRow* ACStageGameMode::GetQuestbyIndex(int32 QuestIdx)
@@ -56,12 +54,6 @@ FQuestsRow* ACStageGameMode::GetQuestbyIndex(int32 QuestIdx)
 
 void ACStageGameMode::InitLevelClock(float fClock)
 {
-	//if (InitOnBeginPlay)
-	//{
-	//	bDelayedInitLevelClock = true;
-	//	fDelayedInitLevelClock = fClock;
-	//	return;
-	//}
 	if (DirectionalLight == nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("ACStageGameMode : DirectionalLight Not Found"));

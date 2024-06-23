@@ -108,8 +108,6 @@ void UCInventoryItem::OnButtonClicked()
 
 	if (FPlatformTime::Seconds() - ClickedSec <= 0.35f)
 	{
-		//FString ListViewName;
-		//GetOwningListView()->GetName(ListViewName);
 		if (ListViewName == "ItemList") Equip();
 		else UnEquip(ListViewName);
 

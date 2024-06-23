@@ -23,7 +23,6 @@ void UQuestComponent::BeginPlay()
 
 void UQuestComponent::Quest0()
 {
-	//AActor* tempActor = FindActorByLabel(ACEntrance_Quest::StaticClass(), "TutorialZoneOutGate");
 	AActor* tempActor = FindActorByTag(ACEntrance_Quest::StaticClass(), FName("TutorialZoneOutGate"));
 
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());

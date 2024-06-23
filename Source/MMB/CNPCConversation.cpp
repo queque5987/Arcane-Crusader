@@ -243,8 +243,6 @@ void UCNPCConversation::OnButtonShopInClicked()
 	SetSelectedShopItem(nullptr);
 	ItemList->ClearListItems();
 	if (NPC != nullptr) NPC->SetNPCConversationItemList(ItemList);
-	//SelectedButton_ToBuy = nullptr;
-	//SelectedButton_ToSell = nullptr;
 }
 
 void UCNPCConversation::OnButtonNextClicked()
@@ -337,7 +335,6 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 			if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
 			else PCC->SaveGame(GI->SelectedSaveSlot);
 		}
-		//}
 	}
 }
 

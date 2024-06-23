@@ -95,7 +95,6 @@ void UCShopItem::BuyItem()
 	}
 	PC->SetPlayerGold(PlayerGold - Price);
 	ID->SetIsShopItem(false);
-	//PCC->AddInventoryItem(ID);
 	PCC->AddInventoryItem(NewID);
 	PCC->ResumeShopInventoryItems();
 }

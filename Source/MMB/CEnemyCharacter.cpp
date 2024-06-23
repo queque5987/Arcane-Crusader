@@ -160,16 +160,6 @@ bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 		}
 	}
 
-	//DrawDebugSphere(
-	//	GetWorld(),
-	//	EndLocation,
-	//	Radius,
-	//	16,
-	//	bResult? FColor::Red : FColor::Green,
-	//	false,
-	//	0.8f
-	//);
-
 	if (bResult)
 	{
 		if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(HitResult.GetActor()))
@@ -177,7 +167,6 @@ bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 			UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
 			PC->HitDamage(AttackDamage * DamageScale, this, HitResult.Location, AttackPower);
 		}
-		//return true;
 	}
 	return bResult;
 }
@@ -245,7 +234,7 @@ void ACEnemyCharacter::Die()
 			{
 				UE_LOG(LogTemp, Log, TEXT("Row Name : %s"), *RowName.ToString());
 				R = DropTable->FindRow<FDropTableRow>(RowName, FString(""));
-				if (R == nullptr || FMath::RandRange(0.f, 1.f) < R->ItemDropRate) continue;
+				if (R == nullptr || FMath::RandRange(0.f, 1.f) > R->ItemDropRate) continue;
 
 				DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
 				UCInventoryItemData* ID = GM->GetItem(FName(R->ItemCode));

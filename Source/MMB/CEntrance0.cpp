@@ -24,7 +24,8 @@ ACEntrance0::ACEntrance0() : Super()
 	float c = 0.f;
 	for (int i = 0; i < GateNum; i++)
 	{
-		UStaticMeshComponent* StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent_") + i);
+		UStaticMeshComponent* StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(
+			TEXT("StaticMeshComponent_") + i);
 		StaticMeshComponent->SetStaticMesh(GatePrag.Object);
 		StaticMeshComponent->SetupAttachment(Collider);
 		FTransform T = FTransform();
@@ -66,12 +67,7 @@ void ACEntrance0::Tick(float DeltaTime)
 		else Speed = OpenGateSpeed;
 		FTransform T = SM->GetRelativeTransform();
 		FVector L = T.GetLocation();
-		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0))
-		{
-			//if (OpeningSEArr.IsValidIndex(i) && OpeningSEArr[i] != nullptr && OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Stop();
-			continue;
-		}
-		//if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && !OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Play();
+		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0)) continue;
 		L += FVector(0.f, 0.f, DeltaTime * Speed * (OpenGate ? -1 : 1));
 		T.SetLocation(L);
 		SM->SetRelativeTransform(T);
@@ -89,9 +85,6 @@ void ACEntrance0::SetOpenGate(bool e)
 		GetWorld()->GetTimerManager().SetTimer(newTH, FTimerDelegate::CreateLambda([&] {
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), OpeningSoundEffect, GetActorLocation());
 			}), FMath::RandRange(0.1f, 0.8f), false);
-		//UAudioComponent* Audio = UGameplayStatics::SpawnSoundAtLocation(GetWorld(), OpeningSoundEffect, GetActorLocation());
-		//Audio->bAutoActivate = false;
-		//OpeningSEArr.Add(Audio);
 	}
 }
 
