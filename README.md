@@ -197,9 +197,11 @@ CInventory를 통해 CInventoryItemData를 ItemType에 맞춰 장비칸에 추�
 장비칸에 추가가 완료되었을 경우 마지막으로 인벤토리에서 해당 아이템을 제외합니다.
 
 ### b. HUD
+
 ![HUD 예시](https://github.com/queque5987/MMB/blob/master/hudInGame.png?raw=true)
 
 **퀵슬롯**
+
 ![DragIn 상태 Image](https://github.com/queque5987/MMB/blob/master/draginInGame.png?raw=true)
 
 퀵슬롯은 CInventoryItem을 DragIn하는 상태에서 퀵슬롯 버튼을 클릭할 경우 등록이 가능합니다.
@@ -443,8 +445,6 @@ Player가 가지고 있는 퀘스트 중 상호작용 중인 NPC에게 클리어
 ### a. 플레이어 공격
 
 ![Player 공격](https://github.com/queque5987/MMB/blob/master/playerattackInGame.gif?raw=true)
-
-![]()
 
 ```C++
 bool ACBattleStaff::MeleeAttackHitCheck()
