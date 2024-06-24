@@ -442,7 +442,9 @@ Player가 가지고 있는 퀘스트 중 상호작용 중인 NPC에게 클리어
 ## 2-2. 전투 시스템
 ### a. 플레이어 공격
 
-![](https://drive.google.com/uc?export=view&id=1QVVczDxZRwZllah5TIwfzpmF3hJUOQS_)
+![Player 공격](https://github.com/queque5987/MMB/blob/master/playerattackInGame.gif?raw=true)
+
+![]()
 
 ```C++
 bool ACBattleStaff::MeleeAttackHitCheck()
@@ -508,8 +510,9 @@ bool ACBattleStaff::MeleeAttackHitCheck()
 
 ### b. 몬스터 공격
 
-![](https://drive.google.com/uc?export=view&id=1spe3nZ_mF0mkO5okisIMcYGf6kZcGmB4)
-
+![Enemy 공격](https://github.com/queque5987/MMB/blob/master/EnemyAttackInGame.gif?raw=true)
+![Spike 지상공격](https://github.com/queque5987/MMB/blob/master/SpikeGroundFireInGame.gif?raw=true)
+![Spike 공중공격](https://github.com/queque5987/MMB/blob/master/SpikeFlyFireInGame.gif?raw=true)
 ```C++
 bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 {
@@ -598,3 +601,68 @@ PCH.h에 정의되어 있는 공격 타입에 따라 피격 범위를 탐지할 
 ENEMY_ATTACK_HEAD 같은 경우는 좌 우 앞발에도 피격 범위를 감지하도록 Reculsive하게 구현하였습니다.
 
 플레이어의 Character는 대미지를 받고 AttackPower에 따라서 움찔하거나 넘어지는 반응을 하게 구현하였습니다.
+
+```C++
+void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
+{
+	if (!ContinueAttack) return;
+	if (MeshComp == nullptr) return;
+	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
+	if (EC == nullptr) return;
+	IIFlyMonster* IEC = Cast<IIFlyMonster>(EC);
+	if (IEC == nullptr) return;
+	bool IsFlying = IEC->GetIsFlying();
+	float projscale = IsFlying ? 30.f : 30.f;
+	float projspeed = IsFlying ? 35.f : 25.f;
+	float projclock = IsFlying ? 1.4f : 0.65f;
+	float projscaleA = IsFlying ? 0.09f : 0.11f;
+
+	FVector JawLocation = MeshComp->GetBoneLocation("Jaw1");
+	FVector HeadLocation = MeshComp->GetBoneLocation("Head");
+
+	FVector JawToHead = (JawLocation - HeadLocation).GetSafeNormal();
+	FRotator HeadRotation = FRotationMatrix::MakeFromX(JawToHead).Rotator();
+
+	ACProjectile* Proj = MeshComp->GetWorld()->SpawnActor<ACProjectile>(
+		ACProjectile::StaticClass(), JawLocation, HeadRotation);
+
+	Proj->SetLaunch(
+		EC,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		0.5f,
+		1500.f,
+		projspeed,
+		projclock,
+		nullptr,
+		false,
+		false,
+		true,
+		projscaleA
+	);
+	Proj->SetProjCollisionScale(projscale);
+
+
+	UParticleSystemComponent* FEC = UGameplayStatics::SpawnEmitterAttached(
+		FireEffect,
+		MeshComp,
+		"Jaw1",
+		IsFlying ? FVector(80.f, -120.f, 0.f) : FVector(40.f, -60.f, 0.f),
+		IsFlying ? FRotator(-90.f, 0.f, -50.f) : FRotator(-90.f, 0.f, -20.f),
+		IsFlying ? FVector(3.f, 3.f, 4.f) : FVector(2.5f, 2.f, 2.f),
+		EAttachLocation::KeepRelativeOffset,
+		true
+	);
+
+	FEQueue.Enqueue(FEC);
+
+	FTimerManager& TM = MeshComp->GetWorld()->GetTimerManager();
+	TM.SetTimer(AttackTimerHandle, this, &UCAnimNotifyState_EnemyAtk_Fire::FEOff, 0.8f);
+}
+```
+
+브레스 공격의 경우 Character의 충돌을 감지하는 CProjectile 객체를 매 Tick마다 발사하는 식으로 구현하였습니다.
+
+Emitter를 소환하고, Queue에 추가하여 타이머를 통해 임의의 시간 이후 Destroy되게 구현하였습니다.
