@@ -11,7 +11,7 @@
     + [b. 몬스터 공격](#b-몬스터-공격)
 
 # 1. 게임 흐름
-![플로우 차트 요약]()
+![MMB_Summary.drawio](https://github.com/queque5987/MMB/blob/master/MMB_Summary.drawio.png?raw=true)
 
 처음 시작 시 튜토리얼 레벨을 거치며,
 
