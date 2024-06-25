@@ -1,4 +1,4 @@
-# 플레이 영상
+# Arcane Crusader<br><br>플레이 영상
 
 [![플레이 영상](https://img.youtube.com/vi/7DLCbR6Yofs/0.jpg)](https://youtu.be/7DLCbR6Yofs)
 
@@ -7,7 +7,7 @@
 - [2. 구현한 기능](#2.-구현한-기능)
   * [2-1. UI](#2-1-ui)
     + [a. 인벤토리](#a.-인벤토리)
-    + [b. HUD](#b-hud)
+    + [b. 퀵슬롯](#b-퀵슬롯)
     + [c. NPC 대화](#c.-NPC---)
     + [d. 퀘스트](#d-퀘스트)
   * [2-2. 전투 시스템](#2-2-전투-시스템)
@@ -200,11 +200,9 @@ CInventory를 통해 CInventoryItemData를 ItemType에 맞춰 장비칸에 추�
 
 장비칸에 추가가 완료되었을 경우 마지막으로 인벤토리에서 해당 아이템을 제외합니다.
 
-### b. HUD
+### b. 퀵슬롯
 
 ![HUD 예시](https://github.com/queque5987/MMB/blob/master/hudInGame.png?raw=true)
-
-**퀵슬롯**
 
 ![DragIn 상태 Image](https://github.com/queque5987/MMB/blob/master/draginInGame.png?raw=true)
 
@@ -303,6 +301,7 @@ QuickSlot에 해당하는 키보드 입력 감지 시, Quickslot에 저장되어
 그리고, 아이템 개수를 감소시키고, 0 되었을 경우 Cinventory의 ItemList에서 제거합니다.
 
 ### c. NPC 대화
+![NPC Conversation](https://github.com/queque5987/Arcane-Crusader/blob/master/MMB_Dialogue.drawio.png?raw=true)
 
 ![NPC 대화창 예시](https://github.com/queque5987/MMB/blob/master/NPCConversation.png?raw=true)
 
@@ -312,9 +311,13 @@ NPC와의 대화는 NPC마다 보유하고 있는 DataTable을 통해 진행됩�
 
 DataTable은 버튼마다 이동해야 할 Row의 Index를 보유합니다.
 
-BUTTON NEXT POSTLINE = 13일 경우 NEXT Button 클릭 시,
+BUTTON NEXT POSTLINE = 13일 경우 NextBtn을 클릭 시, NextBtn에 Bind되어 있는 함수를 실행한 후
 
-RowName 213의 NPCDialogue를 출력 및 버튼 Collum이 -1 이하일 경우 비활성화하는 방식으로 구현하였습니다.
+CNPCConversation Widget의 NPCName, NPCLine을 RowName 213의 NPCName, NPCDialogue로 변경하며,
+
+모든 버튼을 순회하여 버튼 Collum이 -1 이하일 경우 비활성화하는 방식으로 구현하였습니다.
+
+버튼 Collum은 클래스 내부 변수에 저장되어 각 버튼 클릭 시 이동할 Row의 Index를 저장합니다.
 
 ```C++
 void UCNPCConversation::SetLineFromDialogues(int e)
@@ -669,4 +672,6 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 
 브레스 공격의 경우 Character의 충돌을 감지하는 CProjectile 객체를 매 Tick마다 발사하는 식으로 구현하였습니다.
 
-Emitter를 소환하고, Queue에 추가하여 타이머를 통해 임의의 시간 이후 Destroy되게 구현하였습니다.
+CProjectile은 투명한 형태로 소환되어 충돌만 감지합니다.
+
+Skeletal Mesh의 Jaw1에 Attach된 Emitter를 지속적으로 소환하고, Queue에 추가하여 타이머를 통해 임의의 시간 이후 Destroy되게 구현하였습니다.
