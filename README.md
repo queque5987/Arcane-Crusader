@@ -1,3 +1,7 @@
+# 플레이 영상
+
+[![플레이 영상](https://img.youtube.com/vi/7DLCbR6Yofs/0.jpg)](https://youtu.be/7DLCbR6Yofs)
+
 # 0. 목차
 - [1. 게임 흐름](#1.-게임-흐름)
 - [2. 구현한 기능](#2.-구현한-기능)
