@@ -1,6 +1,6 @@
 # Arcane Crusader<br><br>플레이 영상
 
-[![플레이 영상](https://img.youtube.com/vi/7DLCbR6Yofs/0.jpg)](https://youtu.be/7DLCbR6Yofs)
+[![플레이 영상](https://img.youtube.com/vi/p7fB2LRsM9Y)/0.jpg)](https://youtu.be/p7fB2LRsM9Y))
 
 # 0. 목차
 - [1. 게임 흐름](#1.-게임-흐름)
