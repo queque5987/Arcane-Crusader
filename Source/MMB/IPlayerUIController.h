@@ -54,7 +54,9 @@ public:
 
 	virtual void DragInItem(class UCInventoryItemData* ToDragItem) {};
 	virtual void DragItem(FVector2D WidgetTranslation) {};
+	virtual void DragItem() {};
 	virtual void DragOutItem() {};
-	virtual class UCInventoryItemData* SetUpQuickSlot() { return nullptr; };
+	//virtual class UCInventoryItemData* SetUpQuickSlot() { return nullptr; }; Changed Name
+	virtual class UCInventoryItemData* GetQuickSlot() { return nullptr; };
 
 };

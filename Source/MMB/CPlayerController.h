@@ -179,6 +179,7 @@ public:
 
 	virtual void DragInItem(class UCInventoryItemData* ToDragItem) override;
 	virtual void DragItem(FVector2D WidgetTranslation) override;
+	virtual void DragItem() override;
 	virtual void DragOutItem() override;
-	virtual class UCInventoryItemData* SetUpQuickSlot() override;
+	virtual class UCInventoryItemData* GetQuickSlot() override;
 };

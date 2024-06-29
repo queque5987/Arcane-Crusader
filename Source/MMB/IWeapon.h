@@ -23,6 +23,7 @@ public:
 	virtual void LMB_Completed(struct AttackResult& AttackResult) {}
 	virtual void RMB_Triggered(struct AttackResult& AttackResult) {}
 	virtual void RMB_Completed(struct AttackResult& AttackResult) {}
+	virtual void Tab_Triggered(struct AttackResult& AttackResult) {}
 	virtual bool MeleeAttackHitCheck() { return bool(); };
 	virtual void SpawnEmitterAttachedToSocket() {};
 protected:

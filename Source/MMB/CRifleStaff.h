@@ -28,6 +28,7 @@ public:
 	virtual void LMB_Completed(struct AttackResult& AttackResult) override;
 	virtual void RMB_Triggered(struct AttackResult& AttackResult) override;
 	virtual void RMB_Completed(struct AttackResult& AttackResult) override;
+	virtual void Tab_Triggered(struct AttackResult& AttackResult) override;
 	virtual void SetIsEquiped(bool e) override;
 	virtual void SetAttackDamage(float e) override { AttackDamage = e; }
 	virtual void SetBulletType(int32 e) override;

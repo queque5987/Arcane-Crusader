@@ -75,7 +75,7 @@ void UCUserWidgetPlayerHUD::OnClickQuickSlot1()
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 
-	UCInventoryItemData* QuickSlot1Item = UIController->SetUpQuickSlot();
+	UCInventoryItemData* QuickSlot1Item = UIController->GetQuickSlot();
 	
 	QuickSlot_1_Tile->ClearListItems();
 	if (QuickSlot1Item != nullptr) QuickSlot_1_Tile->AddItem(QuickSlot1Item);
@@ -86,7 +86,7 @@ void UCUserWidgetPlayerHUD::OnClickQuickSlot2()
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 
-	UCInventoryItemData* QuickSlot2Item = UIController->SetUpQuickSlot();
+	UCInventoryItemData* QuickSlot2Item = UIController->GetQuickSlot();
 	
 	QuickSlot_2_Tile->ClearListItems();
 	if (QuickSlot2Item != nullptr) QuickSlot_2_Tile->AddItem(QuickSlot2Item);
@@ -97,7 +97,7 @@ void UCUserWidgetPlayerHUD::OnClickQuickSlot3()
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 
-	UCInventoryItemData* QuickSlot3Item = UIController->SetUpQuickSlot();
+	UCInventoryItemData* QuickSlot3Item = UIController->GetQuickSlot();
 	
 	QuickSlot_3_Tile->ClearListItems();
 	if (QuickSlot3Item != nullptr) QuickSlot_3_Tile->AddItem(QuickSlot3Item);
