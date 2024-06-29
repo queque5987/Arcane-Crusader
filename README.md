@@ -13,6 +13,7 @@
   * [2-2. 전투 시스템](#2-2-전투-시스템)
     + [a. 플레이어 공격](#a-플레이어-공격)
     + [b. 몬스터 공격](#b-몬스터-공격)
+- [3. 이슈 사항](#3.-이슈=사항)
 
 # 1. 게임 흐름
 ![MMB_Summary.drawio](https://github.com/queque5987/MMB/blob/master/MMB_Summary.drawio.png?raw=true)
@@ -676,17 +677,91 @@ CProjectile은 투명한 형태로 소환되어 충돌만 감지합니다.
 
 Skeletal Mesh의 Jaw1에 Attach된 Emitter를 지속적으로 소환하고, Queue에 추가하여 타이머를 통해 임의의 시간 이후 Destroy되게 구현하였습니다.
 
-# 3. 발견된 버그
+# 3. 이슈 사항
 
-## 밤 스테이지에서 스파이크 브레스 공격 시 렉 발생
+## ~~밤 스테이지에서 스파이크 브레스 공격 시 렉 발생~~
 ### 해결 방안
 - Tick 당 Emitter 생성에서 3 Tick당 Emitter 생성으로 수정
 - 교회 내부 에셋 Unload
+
+### 해결
+
+**CAnimNotifyState_EnemyAtk_Fire.cpp*
+```C++
+	if (SpitFire % 3 == 0)
+	{
+		UParticleSystemComponent* FEC = UGameplayStatics::SpawnEmitterAttached(
+			FireEffect,
+			MeshComp,
+			"Jaw1",
+			IsFlying ? FVector(80.f, -120.f, 0.f) : FVector(40.f, -60.f, 0.f),
+			IsFlying ? FRotator(-90.f, 0.f, -50.f) : FRotator(-90.f, 0.f, -20.f),
+			IsFlying ? FVector(3.f, 3.f, 4.f) : FVector(2.5f, 2.f, 2.f),
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+
+		FEQueue.Enqueue(FEC);
+
+		FTimerManager& TM = MeshComp->GetWorld()->GetTimerManager();
+		TM.SetTimer(AttackTimerHandle, this, &UCAnimNotifyState_EnemyAtk_Fire::FEOff, 0.8f);
+	}
+
+	SpitFire++;
+```
+
+- Emitter 생성 제한
+- 성당 내부 PostVolumeProcess Quality 1로 설정
 
 ## 상점 아이템 클릭 후 SlateBrush 변경 시 팅김 현상
 ### 해결 방안
 - FSlateBrush 변경 방식 변경
 
-## Dropped Item Spawn 위치에 서 있을 경우 Dropped Item List가 표시되지 않는 현상
+## ~~Dropped Item 생성될 때 겹쳐 있을 경우 Dropped Item List가 표시되지 않는 현상~~
 ### 해결 방안
 - BeginOverlap이 아닌 Tick에서 주기적으로 Sweep 실행
+### 해결
+
+```C++
+void ACDroppedItem::CheckSweepCharacter()
+{
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+	FCollisionObjectQueryParams OQP(ECollisionChannel::ECC_Pawn);
+
+	if (GetWorld()->SweepSingleByObjectType(
+		HitResult,
+		GetActorLocation(),
+		GetActorLocation(),
+		FQuat::Identity,
+		OQP,
+		FCollisionShape::MakeSphere(300.f),
+		Params
+	))
+	{	// Player Colided
+		if (OverlapingPlayerCharacter != nullptr) return;
+
+		OverlapingPlayerCharacter = Cast<ACPlayerCharacter>(HitResult.GetActor());
+		if (OverlapingPlayerCharacter == nullptr) return;
+		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
+		{
+			PCC->ShowDroppedItemList(true, *this, PossessingItem);
+		}
+		return;
+	}
+	// Player Dettached
+	if (OverlapingPlayerCharacter != nullptr)
+	{
+		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
+		{
+			PCC->ShowDroppedItemList(false, *this, PossessingItem);
+		}
+		OverlapingPlayerCharacter = nullptr;
+		return;
+
+	}
+}
+```
+
+- Begin Overlap > End Overlap 방식에서 매 Tick에서 CheckSweepCharacter 함수를 호출하도록 설정
+- 기존 방식과 달리 End Overlap이 실행되지 않는 이슈가 있어, 아이템 획득 시 CPlayerController에서 획득한 아이템을 DroppedItemList으로부터 제거하도록 변경
