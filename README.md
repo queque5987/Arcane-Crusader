@@ -714,6 +714,7 @@ Skeletal Mesh의 Jaw1에 Attach된 Emitter를 지속적으로 소환하고, Queu
 - 성당 내부 PostVolumeProcess Quality 1로 설정
 
 ## 상점 아이템 클릭 후 SlateBrush 변경 시 팅김 현상
+*발생 빈도 낮음*
 ### 해결 방안
 - FSlateBrush 변경 방식 변경
 
