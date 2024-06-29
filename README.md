@@ -675,3 +675,16 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 CProjectile은 투명한 형태로 소환되어 충돌만 감지합니다.
 
 Skeletal Mesh의 Jaw1에 Attach된 Emitter를 지속적으로 소환하고, Queue에 추가하여 타이머를 통해 임의의 시간 이후 Destroy되게 구현하였습니다.
+
+# 3. 발견된 버그
+
+## 밤 스테이지에서 스파이크 브레스 공격 시 렉 발생
+### 해결 방안
+- Tick 당 Emitter 생성에서 3 Tick당 Emitter 생성으로 수정
+- 교회 내부 에셋 Unload
+
+## 상점 아이템 클릭 후 SlateBrush 변경 시 팅김 현상
+- FSlateBrush 변경 방식 변경
+
+## Dropped Item Spawn 위치에 서 있을 경우 Dropped Item List가 표시되지 않는 현상
+- BeginOverlap이 아닌 Tick에서 주기적으로 Sweep 실행
