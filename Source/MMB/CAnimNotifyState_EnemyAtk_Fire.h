@@ -17,6 +17,7 @@ class MMB_API UCAnimNotifyState_EnemyAtk_Fire : public UCAnimNotifyState_EnemyAt
 	GENERATED_BODY()
 
 protected:
+	int32 SpitFire;
 	UParticleSystem* FireEffect;
 	FTimerHandle AttackTimerHandle;
 	TQueue<class UParticleSystemComponent*> FEQueue;
