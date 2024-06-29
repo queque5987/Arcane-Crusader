@@ -20,10 +20,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	class USphereComponent* Collider;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	class UCInventoryItemData* PossessingItem;
+
+	void CheckSweepCharacter();
+
+	class ACPlayerCharacter* OverlapingPlayerCharacter;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

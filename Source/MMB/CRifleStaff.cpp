@@ -187,17 +187,18 @@ void ACRifleStaff::RMB_Completed(AttackResult& AttackResult)
 
 void ACRifleStaff::Tab_Triggered(AttackResult& AttackResult)
 {
-	UE_LOG(LogTemp, Log, TEXT("From BulletType : %d"), BulletType);
+	//UE_LOG(LogTemp, Log, TEXT("From BulletType : %d"), BulletType);
 
-	BulletType = (BulletType + 1) % 3;
+	SetBulletType((BulletType + 1) % 3);
 
-	UE_LOG(LogTemp, Log, TEXT("To BulletType : %d"), BulletType);
+	//UE_LOG(LogTemp, Log, TEXT("To BulletType : %d"), BulletType);
 }
 
 void ACRifleStaff::SetIsEquiped(bool e)
 {
 	IsEquiped = e;
 }
+
 
 void ACRifleStaff::SetBulletType(int32 e)
 {

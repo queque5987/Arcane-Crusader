@@ -45,6 +45,8 @@ void ACStageGameMode::Tick(float DeltaSeconds)
 	float Angle = 360.f / FullDaySecond * DeltaSeconds;
 	FQuat Rot = FQuat(FVector(0.f, 1.f, 0.f), FMath::DegreesToRadians(Angle));
 	DirectionalLight->AddActorLocalRotation(Rot);
+
+	UE_LOG(LogTemp, Log, TEXT("Curl Time : %f"), LevelClock);
 }
 
 FQuestsRow* ACStageGameMode::GetQuestbyIndex(int32 QuestIdx)

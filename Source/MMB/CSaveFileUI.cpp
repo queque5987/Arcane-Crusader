@@ -56,7 +56,7 @@ void UCSaveFileUI::OnButtonClicked()
 
 	OnLoadingScreenSet.Broadcast(LoadedLevel);
 
-	//UGameplayStatics::OpenLevel(this, LoadedLevel);
+	UGameplayStatics::OpenLevel(this, LoadedLevel);
 
 	if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))
 	{

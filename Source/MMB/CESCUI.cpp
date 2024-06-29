@@ -35,7 +35,10 @@ void UCESCUI::OnToMainClicked()
 	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, MenuLevel);
 	UGameplayStatics::OpenLevel(this, "MainUILevel");
 	UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
-	GI->SelectedSaveSlot = -1;
+	if (GI != nullptr)
+	{
+		GI->SelectedSaveSlot = -1;
+	}
 	//	if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))
 	//	{
 	//		e->MainUI->SetVisibility(ESlateVisibility::Hidden);

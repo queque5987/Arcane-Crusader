@@ -816,6 +816,7 @@ void ACPlayerController::PickUpItemInteract_Interact()
 		tempItem = Cast<UCInventoryItemData>(temp);
 		if (tempItem == nullptr) continue;
 		AddInventoryItem(tempItem);
+		DroppedItemList->ItemList->RemoveItem(temp);
 	}
 	for (auto& temp : DroppedItemPtrArr)
 	{

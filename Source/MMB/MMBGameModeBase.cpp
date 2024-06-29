@@ -142,6 +142,7 @@ UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 {
 	FItemTableRow* Row = ItemTable->FindRow<FItemTableRow>(ItemRowName, FString(""));
 
+	UE_LOG(LogTemp, Log, TEXT("Loading Item : %s"), *ItemRowName.ToString())
 	if (Row == nullptr) return nullptr;
 	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName + FString::FromInt(ItemGetCounter++)));
 	D->SetDT_RowName(ItemRowName);
