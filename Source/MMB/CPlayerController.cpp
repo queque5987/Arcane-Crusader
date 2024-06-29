@@ -217,6 +217,7 @@ bool ACPlayerController::SetInventoryVisibility()
 	return false;
 }
 
+//Deprecated?
 void ACPlayerController::AddInventoryItem(UClass* ItemClass)
 {
 	UCInventoryItemData* To = NewObject<UCInventoryItemData>(this, UCInventoryItemData::StaticClass(), FName(FString::FromInt(ItemInventory->ItemList->GetListItems().Num())));
@@ -259,14 +260,13 @@ int32 ACPlayerController::UseItem(int32 QuickSlotNum)
 	int32 rtn = -1;
 	UCInventoryItemData* ID = nullptr;
 	FString QuickSlotItemName = HUDOverlay->GetItemDataOnQuickSlot(QuickSlotNum);
-	UE_LOG(LogTemp, Log, TEXT("Found Item Index : %s"), *QuickSlotItemName);
 	TArray<UObject*> InventoryItemsArr = ItemInventory->ItemList->GetListItems();
 	TArray<UUserWidget*> InventoryItemWidgetsArr = ItemInventory->ItemList->GetDisplayedEntryWidgets();
 	for (int i = 0; i < InventoryItemsArr.Num(); i++)
 	{
 		ID = Cast<UCInventoryItemData>(InventoryItemsArr[i]);
 		if (ID == nullptr) continue;
-		if (ID->GetstrName() == QuickSlotItemName)
+		if (ID->GetstrName() == QuickSlotItemName) // Find QuickSlot Item In Inventory
 		{
 			int32 CurrCount = ID->GetItemCount();
 			ID->SetItemCount(--CurrCount);
@@ -281,7 +281,6 @@ int32 ACPlayerController::UseItem(int32 QuickSlotNum)
 			{
 				RemoveInventoryItem(ID);
 			}
-			UE_LOG(LogTemp, Log, TEXT("Found Item Index : %d"), i);
 		}
 	}
 	ItemInventory->ItemList->RequestRefresh();
@@ -1283,9 +1282,18 @@ void ACPlayerController::DragInItem(UCInventoryItemData* ToDragItem)
 	DraggingItemDat = ToDragItem;
 }
 
+//Deprecated
 void ACPlayerController::DragItem(FVector2D WidgetTranslation)
 {
 	DraggingItem->SetPositionInViewport(WidgetTranslation);
+}
+
+void ACPlayerController::DragItem()
+{
+	FVector2D MousePos;
+	GetMousePosition(MousePos.X, MousePos.Y);
+
+	DraggingItem->SetPositionInViewport(MousePos);
 }
 
 void ACPlayerController::DragOutItem()
@@ -1296,7 +1304,7 @@ void ACPlayerController::DragOutItem()
 	DraggingItemDat = nullptr;
 }
 
-UCInventoryItemData* ACPlayerController::SetUpQuickSlot()
+UCInventoryItemData* ACPlayerController::GetQuickSlot()
 {
 	return DraggingItemDat;
 }

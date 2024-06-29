@@ -22,8 +22,6 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 			UTexture2D* T = GM->IconGetter(ID->GetIconTexture());
 			ItemImage->SetBrushFromTexture(T);
 		}
-
-		//ItemName->SetText(FText::FromString(ID->GetstrName()));
 		if (ID->GetItemType() >= 3)
 		{
 			ItemQuantity->SetText(FText::FromString(FString::FromInt(ID->GetItemCount())));
@@ -39,7 +37,6 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 		ACPlayerCharacter* tempPlayer = Cast<ACPlayerCharacter>(GetOwningPlayer()->GetCharacter());
 		if (tempPlayer != nullptr) tempPlayer->InventoryOpenedEvent.BindUFunction(this, TEXT("ReleasePutItem"));
 	}
-	//InventoryOpenedEvent
 }
 
 void UCInventoryItem::NativeOnInitialized()
@@ -83,11 +80,9 @@ void UCInventoryItem::Equip()
 
 	//Add To Inventory Widget
 
-	//SwitchbPicked(true, false);
 	ReleasePutItem();
 
 	if (PCC->EquipItem(ItemType, *ID)) PCC->RemoveInventoryItem(ID);
-
 }
 
 void UCInventoryItem::UnEquip(FString EquippedSpace)
@@ -244,16 +239,16 @@ void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 	if (bPicked == false) return;
 
-	FVector2D MousePos;
-	GetOwningPlayer()->GetMousePosition(MousePos.X, MousePos.Y);
-	int32 X, Y;
-	GetOwningPlayer()->GetViewportSize(X, Y);
-	FVector2D ViewportSize = FVector2D(X / 2, Y / 2);
+	//FVector2D MousePos;
+	//GetOwningPlayer()->GetMousePosition(MousePos.X, MousePos.Y);
+	//int32 X, Y;
+	//GetOwningPlayer()->GetViewportSize(X, Y);
+	//FVector2D ViewportSize = FVector2D(X / 2, Y / 2);
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 
-	UIController->DragItem(MousePos);
-	//SetPositionInViewport(MousePos);
+	//UIController->DragItem(MousePos);
+	UIController->DragItem();
 }
 
 void UCInventoryItem::SwitchbPicked(bool bForce, bool e)

@@ -46,6 +46,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ConstructorHelpers::FObjectFinder<UInputAction> Q1Finder(TEXT("/Game/Player/Input/IA_1"));
 	ConstructorHelpers::FObjectFinder<UInputAction> Q2Finder(TEXT("/Game/Player/Input/IA_2"));
 	ConstructorHelpers::FObjectFinder<UInputAction> Q3Finder(TEXT("/Game/Player/Input/IA_3"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TabFinder(TEXT("/Game/Player/Input/IA_Tab"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -62,6 +63,8 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (Q1Finder.Succeeded()) Quick1Action = Q1Finder.Object;
 	if (Q2Finder.Succeeded()) Quick2Action = Q2Finder.Object;
 	if (Q3Finder.Succeeded()) Quick3Action = Q3Finder.Object;
+	if (TabFinder.Succeeded()) TabAction = TabFinder.Object;
+
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->TargetArmLength = 550.f;
@@ -520,6 +523,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(Quick1Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick1);
 		EnhancedInputComponent->BindAction(Quick2Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick2);
 		EnhancedInputComponent->BindAction(Quick3Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick3);
+		EnhancedInputComponent->BindAction(TabAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::Tab);
 	}
 }
 
@@ -836,6 +840,19 @@ void ACPlayerCharacter::Quick3()
 	int32 ReactAnim = UIController->UseItem(3);
 	ItemUsageAction(ReactAnim);
 	UE_LOG(LogTemp, Log, TEXT("QuickSlot 3 : Item Type %d"), ReactAnim);
+}
+
+void ACPlayerCharacter::Tab()
+{
+	UE_LOG(LogTemp, Log, TEXT("Tab"));
+
+	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK) || GetState(PLAYER_ATTACKING)) return;
+
+	if (WeaponEquipped != nullptr)
+	{
+		AttackResult AR = AttackResult();
+		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->Tab_Triggered(AR);
+	}
 }
 
 void ACPlayerCharacter::ItemUsageAction(int32 ItemType)
@@ -1231,4 +1248,9 @@ void ACPlayerCharacter::FallToRevivalPoint(AActor* AttachedCamera, float Damage)
 			}), 3.f, false
 	);
 	if (Damage > 0.f) HitDamage(Damage, nullptr);
+}
+
+float ACPlayerCharacter::GetCameraArmLength()
+{
+	return SpringArmComponent->TargetArmLength;
 }

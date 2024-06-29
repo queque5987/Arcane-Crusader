@@ -96,6 +96,8 @@ public:
 	class UInputAction* Quick2Action;
 	UPROPERTY()
 	class UInputAction* Quick3Action;
+	UPROPERTY()
+	class UInputAction* TabAction;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmComponent;
@@ -238,6 +240,7 @@ public:
 	void Quick1();
 	void Quick2();
 	void Quick3();
+	void Tab();
 	void ItemUsageAction(int32 ItemType);
 	virtual void Heal(float HealPoint) override;
 
@@ -297,4 +300,6 @@ public:
 	virtual float GetBonusAttackDamage() override;
 	virtual void FallToRevivalPoint(class AActor* AttachedCamera, float Damage = 0.f) override;
 	AActor* GetWeaponEquipped() { return WeaponEquipped; }
+
+	float GetCameraArmLength();
 };

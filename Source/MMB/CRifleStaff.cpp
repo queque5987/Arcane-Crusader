@@ -156,16 +156,6 @@ void ACRifleStaff::LMB_Completed(AttackResult& AttackResult)
 		SetLMBLock(false);
 		AttackCoolDown = 0.f;
 		break;
-		//ShotGun Bullet
-	case(1):
-		//AttackResult.StaminaUsed = 12.f;
-		//PC->FireRifle.ExecuteIfBound();
-		//for (int i = 0; i < 20; i++)
-		//{
-		//	BuckShot(i);
-		//}
-		//AttackCoolDown = 0.f;
-		break;
 	default:
 		break;
 	}
@@ -193,6 +183,15 @@ void ACRifleStaff::RMB_Completed(AttackResult& AttackResult)
 			GetWorld()->GetTimerManager().ClearTimer(H);
 		}
 	}
+}
+
+void ACRifleStaff::Tab_Triggered(AttackResult& AttackResult)
+{
+	UE_LOG(LogTemp, Log, TEXT("From BulletType : %d"), BulletType);
+
+	BulletType = (BulletType + 1) % 3;
+
+	UE_LOG(LogTemp, Log, TEXT("To BulletType : %d"), BulletType);
 }
 
 void ACRifleStaff::SetIsEquiped(bool e)
@@ -263,9 +262,10 @@ void ACRifleStaff::Fire()
 	FVector SpawnLocation = FireSocketTransform.GetLocation();
 
 	//DrawDebugSphere(GetWorld(), SpawnLocation, 100.f, 26, FColor::Green, true, 2.f);
+	FVector TargetLocation = PC->CameraComponent->GetComponentLocation() + PC->GetBaseAimRotation().RotateVector(FVector::ForwardVector * (AttackRange + PC->GetCameraArmLength()));
 
-	FVector TargetLocation = PC->CameraComponent->GetComponentLocation() + PC->GetBaseAimRotation().RotateVector(FVector::ForwardVector * AttackRange);
-	
+	//DrawDebugSphere(GetWorld(), TargetLocation, 100.f, 26, FColor::Green, true, 2.f);
+
 	FHitResult HitResult;
 	PC->GetLineTraceResult(HitResult, AttackRange);
 	if (HitResult.bBlockingHit)
