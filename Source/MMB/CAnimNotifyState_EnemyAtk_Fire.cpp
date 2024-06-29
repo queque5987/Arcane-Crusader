@@ -12,6 +12,7 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyBegin(USkeletalMeshComponent* MeshCo
 	//Super::NotifyBegin(MeshComp, Animation, TotalDuration);
 	ContinueAttack = true;
 	AttackType = ENEMY_ATTACK_RHAND;
+	SpitFire = 0;
 
 	if (MeshComp == nullptr) return;
 	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
@@ -37,8 +38,6 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 	IIFlyMonster* IEC = Cast<IIFlyMonster>(EC);
 	if (IEC == nullptr) return;
 	bool IsFlying = IEC->GetIsFlying();
-		//FVector TempScale = FVector(0.f, 0.f, 0.f);
-		//FVector TempVector = FVector(0.f, 0.f, 0.f);
 	float projscale = IsFlying ? 30.f : 30.f;
 	float projspeed = IsFlying ? 35.f : 25.f;
 	float projclock = IsFlying ? 1.4f : 0.65f;
@@ -71,22 +70,26 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 	);
 	Proj->SetProjCollisionScale(projscale);
 
+	if (SpitFire % 3 == 0)
+	{
+		UParticleSystemComponent* FEC = UGameplayStatics::SpawnEmitterAttached(
+			FireEffect,
+			MeshComp,
+			"Jaw1",
+			IsFlying ? FVector(80.f, -120.f, 0.f) : FVector(40.f, -60.f, 0.f),
+			IsFlying ? FRotator(-90.f, 0.f, -50.f) : FRotator(-90.f, 0.f, -20.f),
+			IsFlying ? FVector(3.f, 3.f, 4.f) : FVector(2.5f, 2.f, 2.f),
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
 
-	UParticleSystemComponent* FEC = UGameplayStatics::SpawnEmitterAttached(
-		FireEffect,
-		MeshComp,
-		"Jaw1",
-		IsFlying ? FVector(80.f, -120.f, 0.f) : FVector(40.f, -60.f, 0.f),
-		IsFlying ? FRotator(-90.f, 0.f, -50.f) : FRotator(-90.f, 0.f, -20.f),
-		IsFlying ? FVector(3.f, 3.f, 4.f) : FVector(2.5f, 2.f, 2.f),
-		EAttachLocation::KeepRelativeOffset,
-		true
-	);
+		FEQueue.Enqueue(FEC);
 
-	FEQueue.Enqueue(FEC);
+		FTimerManager& TM = MeshComp->GetWorld()->GetTimerManager();
+		TM.SetTimer(AttackTimerHandle, this, &UCAnimNotifyState_EnemyAtk_Fire::FEOff, 0.8f);
+	}
 
-	FTimerManager& TM = MeshComp->GetWorld()->GetTimerManager();
-	TM.SetTimer(AttackTimerHandle, this, &UCAnimNotifyState_EnemyAtk_Fire::FEOff, 0.8f);
+	SpitFire++;
 }
 
 void UCAnimNotifyState_EnemyAtk_Fire::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
