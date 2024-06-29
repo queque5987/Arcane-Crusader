@@ -684,7 +684,9 @@ Skeletal Mesh의 Jaw1에 Attach된 Emitter를 지속적으로 소환하고, Queu
 - 교회 내부 에셋 Unload
 
 ## 상점 아이템 클릭 후 SlateBrush 변경 시 팅김 현상
+### 해결 방안
 - FSlateBrush 변경 방식 변경
 
 ## Dropped Item Spawn 위치에 서 있을 경우 Dropped Item List가 표시되지 않는 현상
+### 해결 방안
 - BeginOverlap이 아닌 Tick에서 주기적으로 Sweep 실행
