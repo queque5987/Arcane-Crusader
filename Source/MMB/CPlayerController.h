@@ -12,7 +12,6 @@
 #include "CUserWidgetPlayerHUD.h"
 #include "CDamageUI.h"
 #include "Containers/Queue.h"
-//#include "Quest_HuntMonster.h"
 #include "CNPCConversation.h"
 #include "CWidgetDroppedItemList.h"
 #include "CButtonAction.h"
@@ -110,6 +109,7 @@ protected:
 	void StartBattleMap();
 	struct ItemStat* CurrentItemStat;
 public:
+	virtual void SetHPPercent(float NewPercent) override;
 	virtual bool SetInventoryVisibility() override;
 	virtual void AddInventoryItem(UClass* ItemClass) override;
 	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) override;

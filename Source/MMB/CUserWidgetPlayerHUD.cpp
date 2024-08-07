@@ -4,6 +4,7 @@
 #include "CUserWidgetPlayerHUD.h"
 #include "IPlayerUIController.h"
 #include "CInventoryItemData.h"
+#include "CUserWidget_CircularProgressBar.h"
 
 UCUserWidgetPlayerHUD::UCUserWidgetPlayerHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

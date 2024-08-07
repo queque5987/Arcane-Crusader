@@ -14,6 +14,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CSavePoint.h"
 #include "CInventoryItem.h"
+#include "CUserWidget_CircularProgressBar.h"
 
 ACPlayerController::ACPlayerController()
 {
@@ -193,6 +194,17 @@ void ACPlayerController::StartBattleMap()
 		GM->InitLevelClock(GInstance->StartLevelClock * 60.f);
 		UE_LOG(LogTemp, Log, TEXT("Set StartLevel Clock : %f"), GInstance->StartLevelClock);
 	}
+}
+
+void ACPlayerController::SetHPPercent(float NewPercent)
+{
+	if (HUDOverlay->CircularHPBar == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularHPBar Can Not Found"));
+		return;
+	}
+
+	HUDOverlay->CircularHPBar->SetProgress(NewPercent);
 }
 
 bool ACPlayerController::SetInventoryVisibility()

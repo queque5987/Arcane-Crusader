@@ -4,6 +4,7 @@
 #include "CShopItem.h"
 #include "Styling/SlateWidgetStyleAsset.h"
 #include "IItemManager.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UCShopItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
@@ -11,21 +12,38 @@ void UCShopItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 	if (UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData))
 	{
 		ItemPrice->SetText(FText::FromString(FString::FromInt(ID->GetPrice())));
-		//ItemType->SetText(FText::FromString(ID->GetAttackType()));
-		//ItemATK->SetText(FText::FromString(FString::SanitizeFloat(ID->GetAttackDamage())));
 		ItemName->SetText(FText::FromString(ID->GetstrName()));
 		IsShopItem = ID->GetIsShopItem();
 	}
 
-	USlateWidgetStyleAsset* Style = LoadObject<USlateWidgetStyleAsset>(nullptr, TEXT("/Game/Resources/Image/SlateStyle/SlateStyle_ShopItem.SlateStyle_ShopItem"));
-	const FButtonStyle* btnStyle = Style->GetStyle<FButtonStyle>();
-	if (USlateWidgetStyleAsset* ST = Cast<USlateWidgetStyleAsset>(Style))
-	{
-		ItemButton->WidgetStyle = *btnStyle;
-		SB_Normal = &btnStyle->Normal;
-		SB_Pressed = &btnStyle->Pressed;
-	}
 	bPressed = false;
+	CurrentTextureIndex = 0.f;
+
+	if (ItemSelectSpriteMaterial != nullptr)
+	{
+		FVector RarityColor;
+		switch (Rarity)
+		{
+		case(ITEM_RARE):
+			RarityColor = FVector(0.176293f, 0.559561f, 1.f);
+			break;
+
+		case(ITEM_EPIC):
+			RarityColor = FVector(0.47264f, 0.f, 0.734375f);
+			break;
+
+		case(ITEM_LEGENDARY):
+			RarityColor = FVector(1.f, 0.610103f, 0.268382f);
+			break;
+
+		case(ITEM_NORMAL):
+		default:
+			RarityColor = FVector(1.f, 0.962442f, 0.99769f);
+			break;
+		}
+		ItemSelectSpriteMaterial->SetVectorParameterValue("TextureColorOverride", RarityColor);
+		UE_LOG(LogTemp, Log, TEXT("TextureColorOverride %s Set %s"), *ItemName->GetText().ToString(), *RarityColor.ToString());
+	}
 }
 
 void UCShopItem::OnRightClicked()
@@ -49,13 +67,14 @@ void UCShopItem::SwitchPressed(bool Pressed)
 	if (Pressed)
 	{
 		bPressed = true;
-		ItemButton->WidgetStyle.SetNormal(*SB_Pressed);
+		//ItemButton->WidgetStyle.SetNormal(*SB_Pressed);
 		UIController->SetPressedButton(this);
 	}
 	else
 	{
 		bPressed = false;
-		ItemButton->WidgetStyle.SetNormal(*SB_Normal);
+		CurrentTextureIndex = 0.f;
+		//ItemButton->WidgetStyle.SetNormal(*SB_Normal);
 	}
 }
 
@@ -65,6 +84,31 @@ void UCShopItem::NativeOnInitialized()
 	ItemButton->OnClicked.RemoveDynamic(this, &UCInventoryItem::OnButtonClicked);
 	ItemButton->OnClicked.AddDynamic(this, &UCShopItem::OnShopButtonClicked);
 	ClickedSec = 0.f;
+
+	if (ItemSelectSprite != nullptr) ItemSelectSpriteMaterial = ItemSelectSprite->GetDynamicMaterial();
+	if (ItemSelectSpriteMaterial == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ItemSelectSpriteMaterial Not Found"));
+	}
+}
+
+void UCShopItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+
+	if (ItemSelectSpriteMaterial != nullptr)
+	{
+		ItemSelectSpriteMaterial->SetScalarParameterValue("TextureIndex", CurrentTextureIndex);
+		
+		//UE_LOG(LogTemp, Log, TEXT("Set TextureIndex To %f"), CurrentTextureIndex);
+	}
+
+	if (bPressed)
+	{
+		CurrentTextureIndex += InDeltaTime * 10.f;
+		//UE_LOG(LogTemp, Log, TEXT("Should GIF Be Working"));
+	}
 }
 
 void UCShopItem::BuyItem()

@@ -17,6 +17,8 @@ class MMB_API IIPlayerUIController
 	GENERATED_BODY()
 
 public:
+	virtual void SetHPPercent(float NewPercent) {};
+
 	virtual void SetSelectedPortal(int ArrIndex) {};
 	virtual bool SetInventoryVisibility() { return false; };
 	virtual void AddInventoryItem(UClass* ItemClass) {};

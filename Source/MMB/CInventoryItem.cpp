@@ -17,6 +17,7 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	if (UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData))
 	{
+		Rarity = ID->GetRarity();
 		if (IIItemManager* GM = Cast<IIItemManager>(GetWorld()->GetAuthGameMode()))
 		{
 			UTexture2D* T = GM->IconGetter(ID->GetIconTexture());
@@ -224,10 +225,7 @@ void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	if (GetOwningListView() != nullptr)
 	{
-		//FString ListViewName;
-		//GetOwningListView()->GetName(ListViewName);
 		UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
-		//if (ListViewName == "ItemList" && ID != nullptr)
 		if (ID != nullptr)
 		{
 			if (ID->GetItemType() >= 3)
@@ -239,15 +237,9 @@ void UCInventoryItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 	if (bPicked == false) return;
 
-	//FVector2D MousePos;
-	//GetOwningPlayer()->GetMousePosition(MousePos.X, MousePos.Y);
-	//int32 X, Y;
-	//GetOwningPlayer()->GetViewportSize(X, Y);
-	//FVector2D ViewportSize = FVector2D(X / 2, Y / 2);
 	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
 	if (UIController == nullptr) return;
 
-	//UIController->DragItem(MousePos);
 	UIController->DragItem();
 }
 

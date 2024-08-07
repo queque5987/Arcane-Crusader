@@ -294,7 +294,8 @@ void ACPlayerCharacter::UpdateHUDStates()
 		{
 			// HP BAR
 
-			PCC->HUDOverlay->HPBar->SetPercent(HP / MaxHP);
+			//PCC->HUDOverlay->HPBar->SetPercent(HP / MaxHP);
+			PCC->SetHPPercent(HP / MaxHP);
 			PCC->HUDOverlay->StaminaBar->SetPercent(Stamina / MaxStamina);
 
 			if (LastDealingEnemy != nullptr)

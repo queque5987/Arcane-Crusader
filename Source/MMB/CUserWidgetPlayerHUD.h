@@ -29,6 +29,9 @@ public:
 	TObjectPtr<UProgressBar> HPBar;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UCUserWidget_CircularProgressBar> CircularHPBar;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> StaminaBar;
 
 	UPROPERTY(meta = (BindWidget))

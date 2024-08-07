@@ -72,6 +72,9 @@ void ACEnemyCharacter::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	//Bone Correction
+	GetMesh();
 }
 
 // Called to bind functionality to input
