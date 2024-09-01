@@ -39,7 +39,8 @@ protected:
 	bool Aiming;
 	UPROPERTY(BlueprintReadOnly)
 	float AimingYaw;
-
+	UPROPERTY(BlueprintReadOnly)
+	bool BruteMode;
 	class IIPlayerState* PlayerCharacterStateInterface;
 
 	FTimerHandle DizzyTimerHandle;
@@ -58,10 +59,18 @@ protected:
 	UAnimSequenceBase* AnimSequenceMeleeFinishAttack;
 	UAnimSequenceBase* AnimSequenceMelee1ComboAttack;
 	UAnimSequenceBase* AnimSequenceMelee2ComboAttack;
-	UAnimSequenceBase* AnimSequenceStandToRoll;
+	UAnimSequenceBase* AnimSequenceSheath;
+	UAnimSequenceBase* AnimSequenceDraw;
+
+	UAnimSequenceBase* AnimSequenceInitiatePunchCombo;
+	UAnimSequenceBase* AnimSequenceRush0;
+	UAnimSequenceBase* AnimSequenceFinishPunch;
+
 
 // Rifle Anim
 	UAnimSequenceBase* AnimSequenceFire;
+	UAnimSequenceBase* AnimSequenceBulletChange;
+	UAnimSequenceBase* AnimSequenceRifleStaffUlt;
 
 // Default Anim
 	UAnimSequenceBase* AnimSequenceHitDown;
@@ -78,7 +87,16 @@ protected:
 	UAnimSequenceBase* AnimSequencePickUp;
 	UAnimSequenceBase* AnimSequenceDrink;
 
+	UAnimSequenceBase* AnimSequenceStandToRoll;
 
+	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo1;
+	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo2;
+	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo3;
+	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo4;
+	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo5;
+	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo6;
+
+	UAnimSequenceBase* AnimSequenceBattleStaffUlt;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -102,6 +120,10 @@ protected:
 	void Combo1Attack();
 	UFUNCTION()
 	void Combo2Attack();
+	UFUNCTION()
+	void Sheath();
+	UFUNCTION()
+	void Draw();
 	UFUNCTION()
 	void StandToRoll();
 	UFUNCTION()
@@ -128,4 +150,20 @@ protected:
 	void Drink();
 	UFUNCTION()
 	void Fire();
+	UFUNCTION()
+	void BulletChange();
+
+	UFUNCTION()
+	void InitiatePunchCombo();
+	UFUNCTION()
+	void BruteRush0(bool Initiating);
+	UFUNCTION()
+	void FinishPunch();
+
+	UFUNCTION()
+	void Brute_LMB_Combo(int32 ComboStack);
+	UFUNCTION()
+	void BattleStaffUlt();
+	UFUNCTION()
+	void RifleStaffUlt();
 };

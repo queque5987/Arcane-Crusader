@@ -14,7 +14,7 @@ ACDroppedItem::ACDroppedItem()
 	SetRootComponent(StaticMeshComponent);
 
 	Collider = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	Collider->SetSphereRadius(1500.f);
+	Collider->SetSphereRadius(200.f);
 	Collider->SetupAttachment(StaticMeshComponent);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Runes/SM_Temple_Rune_Sphere_01"));

@@ -18,6 +18,8 @@ class MMB_API IIPortalNPC
 	GENERATED_BODY()
 
 public:
+	/*Deprecated*/
 	virtual void GetTeleportableMaps(TArray<struct FTeleportableMapTableRow*>& Arr) {}
+	virtual void GetTeleportableMaps(TArray<struct FTeleportableMapMonsterTableRow*>& Arr) {}
 	
 };

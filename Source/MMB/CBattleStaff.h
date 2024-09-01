@@ -16,17 +16,26 @@ class MMB_API ACBattleStaff : public AActor, public IIWeapon
 	GENERATED_BODY()
 public:
 	ACBattleStaff();
+
+	virtual void BeginPlay() override;
 	//virtual void LMB_Attack() override;
 	virtual void LMB_Triggered(struct AttackResult& AttackResult) override;
 	virtual void LMB_Completed(struct AttackResult& AttackResult) override;
 	virtual void RMB_Triggered(struct AttackResult& AttackResult) override;
-
+	virtual void RMB_Completed(struct AttackResult& AttackResult) override;
 
 	//void LMB_Triggered(struct AttackResult& AttackResult);
 	//void LMB_Completed(struct AttackResult& AttackResult);
 	//void RMB_Triggered(struct AttackResult& AttackResult);
+	virtual void Tab_Triggered(struct AttackResult& AttackResult) override;
 	//virtual void ComboContinue() override;
 	//virtual void RMB_Completed() override;
+	virtual void Ult_Triggered(struct AttackResult& AttackResult) override;
+	virtual void UltFunc0() override;
+	virtual void UltFunc1() override;
+
+	virtual void OnEquipped() override;
+	//virtual void OnUnequipped() override;
 
 	virtual float GettempDamage0() override;
 	virtual float GettempDamage1() override;
@@ -39,11 +48,16 @@ public:
 	virtual void SetIsEquiped(bool e) override;
 	virtual void SetAttackDamage(float e) override { AttackDamage = e; }
 	virtual void SetWeaponName(FName e) override { WeaponName = e; }
+	virtual void OnAttackSwingEnd() override;
+
+	virtual class UStaticMeshComponent* GetStaffStaticMeshComponent() override;
 
 	UFUNCTION()
 	void OnPickUp(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	/*typedef void (ACBattleStaff::* CallBackFunction)(ACPlayerCharacter*);
 	CallBackFunction FComboContinue;*/
+
+	virtual int32 GetWeaponMode() override;
 
 	virtual void SpawnEmitterAttachedToSocket() override;
 	//void SpawnEmitterAttachedToSocket();
@@ -54,7 +68,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	class UParticleSystemComponent* FireSocketEffectComponent;
 
-	virtual bool MeleeAttackHitCheck() override;
+	virtual bool MeleeAttackHitCheck(int32 HitMode = 0, float fDamageScale = 0.f) override;
 
 	virtual class UParticleSystem* GetWeaponEffect(int e) override;
 	virtual class USoundBase* GetWeaponSoundEffect(int e) override;
@@ -69,30 +83,54 @@ protected:
 	FVector PrevFireSocketPos;
 	FVector SwingingDirection;
 	FTimerHandle EffectSpawnTimerHandler;
+	FTimerHandle ComboAttackResetTimerHandler;
 	TQueue<class UParticleSystemComponent*> HitParticleQueue;
 	void DequeueHitParticle();
 private:
+//HitCheck
+	bool StaffHitCheck(FVector HitLocation = FVector::ZeroVector, float fDamageScale = 0.f);
+	bool FistHitCheck(bool IsLeft, float fDamageScale = 0.f);
+
 	float AttackingEffectClock = 2.4f;
-	float CAEC = 0.f;
-	//class UParticleSystemComponent* ParticleSystemFireBall;
+	//float CAEC = 0.f; ????
+
+	// ??
 	void CreateParticleSystem();
-	//void Combo1Attack(ACPlayerCharacter* PC);
-	//void Combo2Attack(ACPlayerCharacter* PC);
-	//void Combo3Attack(ACPlayerCharacter* PC);
 
-
-
-
-
-
-
+// Brute Mode
+	bool BruteMode;
+	float BruteCoolDownMax;
+	float BruteCoolDown;
+	float BruteGaugeMax;
+	float BruteGauge;
+	float BruteChargedAD;
+	int32 BruteLMBComboStack;
+	void AbortBruteMode();
+public:
+	bool GetBruteMode() { return BruteMode; };
+	float GetBruteCoolDownMax() { return BruteCoolDownMax; };
+	float GetBruteCoolDown() { return BruteCoolDown; };
+	float GetBruteGaugeMax() { return BruteGaugeMax; };
+	float GetBruteGauge() { return BruteGauge; };
+	virtual void AddBruteGauge(float BG) override;
+// Brute Mode End
 public:
 	class UStaticMeshComponent* StaticMeshComponent;
 	class USphereComponent* Collider;
 
+// Weapon Effect
+	UPROPERTY(EditAnywhere)
+	class UCWeaponSilhouetteComponent* WeaponOraEffect;
+	UPROPERTY(EditAnywhere)
+	class UCWeaponSilhouette_Gauntlet* WeaponOraEffect_BruteMode;
+
 	TArray<UParticleSystem*> WeaponEffect;
 	TArray<USoundBase*> WeaponSoundEffect;
 	class USoundCue* StaffMeleeHitSoundCue;
+
+	virtual void ActivateEffect() override;
+	virtual void DeactivateEffect() override;
+	virtual void SetCharge(float e, bool IsLeft = false) override;
 protected:
 	float tempDamage0;
 	float tempDamage1;

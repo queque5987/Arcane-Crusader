@@ -1,16 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CPlayerCharacter.h"
 #include "IWidgetInteract.h"
 #include "PCH.h"
 #include "Engine/LevelStreaming.h"
 #include "IFlyMonster.h"
 #include "CStageGameMode.h"
+#include "GameFramework//PlayerStart.h"
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
 const FName ACPlayerCharacter::RifleSocket(TEXT("RifleSocket"));
+const FName ACPlayerCharacter::tempRifleSocket(TEXT("tempRifleSocket"));
+const FName ACPlayerCharacter::BackSocket(TEXT("BackSocket"));
 
 ACPlayerCharacter::ACPlayerCharacter()
 {
@@ -20,11 +20,13 @@ ACPlayerCharacter::ACPlayerCharacter()
 	bUIControlling = false;
 	CastingClock = -1.f;
 	State = 0;//1073741832;
+	KeyState = 0;
 	PlayerGold = 100;
 	HP = 100;
 	MaxHP = 100;
 	Stamina = 0;
-	MaxStamina = 100;
+	MaxStamina = 500;
+	UltGauge = 0.f;
 	ShiftStamina = 4.f;
 	StaminaRegain = 12.f;
 	LastDealingEnemy = nullptr;
@@ -47,6 +49,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ConstructorHelpers::FObjectFinder<UInputAction> Q2Finder(TEXT("/Game/Player/Input/IA_2"));
 	ConstructorHelpers::FObjectFinder<UInputAction> Q3Finder(TEXT("/Game/Player/Input/IA_3"));
 	ConstructorHelpers::FObjectFinder<UInputAction> TabFinder(TEXT("/Game/Player/Input/IA_Tab"));
+	ConstructorHelpers::FObjectFinder<UInputAction> QFinder(TEXT("/Game/Player/Input/IA_Q"));
 
 	if (IMCFinder	.Succeeded()) DefaultMappingContext = IMCFinder.Object;
 	if (MoveFinder	.Succeeded()) MoveAction = MoveFinder.Object;
@@ -64,6 +67,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	if (Q2Finder.Succeeded()) Quick2Action = Q2Finder.Object;
 	if (Q3Finder.Succeeded()) Quick3Action = Q3Finder.Object;
 	if (TabFinder.Succeeded()) TabAction = TabFinder.Object;
+	if (QFinder.Succeeded()) QAction = QFinder.Object;
 
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
@@ -134,6 +138,16 @@ void ACPlayerCharacter::BeginPlay()
 	{
 		SetActorLocation(StartPos);
 	}
+	else
+	{
+		AActor* PS = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
+		if (PS != nullptr)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Player Start Point : %s"), *PS->GetActorLocation().ToString());
+			//DrawDebugSphere(GetWorld(), PS->GetActorLocation(), 300.f, 32.f, FColor::Blue, false, 10.f);
+			StartPos = PS->GetActorLocation();
+		}
+	}
 
 	GetWorld()->GetTimerManager().SetTimer(StageStartHandle, FTimerDelegate::CreateLambda([&] {
 		bool Flag = true;
@@ -148,11 +162,23 @@ void ACPlayerCharacter::BeginPlay()
 		if (Flag)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Loaded"));
+			SetActorLocation(StartPos);
 			GetWorld()->GetTimerManager().ClearTimer(StageStartHandle);
 		}
-		else UE_LOG(LogTemp, Log, TEXT("Loading"));
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Loading"));
+		}
 		}), 0.1f, true
 	);
+
+	if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
+	{
+		UIController->SetMaxHP(GetMaxHP());
+		UIController->SetMaxStamina(GetMaxStamina());
+	}
+
+	if (WeaponEquipped != nullptr) OnWeaponChanged();
 }
 
 void ACPlayerCharacter::SetCanGetup()
@@ -219,6 +245,24 @@ void ACPlayerCharacter::GetLineTraceResult(FHitResult& HitResult, float AttackRa
 	}
 }
 
+void ACPlayerCharacter::SetMaxHP(float NewMaxHP)
+{
+	if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
+	{
+		UIController->SetMaxHP(NewMaxHP);
+	}
+	MaxHP = NewMaxHP;
+}
+
+void ACPlayerCharacter::SetMaxStamina(float NewMaxStamina)
+{
+	if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
+	{
+		UIController->SetMaxStamina(NewMaxStamina);
+	}
+	MaxStamina = NewMaxStamina;
+}
+
 void ACPlayerCharacter::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (CastingClock >= 1.2f)
@@ -253,16 +297,12 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 		return UICheck;
 		break;
 	case(PLAYER_INPUT_TYPE_CLICK):
-		if (GetState(PLAYER_DRINKING_POTION)) return false;
-		//if (notDead) LazyGetUp();
-		//else Anykey_Triggered();
-		//return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
-		//break;
+		if (GetState(PLAYER_DRINKING_POTION))
+		{
+			UE_LOG(LogTemp, Log, TEXT("PLAYER_DRINKING_POTION True"));
+			return false;
+		}
 	case(PLAYER_INPUT_TYPE_JUMP):
-		//if (notDead) LazyGetUp();
-		//else Anykey_Triggered();
-		//return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
-		//break;
 	case(PLAYER_INPUT_TYPE_MOVE):
 		if (notDead) LazyGetUp();
 		else Anykey_Triggered();
@@ -286,44 +326,87 @@ void ACPlayerCharacter::Revive(ACPlayerController* PC)
 	HP = MaxHP;
 }
 
+void ACPlayerCharacter::OnWeaponChanged()
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	if (UIController == nullptr) return;
+	UIController->SetAimVisibility(WeaponEquipped != nullptr ? WeaponEquipped->IsA(ACRifleStaff::StaticClass()) : false);
+	UIController->SetBattleVIsibility(WeaponEquipped != nullptr ? WeaponEquipped->IsA(ACBattleStaff::StaticClass()) : false);
+	if (ACBattleStaff* BS = Cast<ACBattleStaff>(WeaponEquipped))
+	{
+		UIController->SetBruteCooldownParam(BS->GetBruteCoolDownMax());
+	}
+	//if (ACBattleStaff* BS = Cast<ACBattleStaff>(WeaponEquipped))
+	//{
+	//	UIController->SetBruteCooldown(BS->GetBruteCoolDown() / BS->GetBruteCoolDownMax());
+}
+
 void ACPlayerCharacter::UpdateHUDStates()
 {
-	if (ACPlayerController* PCC = Cast<ACPlayerController>(GetController()))
+	// TODO Use Interface Instead
+	ACPlayerController* PCC = Cast<ACPlayerController>(GetController());
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	if (UIController == nullptr)
 	{
-		if (PCC->HUDOverlay->GetVisibility() == ESlateVisibility::Visible)
+		UE_LOG(LogTemp, Error, TEXT("PlayerUIController Not Found"));
+		return;
+	}
+	if (PCC == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerController Not Found"));
+		return;
+	}
+	if (PCC->HUDOverlay->GetVisibility() != ESlateVisibility::Visible) return;
+
+	// HP BAR
+
+	PCC->SetHPPercent(HP / MaxHP);
+	PCC->SetStaminaPercent(Stamina / MaxStamina);
+
+	if (LastDealingEnemy != nullptr)
+	{
+		PCC->SetEnemyHP(LastDealingEnemy->GetHP() / LastDealingEnemy->GetMaxHP());
+		PCC->SetEnemyHPVisibility(true);
+	}
+	else
+	{
+		PCC->SetEnemyHPVisibility(false);
+	}
+
+	// AIM SPOT
+	if (WeaponEquipped == nullptr) return;
+
+	// Move To OnWeaponChanged 
+	//PCC->SetAimVisibility(WeaponEquipped->IsA(ACRifleStaff::StaticClass())); //GetState(PLAYER_AIMING)
+
+	if (ACBattleStaff* BS = Cast<ACBattleStaff>(WeaponEquipped))
+	{
+		//UIController->SetBruteCooldown(BS->GetBruteCoolDown() / BS->GetBruteCoolDownMax());
+		UIController->SetBruteGauge(BS->GetBruteGauge() / BS->GetBruteGaugeMax());
+		UIController->SetBruteMode(BS->GetBruteMode());
+	}
+	if (ACRifleStaff* RS = Cast<ACRifleStaff>(WeaponEquipped))
+	{
+		PCC->SetAimSpriteBlur(GetState(PLAYER_AIMING) ? 0.f : 10.f);
+		// Rifle Select UI Update
+		FVector LeftBullets;
+		RS->GetLeftBullet(LeftBullets);
+		//UE_LOG(LogTemp, Log, TEXT("[%f, %f, %f]"), LeftBullets.Y, LeftBullets.X, LeftBullets.Z);
+		int32 CurrBulletType = RS->GetBulletType();
+		PCC->SetRifleSelectCylinder(LeftBullets, FVector(CurrBulletType, (CurrBulletType + 2) % 3, (CurrBulletType + 1) % 3));
+		// Charge Visibility
+		if (RS != nullptr && RS->GetBulletType() == 0)
 		{
-			// HP BAR
-
-			//PCC->HUDOverlay->HPBar->SetPercent(HP / MaxHP);
-			PCC->SetHPPercent(HP / MaxHP);
-			PCC->HUDOverlay->StaminaBar->SetPercent(Stamina / MaxStamina);
-
-			if (LastDealingEnemy != nullptr)
-			{
-				PCC->HUDOverlay->EnemyHPBar->SetPercent(LastDealingEnemy->GetHP()/ LastDealingEnemy->GetMaxHP());
-				PCC->HUDOverlay->EnemyHPBar->SetVisibility(ESlateVisibility::Visible);
-			}
+			float Charged = RS->GetLMBCharge();
+			//UE_LOG(LogTemp, Log, TEXT("%f"), Charged);
+			if (Charged < 0.05f) PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
 			else
 			{
-				PCC->HUDOverlay->EnemyHPBar->SetVisibility(ESlateVisibility::Hidden);
+				PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::HitTestInvisible);
+				PCC->HUDOverlay->AimCharge->SetPercent(Charged / 2.f);
 			}
-
-			// AIM SPOT
-			PCC->HUDOverlay->SetAimVisibility(GetState(PLAYER_AIMING));
-			ACRifleStaff* RS = Cast<ACRifleStaff>(WeaponEquipped);
-			if (RS != nullptr && RS->GetBulletType() == 0)
-			{
-				float Charged = RS->GetLMBCharge();
-				UE_LOG(LogTemp, Log, TEXT("%f"), Charged);
-				if (Charged < 0.05f) PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
-				else
-				{
-					PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::HitTestInvisible);
-					PCC->HUDOverlay->AimCharge->SetPercent(Charged / 2.f);
-				}
-			}
-			else PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
 		}
+		else PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -385,7 +468,7 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 		GetState(PLAYER_STAMINA_REGAIN) && 
 		!GetState(PLAYER_STAMINA_RUNOUT) &&
 		!GetState(PLAYER_ROLLING)
-		) Stamina += StaminaRegain * DeltaTime;
+		) Stamina += (StaminaRegain + (MaxStamina - Stamina) / MaxStamina * 50.f) * DeltaTime;
 	if (Stamina > MaxStamina) Stamina = MaxStamina;
 
 // STAMINA RUNOUT
@@ -525,6 +608,7 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(Quick2Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick2);
 		EnhancedInputComponent->BindAction(Quick3Action, ETriggerEvent::Completed, this, &ACPlayerCharacter::Quick3);
 		EnhancedInputComponent->BindAction(TabAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::Tab);
+		EnhancedInputComponent->BindAction(QAction, ETriggerEvent::Completed, this, &ACPlayerCharacter::QCompleted);
 	}
 }
 
@@ -660,6 +744,8 @@ void ACPlayerCharacter::LMB()
 
 void ACPlayerCharacter::LMBTriggered()
 {
+	SetKeyState(PLAYER_INPUT_LMB, true);
+
 	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
 	{
 		if (WeaponEquipped != nullptr)
@@ -674,6 +760,8 @@ void ACPlayerCharacter::LMBTriggered()
 
 void ACPlayerCharacter::LMBCompleted()
 {
+	SetKeyState(PLAYER_INPUT_LMB, false);
+
 	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
 	{
 		if (WeaponEquipped != nullptr)
@@ -688,6 +776,8 @@ void ACPlayerCharacter::LMBCompleted()
 
 void ACPlayerCharacter::RMBTriggered()
 {
+	SetKeyState(PLAYER_INPUT_RMB, true);
+
 	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
 	{
 		if (WeaponEquipped != nullptr)
@@ -702,6 +792,8 @@ void ACPlayerCharacter::RMBTriggered()
 
 void ACPlayerCharacter::RMBCompleted()
 {
+	SetKeyState(PLAYER_INPUT_RMB, false);
+
 	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
 	{
 		if (WeaponEquipped != nullptr)
@@ -845,14 +937,68 @@ void ACPlayerCharacter::Quick3()
 
 void ACPlayerCharacter::Tab()
 {
-	UE_LOG(LogTemp, Log, TEXT("Tab"));
+	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK)) return;
+	if (WeaponEquipped == nullptr) return;
 
-	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK) || GetState(PLAYER_ATTACKING)) return;
+	bool RS = WeaponEquipped->IsA(ACRifleStaff::StaticClass());
+	if (RS && (!GetState(PLAYER_AIMING) && GetState(PLAYER_ATTACKING))) return;
+	if (!RS && GetState(PLAYER_ATTACKING)) return;
 
-	if (WeaponEquipped != nullptr)
+	AttackResult AR = AttackResult();
+	IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped);
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+
+	if (IWeaponEquipped == nullptr || UIController == nullptr) return;
+
+	if (RS)
 	{
-		AttackResult AR = AttackResult();
-		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->Tab_Triggered(AR);
+		if (!UIController->GetWeaponChangeReady())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Weapon Change Is Not Ready"));
+			return;
+		}
+		IWeaponEquipped->Tab_Triggered(AR);
+
+		if (!GetState(PLAYER_ROLLING)) BulletChange.Execute();
+		UIController->SetAimSpriteColorOverlay(IWeaponEquipped->GetWeaponMode());
+		UIController->DoRifleSelectBarrelRoll();
+	}
+	else if (WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		if (!UIController->GetWeaponChangeReady())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Weapon Change Is Not Ready"));
+			return;
+		}
+		SwitchBruteMode(IWeaponEquipped->GetWeaponMode() <= 0);
+		IWeaponEquipped->Tab_Triggered(AR);
+		if (AR.Succeeded)
+		{
+			UIController->SetAimSpriteColorOverlay(-1.f);
+		}
+	}
+}
+
+void ACPlayerCharacter::QCompleted()
+{
+	if (!GetState(PLAYER_ATTACKING))
+	{
+		if (UltGauge < 100.f) return;
+		if (WeaponEquipped != nullptr)
+		{
+			AttackResult AR = AttackResult();
+			if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->Ult_Triggered(AR);
+			StaminaSpend(AR.StaminaUsed);
+
+			UltGauge = 0.f;
+
+			if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
+			{
+				UIController->SetCenterProgress(UltGauge / 100.f);
+			}
+
+			SetState(PLAYER_ULT_INVINCIBLE, true);
+		}
 	}
 }
 
@@ -886,20 +1032,55 @@ void ACPlayerCharacter::Heal(float HealPoint)
 void ACPlayerCharacter::Equip(AActor& ActorToEquip)
 {
 	IIWeapon* WTE = Cast<IIWeapon>(&ActorToEquip);
+	if (WTE == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACPlayerCharacter - ActorToEquip Is Not Weapon"));
+		return;
+	}
 	FName AttachSocket = MeleeSocket;
-	if (ActorToEquip.IsA(ACRifleStaff::StaticClass())) AttachSocket = RifleSocket;
+	
+	// Rifle Staff Equipped
+	if (ACRifleStaff* Rifle = Cast<ACRifleStaff>(&ActorToEquip))
+	{
+		AttachSocket = RifleSocket;
+		//UE_LOG(LogTemp, Log, TEXT("ACPlayerCharacter Equip : Binding Lambda To Rifle->BulletCountUpdated"));
+		Rifle->BulletCountUpdated.BindLambda([&](float NewPercent) {
+			IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+			//UE_LOG(LogTemp, Log, TEXT("ACPlayerCharacter : Set NewPercent : %f"), NewPercent);
+			if (UIController == nullptr) return;
+			UIController->SetAimProgressBarPercent(NewPercent);
+			}
+		);
+	}
+	// Default Battle Staff Equip
 	ActorToEquip.AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), AttachSocket);
 	CurrentWeaponMode = WeaponSocket;
 	UE_LOG(LogTemp, Log, TEXT("Equiped %s"), *ActorToEquip.GetName());
 	WeaponEquipped = &ActorToEquip;
 	IsWeaponEquiped = true;
 	ActorToEquip.SetOwner(this);
+
+	WTE->OnEquipped();
+	OnWeaponChanged();
 }
 
 void ACPlayerCharacter::UnEquip()
 {
 	WeaponEquipped->Destroy();
 	IsWeaponEquiped = false;
+}
+
+void ACPlayerCharacter::SwitchBruteMode(bool BruteMode)
+{
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass())) return;
+	IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped);
+	if (IWeaponEquipped == nullptr) return;
+
+	AttackResult AR = AttackResult();
+	FName SocketName = BruteMode ? BackSocket : MeleeSocket;
+	//UE_LOG(LogTemp, Log, TEXT("Change Weapon Socket To %s / Mode : %d"), *SocketName.ToString(), IWeaponEquipped->GetWeaponMode());
+	WeaponEquipped->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+	WeaponEquipped->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), SocketName);
 }
 
 bool ACPlayerCharacter::GetState(UINT StateType)
@@ -936,6 +1117,23 @@ void ACPlayerCharacter::SetState(UINT StateType, bool b)
 		break;
 	default:
 		break;
+	}
+}
+
+bool ACPlayerCharacter::GetKeyState(UINT StateType)
+{
+	//UE_LOG(LogTemp, Log, TEXT("KeyState : %f"), KeyState);
+	if (KeyState & StateType) return true;
+	else return false;
+}
+
+void ACPlayerCharacter::SetKeyState(UINT StateType, bool b)
+{
+	if (GetKeyState(StateType) ^ b)
+	{
+		if (b) KeyState += StateType;
+		else KeyState -= StateType;
+		//UE_LOG(LogTemp, Log, TEXT("KeyState : %f"), KeyState);
 	}
 }
 
@@ -989,6 +1187,11 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 		UE_LOG(LogTemp, Log, TEXT("Player in Ragdoll"));
 		return false;
 	}
+	else if (GetState(PLAYER_ULT_INVINCIBLE))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Player Using Ult"));
+		return false;
+	}
 
 	ItemStat CurrStat = ItemStat();
 
@@ -1003,6 +1206,9 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 	SetState(PLAYER_UI_INTERACTING, false);
 	SetLastDealingEnemy(Attacker);
 	
+	UIController->AddRecentDamage(e * DeffencePer / MaxHP);
+
+
 	ShowDamageUI(e * DeffencePer, HitLocation, true);
 
 	if (HP <= 0.f) return true;
@@ -1237,6 +1443,31 @@ float ACPlayerCharacter::GetBonusAttackDamage()
 	return 0.0f;
 }
 
+void ACPlayerCharacter::DealtDamage(float AttackDamage, float DamageScale, ACharacter* TargetCharacter)
+{
+	UE_LOG(LogTemp, Log, TEXT("ACPlayerCharacter::DealtDamage - Dealt %f To %s TODO Add Some Ult Game Based On Damage"), AttackDamage * DamageScale, *TargetCharacter->GetName());
+
+	UltGauge += (FMath::Min(FMath::Floor(AttackDamage / 10.f), 10.f) * DamageScale) * 10.f;
+	if (UltGauge > 100.f) UltGauge = 100.f;
+
+	if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
+	{
+		UIController->SetCenterProgress(UltGauge / 100.f);
+	}
+
+	if (WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		if (IsBruteMode()) return;
+		IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+		if (IW == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("WeaponEquipped Is Not Correct Type"));
+			return;
+		}
+		IW->AddBruteGauge((FMath::Min(FMath::Floor(AttackDamage / 10.f), 10.f) * (2.f + DamageScale)));
+	}
+}
+
 void ACPlayerCharacter::FallToRevivalPoint(AActor* AttachedCamera, float Damage)
 {
 	APlayerController* AController = Cast<APlayerController>(GetController());
@@ -1249,6 +1480,151 @@ void ACPlayerCharacter::FallToRevivalPoint(AActor* AttachedCamera, float Damage)
 			}), 3.f, false
 	);
 	if (Damage > 0.f) HitDamage(Damage, nullptr);
+}
+
+FTransform ACPlayerCharacter::GetSocketTransform(FName SocketName)
+{
+	if (GetMesh() == nullptr) return FTransform();
+	return GetMesh()->GetSocketTransform(SocketName);
+}
+
+void ACPlayerCharacter::WeaponEffectActivate()
+{
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACPlayerCharacter Weapon Not Found"));
+		return;
+	}
+	IW->ActivateEffect();
+}
+
+void ACPlayerCharacter::WeaponEffectDeactivate()
+{
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACPlayerCharacter Weapon Not Found"));
+		return;
+	}
+	IW->DeactivateEffect();
+}
+
+void ACPlayerCharacter::SetWeaponEffectCharge(float e, bool IsLeft)
+{
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACPlayerCharacter Weapon Not Found"));
+		return;
+	}
+	IW->SetCharge(e, IsLeft);
+}
+
+void ACPlayerCharacter::BruteRushContinue()
+{
+	if (GetState(PLAYER_DIED)) return;
+
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass())) return;
+	if (GetState(PLAYER_BRUTEMODE_ORAORA))
+	{
+		BruteRush0.Execute(BruteRushComboCounter < 1 ? true : false);
+		BruteRushComboCounter += 1;
+	}
+	else
+	{
+		if (IsBruteMode() && BruteRushComboCounter > 2)
+		{
+			FinishPunch.Execute();
+		}
+		//else
+		//{
+		//	SetState(PLAYER_ATTACKING, false);
+		//}
+		BruteRushComboCounter = 0;
+	}
+
+	//float e = FMath::FRandRange(0.f, 1.f);
+	//if (e > 0.2f)
+	//{
+	//}
+	//UE_LOG(LogTemp, Log, TEXT("e : %f, %d"), e, int32(e * 100.f) % 20 / 4);
+}
+
+bool ACPlayerCharacter::IsBruteMode()
+{
+	if (WeaponEquipped == nullptr) return false;
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass())) return false;
+	if (ACBattleStaff* BS = Cast<ACBattleStaff>(WeaponEquipped))
+	{
+		return BS->GetBruteMode();
+	}
+	return false;
+}
+
+void ACPlayerCharacter::ThrowStaffEffect()
+{
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+	
+	IW->UltFunc0();
+}
+
+void ACPlayerCharacter::TurnBruteMode()
+{
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+
+	SwitchBruteMode(true);
+	IW->UltFunc1();
+}
+
+void ACPlayerCharacter::SwitchWeaponHoldingHand(bool ToLeft)
+{
+	WeaponEquipped->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+	WeaponEquipped->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), ToLeft? tempRifleSocket : RifleSocket);
+}
+
+void ACPlayerCharacter::SpawnAndGraspBeacon()
+{
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr || !WeaponEquipped->IsA(ACRifleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("WeaponEquipped Is Not Currect Type"));
+	}
+
+	IW->UltFunc0();
+}
+
+void ACPlayerCharacter::ThrowBeacon()
+{
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr || !WeaponEquipped->IsA(ACRifleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("WeaponEquipped Is Not Currect Type"));
+	}
+
+	IW->UltFunc1();
 }
 
 float ACPlayerCharacter::GetCameraArmLength()

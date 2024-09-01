@@ -25,20 +25,17 @@ void UCShopItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 		switch (Rarity)
 		{
 		case(ITEM_RARE):
-			RarityColor = FVector(0.176293f, 0.559561f, 1.f);
+			RarityColor = RGB_RARE;
 			break;
-
 		case(ITEM_EPIC):
-			RarityColor = FVector(0.47264f, 0.f, 0.734375f);
+			RarityColor = RGB_EPIC;
 			break;
-
 		case(ITEM_LEGENDARY):
-			RarityColor = FVector(1.f, 0.610103f, 0.268382f);
+			RarityColor = RGB_LEGENDARY;
 			break;
-
 		case(ITEM_NORMAL):
 		default:
-			RarityColor = FVector(1.f, 0.962442f, 0.99769f);
+			RarityColor = RGB_NORMAL;
 			break;
 		}
 		ItemSelectSpriteMaterial->SetVectorParameterValue("TextureColorOverride", RarityColor);
@@ -83,7 +80,11 @@ void UCShopItem::NativeOnInitialized()
 	Super::NativeOnInitialized();
 	ItemButton->OnClicked.RemoveDynamic(this, &UCInventoryItem::OnButtonClicked);
 	ItemButton->OnClicked.AddDynamic(this, &UCShopItem::OnShopButtonClicked);
+	ItemButton->OnHovered.AddDynamic(this, &UCShopItem::OnHovered);
+	ItemButton->OnUnhovered.AddDynamic(this, &UCShopItem::OnUnHovered);
+
 	ClickedSec = 0.f;
+	bHovered = false;
 
 	if (ItemSelectSprite != nullptr) ItemSelectSpriteMaterial = ItemSelectSprite->GetDynamicMaterial();
 	if (ItemSelectSpriteMaterial == nullptr)
@@ -104,7 +105,7 @@ void UCShopItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		//UE_LOG(LogTemp, Log, TEXT("Set TextureIndex To %f"), CurrentTextureIndex);
 	}
 
-	if (bPressed)
+	if (bPressed || bHovered)
 	{
 		CurrentTextureIndex += InDeltaTime * 10.f;
 		//UE_LOG(LogTemp, Log, TEXT("Should GIF Be Working"));

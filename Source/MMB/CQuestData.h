@@ -50,6 +50,7 @@ class MMB_API UCQuestData : public UObject
 	//bool bCleared;
 public:
 	void SetDetails(FQuestsRow* Row);
+	void SetQuestByMonsterConfig(class UFMonsterConfigure* MonsterConfig);
 
 	// Row Properties Getter Setter
 	FString GetQuestName() { return QuestName; }

@@ -51,7 +51,7 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 		SweepActor = Cast<ACharacter>(SweepResult.GetActor());
 		HitLocation = SweepResult.Location;
 	}
-	if(Cast<ACPlayerCharacter>(PC))
+	if(ACPlayerCharacter* CPC = Cast<ACPlayerCharacter>(PC))
 	{
 		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(SweepResult.GetActor());
 		if (!IsValid(EC)) return;
@@ -59,6 +59,7 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 		UE_LOG(LogTemp, Log, TEXT("Projectile Overlaped Component : %s"), *SweepResult.GetComponent()->GetName());
 
 		//EC->HitDamage(TotalDamage, *PC, SweepResult.Location);
+		CPC->DealtDamage(TotalDamage, 0.1f, EC);
 		EC->HitDamage(TotalDamage, *PC, GetActorLocation());
 		Explode(true);
 	}
@@ -131,12 +132,13 @@ void ACProjectile::SweepOnLaunch()
 			HitLocation = GetActorLocation();
 		}
 
-		if (Cast<ACPlayerCharacter>(PC))
+		if (ACPlayerCharacter* CPC = Cast<ACPlayerCharacter>(PC))
 		{
 			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
 			if (!IsValid(EC)) return;
 			//EC->HitDamage(TotalDamage, *PC, HitResult.Location);
 			EC->HitDamage(TotalDamage, *PC, GetActorLocation());
+			CPC->DealtDamage(TotalDamage, 0.1f, EC);
 			Explode(true);
 		}
 		else if (ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))

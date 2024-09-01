@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "CRifleStaff.generated.h"
 
+DECLARE_DELEGATE_OneParam(FBulletCountUpdated, float);
+
 UCLASS()
 class MMB_API ACRifleStaff : public AActor, public IIWeapon
 {
@@ -22,6 +24,10 @@ public:
 	TArray<UParticleSystem*> WeaponEffect;
 	TArray<USoundBase*> WeaponSoundEffect;
 	class USoundCue* StaffMeleeHitSoundCue;
+	class USoundCue* BombSoundCue;
+
+	UPROPERTY(EditAnywhere)
+	class UCWeaponSilhouette_Rifle* RifleOraEffect;
 
 	class UParticleSystemComponent* FireSocketEffectComponent;
 	virtual void LMB_Triggered(struct AttackResult& AttackResult) override;
@@ -29,30 +35,49 @@ public:
 	virtual void RMB_Triggered(struct AttackResult& AttackResult) override;
 	virtual void RMB_Completed(struct AttackResult& AttackResult) override;
 	virtual void Tab_Triggered(struct AttackResult& AttackResult) override;
+	virtual void Ult_Triggered(struct AttackResult& AttackResult) override;
+
+	virtual void UltFunc0() override;
+	virtual void UltFunc1() override;
+	/*Use Thie Instead Get BulletType*/
+	virtual int32 GetWeaponMode() override { return BulletType; };
 	virtual void SetIsEquiped(bool e) override;
 	virtual void SetAttackDamage(float e) override { AttackDamage = e; }
 	virtual void SetBulletType(int32 e) override;
 	virtual void SetItemStat(struct ItemStat* ItemStats) override;
 	virtual void SetWeaponName(FName e) override { WeaponName = e; }
 	virtual void SetOwner(AActor* NewOwner) override;
-	//UFUNCTION()
-	//void OnPickUp(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	//virtual int32 GetCurrBulletType() override { return BulletType; }
+	virtual float GetMaxBullet(int32 ToGetBulletType = 3) override;
+	virtual float GetCurrBullet(int32 ToGetBulletType = 3) override;
+
 protected:
-	// Called when the game starts or when spawned
+	FRotator DefaultRotator;
+
+	class ACRifleStaffBeacon* UltBeacon;
+
 	virtual void BeginPlay() override;
 
 
 	//Bullet Stat
 	struct ItemStat* ItemStatus;
 
+	TArray<float> MaxBullet;
+	TArray<float> CurrBullet;
+
 	int32 BulletType;
 	float AttackRange = 2500.f;
 	float BulletSpeed = 100.f;
 	float ConstAttackCoolDown = 0.8f;
 	//
+
 	float LMBCharge = 0.f;
 	int32 ChargeSoundFX = 0;
 	TArray<FTimerHandle> MachineGunTimerHandler;
+	FTimerHandle BulletChangeTimerHandler;
+	FTimerHandle UltBombTimerHandler;
+	int32 BombCounter;
 
 	float tempDamage0;
 	float tempDamage1;
@@ -81,18 +106,28 @@ protected:
 
 	bool IsEquiped;
 	bool bCasting;
+	float fSpinAct;
 	float CastingClock;
 	float DamageScale;
 
 	void Fire();
 	void BuckShot(int32 i = 0);
+	void CancleFire();
+	bool SetSpendBullet(int32 Type, float Amount);
 
+	bool HitCheckAtLocation(FVector SweepLocation, float Radius, float OverrideDamageScale);
 public:
+	FBulletCountUpdated BulletCountUpdated;
+
+	void GetLeftBullet(FVector& LeftBulletPercent);
 	class UAudioComponent* ChargeAudio;
 	bool LMBLock = false;
 	virtual void Tick(float DeltaTime) override;
 	void SetLMBLock(bool e);
+	/*Use Virtual Function - This Will Be Deprecated*/
 	int32 GetBulletType() { return BulletType; };
 	float GetLMBCharge() { return LMBCharge; }
 	virtual void UpdateCharacterStat() override;
+
+	virtual void UltBombArea(FVector BombLocation, float Radius) override;
 };

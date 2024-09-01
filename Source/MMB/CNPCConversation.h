@@ -9,6 +9,7 @@
 #include "Components/ListView.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Button.h"
+#include "Components/Image.h"
 #include "ITeleportNPC.h"
 #include "CNPCConversation.generated.h"
 
@@ -92,8 +93,20 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> TeleportableListBox;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UTileView> TeleportableMapList;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTileView> TeleportableMapList;
+	TObjectPtr<UImage> MapSelection;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> MonsterSelection;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Map_L;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Map_R;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Monster_L;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Monster_R;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnTeleportClose;
 	UPROPERTY(meta = (BindWidget))
@@ -137,12 +150,22 @@ public:
 	void OnButtonQuestClicked();
 	UFUNCTION()
 	void OnButtonLeaveClicked();
+
 	UFUNCTION()
 	void OnButtonTeleportClicked();
+	UFUNCTION()
+	void OnButtonMapLeftClicked();
+	UFUNCTION()
+	void OnButtonMapRightClicked();
+	UFUNCTION()
+	void OnButtonMonsterLeftClicked();
+	UFUNCTION()
+	void OnButtonMonsterRightClicked();
 	UFUNCTION()
 	void OnButtonTeleportCloseClicked();
 	UFUNCTION()
 	void OnButtonTeleportSendClicked();
+
 	UFUNCTION()
 	void OnButtonBuyClicked();
 	UFUNCTION()
@@ -159,6 +182,7 @@ public:
 	void ShutdownSwingby();
 	void SetDialogues(TArray<struct FNPCDialoguesRow*> e) { Dialogues = e; }
 
+	//Deprecated
 	TArray<FTeleportableMapTableRow*> Arr;
 
 	bool IsOnShop();
@@ -189,10 +213,21 @@ private:
 	int BUTTON_REWARD_POSTLINE;
 	//int BUTTON_TELEPORT_POSTLINE;	//DEPRECATED
 
+	class UMaterialInstanceDynamic* MapSelectionMaterialInstance;
+	class UMaterialInstanceDynamic* MonsterSelectionMaterialInstance;
+
+	TArray<FTeleportableMapMonsterTableRow*> SelectableMapArr;
+	float SelectedMapIndex;
+	float SelectedMonsterIndex;
+
+	void SetSelectedMapIndex(float NewMapIndex);
+	void SetSelectedMonsterIndex(float NewMonsterIndex);
+
+	//Deprecated
 	bool IsQuest_NotTeleport = true;
 
 	FQuestsRow* LoadedQuest;
-	//FQuestsRow* LoadedQuestData;
+	//Deprecated
 	int LoadedMapIndex = -1;
 
 	TArray<FWidgetTransform> BtnTransforms;

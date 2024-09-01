@@ -19,6 +19,8 @@ class MMB_API ACPortalNPC : public ACStaticNPC, public IIPortalNPC
 	TArray<FText> ReachableMaps;
 
 public:
+	/*Deprecated*/
 	virtual void GetTeleportableMaps(TArray<struct FTeleportableMapTableRow*>& Arr) override;
+	virtual void GetTeleportableMaps(TArray<struct FTeleportableMapMonsterTableRow*>& Arr) override;
 
 };

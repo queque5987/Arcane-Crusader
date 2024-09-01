@@ -3,6 +3,7 @@
 
 #include "CQuestData.h"
 #include "UObject/ConstructorHelpers.h"
+#include "FMonsterConfigure.h"
 
 UCQuestData::UCQuestData(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -27,7 +28,13 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 	RequiredQuest = Row->RequiredQuest;
 	QuestRewardsQuantity = Row->QuestRewardsQuantity;
 	GivenNPC = GetClassFromPath(Row->ClearableNPCClass);
-	//GivenNPC = Row->
+}
+
+void UCQuestData::SetQuestByMonsterConfig(UFMonsterConfigure* MonsterConfig)
+{
+	if (MonsterConfig->GetMonsterClass() == nullptr) return;
+	//QuestName = MonsterConfig->GetMonsterClass()->GetName();
+	//QuestRecap = 
 }
 
 UClass* UCQuestData::GetClassFromPath(FString ClassPath)

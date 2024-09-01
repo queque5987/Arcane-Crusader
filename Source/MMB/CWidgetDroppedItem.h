@@ -26,4 +26,19 @@ public:
 	TObjectPtr<UImage> ItemImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemName;
+
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> ItemGlowingSprite;
+
+protected:
+
+	int32 Rarity;
+
+	class UMaterialInstanceDynamic* ItemGlowingSpriteMaterial;
+	float CurrentTextureIndex;
+
+	virtual void NativeOnInitialized() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 };

@@ -28,8 +28,13 @@ public:
 	void BuyItem();
 	void SellItem();
 protected:
+	bool bHovered;
+
 	virtual void NativeOnInitialized() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	void OnHovered() { bHovered = true; }
+	void OnUnHovered() { bHovered = false; }
 
 	bool IsShopItem;
 	bool bPressed;

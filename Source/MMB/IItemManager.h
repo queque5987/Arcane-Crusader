@@ -20,4 +20,7 @@ public:
 	virtual UTexture2D* IconGetter(FString IconAssetName) { return nullptr; };
 
 	virtual class UCInventoryItemData* GetItem(FName ItemRowName, int Count = 1) { return nullptr; }
+	virtual class ACEnemyCharacter* GetMonsterClass(FName RowName) { return nullptr; }
+	virtual void GetMonsterConfigure(FName RowName, class UFMonsterConfigure& RtnConfig) {}
+
 };

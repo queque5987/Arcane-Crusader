@@ -11,6 +11,8 @@
 #include "CInventoryItemData.h"
 #include "CGameInstance.h"
 #include "Sound/SoundBase.h"
+//#include "CEnemyCharacter.h"
+#include "FMonsterConfigure.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 AMMBGameModeBase::AMMBGameModeBase()
@@ -48,6 +50,8 @@ AMMBGameModeBase::AMMBGameModeBase()
 
 	ConstructorHelpers::FObjectFinder<UDataTable> ItemTableFinder(TEXT("/Game/Resources/DataTables/DT_ItemTable"));
 	if (ItemTableFinder.Succeeded())	ItemTable = ItemTableFinder.Object;
+	ConstructorHelpers::FObjectFinder<UDataTable> MonsterTableFinder(TEXT("/Game/Resources/DataTables/MonsterConfig/DT_MonsterConfig"));
+	if (MonsterTableFinder.Succeeded())	MonsterConfigTable = MonsterTableFinder.Object;
 
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> AssetData;
@@ -74,9 +78,6 @@ AMMBGameModeBase::AMMBGameModeBase()
 		PreBGMMap.Add(Dat.AssetName.ToString(), tempBGM);
 	}
 
-	//FSoftObjectPath path = FSoftObjectPath("/Game/TestLevel1.TestLevel1");
-	//TSoftObjectPtr<UWorld> testlevel(path);
-	//LevelToLoad = testlevel;
 	ItemGetCounter = 0;
 }
 
@@ -163,6 +164,49 @@ UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
 	D->SetBulletType(Row->BulletType);
 	
 	return D;
+}
+
+void AMMBGameModeBase::GetMonsterConfigure(FName RowName, UFMonsterConfigure& RtnConfig)
+{
+	UE_LOG(LogTemp, Log, TEXT("Monster Config RowName : %s"), *RowName.ToString());
+
+	if (MonsterConfigTable == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("MonsterConfigTable Not Found"));
+		return;
+	}
+	FMonsterConfigTableRow* Row = MonsterConfigTable->FindRow<FMonsterConfigTableRow>(RowName, FString(""));
+	if (Row == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Monster Config Can Not Found"));
+		return;
+	}
+	FString DataTableAddress = Row->DropTable;
+	//DataTableAddress = "/Game/Resources/DataTables/DropTable/" + DataTableAddress;
+	UDataTable* DropTable = LoadObject<UDataTable>(nullptr, *DataTableAddress);
+	if (DropTable == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Monster DropTable Can Not Found"));
+	}
+
+	RtnConfig.SetProperties(
+		StaticLoadClass(UObject::StaticClass(), nullptr, *Row->MonsterClass),
+		DropTable,
+		Row->MonsterHP,
+		Row->MonsterHP,
+		Row->MonsterDamage,
+		Row->MaxWalkSpeed,
+		Row->FlyAcc,
+		Row->VirticalAcc
+	);
+
+	//RtnConfig._MonsterClass = StaticLoadClass(UObject::StaticClass(), nullptr, *Row->MonsterClass);
+	//RtnConfig._AttackDamage = Row->MonsterDamage;
+	//RtnConfig._FlyAcc = Row->FlyAcc;
+	//RtnConfig._HP = Row->MonsterHP;
+	//RtnConfig._MaxHP = Row->MonsterHP;
+	//RtnConfig._MaxWalkSpeed = Row->MaxWalkSpeed;
+	//RtnConfig._VirticalAcc = Row->VirticalAcc;
 }
 
 //FSlateBrush* AMMBGameModeBase::GetSlateBrush(int32 e)
