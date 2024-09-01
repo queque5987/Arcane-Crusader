@@ -5,6 +5,12 @@
 
 void ACPortalNPC::GetTeleportableMaps(TArray<struct FTeleportableMapTableRow*>& Arr)
 {
+	//if (MapTable == nullptr) return;
+	//MapTable->GetAllRows<FTeleportableMapTableRow>(TEXT("GetAllRows"), Arr);
+}
+
+void ACPortalNPC::GetTeleportableMaps(TArray<struct FTeleportableMapMonsterTableRow*>& Arr)
+{
 	if (MapTable == nullptr) return;
-	MapTable->GetAllRows<FTeleportableMapTableRow>(TEXT("GetAllRows"), Arr);
+	MapTable->GetAllRows<FTeleportableMapMonsterTableRow>(TEXT("GetAllRows"), Arr);
 }

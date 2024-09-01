@@ -36,58 +36,58 @@ void ACWeapon::SetIsEquiped(bool e)
 	}
 }
 
-bool ACWeapon::MeleeAttackHitCheck()
-{
-	FHitResult HitResult;
-	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
-	//FCollisionObjectQueryParams OQP(ECollisionChannel::ECC_Pawn);
-	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
-	//FVector FireSocketLocation = 
-	FTransform FireSocketTransform;
-	UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
-	UStaticMeshSocket* FireSocket = SM->FindSocket("FireSocket");
-	FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
-
-	/*bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult,
-		FireSocketTransform.GetLocation(),
-		FireSocketTransform.GetLocation(),
-		FQuat::Identity,
-		PlayerAttackChannel,
-		FCollisionShape::MakeSphere(30.f),
-		Params
-	);*/
-
-	bool bResult = GetWorld()->SweepSingleByObjectType(
-		HitResult,
-		FireSocketTransform.GetLocation(),
-		FireSocketTransform.GetLocation(),
-		FQuat::Identity,
-		OQP,
-		FCollisionShape::MakeSphere(30.f),
-		Params
-	);
-	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
-	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Component : %s"), *HitResult.GetComponent()->GetFullName());
-	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetFullName());
-
-	if (bResult)
-	{
-		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
-		if (EC == nullptr) return false;
-		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
-		if (PC == nullptr)
-		{
-			UE_LOG(LogTemp, Log, TEXT("AttachParentActor is not ACPlayerCharacter"));
-			return false;
-		}
-		UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, DamageScale);
-
-		EC->HitDamage(AttackDamage * DamageScale, *PC, HitResult.Location);
-	}
-	
-	return bResult;
-}
+//bool ACWeapon::MeleeAttackHitCheck(int32 HitMode)
+//{
+//	FHitResult HitResult;
+//	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
+//	//FCollisionObjectQueryParams OQP(ECollisionChannel::ECC_Pawn);
+//	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
+//	//FVector FireSocketLocation = 
+//	FTransform FireSocketTransform;
+//	UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
+//	UStaticMeshSocket* FireSocket = SM->FindSocket("FireSocket");
+//	FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
+//
+//	/*bool bResult = GetWorld()->SweepSingleByChannel(
+//		HitResult,
+//		FireSocketTransform.GetLocation(),
+//		FireSocketTransform.GetLocation(),
+//		FQuat::Identity,
+//		PlayerAttackChannel,
+//		FCollisionShape::MakeSphere(30.f),
+//		Params
+//	);*/
+//
+//	bool bResult = GetWorld()->SweepSingleByObjectType(
+//		HitResult,
+//		FireSocketTransform.GetLocation(),
+//		FireSocketTransform.GetLocation(),
+//		FQuat::Identity,
+//		OQP,
+//		FCollisionShape::MakeSphere(30.f),
+//		Params
+//	);
+//	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
+//	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Component : %s"), *HitResult.GetComponent()->GetFullName());
+//	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetFullName());
+//
+//	if (bResult)
+//	{
+//		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+//		if (EC == nullptr) return false;
+//		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
+//		if (PC == nullptr)
+//		{
+//			UE_LOG(LogTemp, Log, TEXT("AttachParentActor is not ACPlayerCharacter"));
+//			return false;
+//		}
+//		UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, DamageScale);
+//
+//		EC->HitDamage(AttackDamage * DamageScale, *PC, HitResult.Location);
+//	}
+//	
+//	return bResult;
+//}
 
 void ACWeapon::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

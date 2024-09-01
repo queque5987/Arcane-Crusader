@@ -4,27 +4,14 @@
 #include "CEnemyCharacter.h"
 #include "IEnemyBBState.h"
 #include "DrawDebugHelpers.h"
+#include "IPlayerState.h"
 
-// Sets default values
 ACEnemyCharacter::ACEnemyCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	//ConstructorHelpers::FObjectFinder<USkeletalMesh> SMFinder(TEXT("/Game/FourEvilDragonsHP/Meshes/DragonTheNightmare/DragonTheNightmareSK.DragonTheNightmareSK"));
-	//ConstructorHelpers::FObjectFinder<UAnimBlueprint>AnimBPFinder(TEXT("/Game/Enemy/Animation/BP_EnemyAnimIntance.BP_EnemyAnimIntance"));
-	//if (SMFinder.Succeeded())
-	//{
-	//	GetMesh()->SetSkeletalMesh(SMFinder.Object);
-	//	GetMesh()->SetWorldRotation(FRotator(0.f, -90.f, 0.f));
-	//	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-	//}
-	//GetMesh()->SetAnimClass(AnimBPFinder.Object->GeneratedClass);
-	//AIControllerClass = ACEnemyAIController::StaticClass();
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Ignore);
-	//GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 
 	RotationSpeed = 0.8f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -45,7 +32,6 @@ void ACEnemyCharacter::BeginPlay()
 void ACEnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 1000.f, FColor::Blue);
 
 	if (HP <= 0.f)
 	{
@@ -72,6 +58,9 @@ void ACEnemyCharacter::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	//Bone Correction
+	GetMesh();
 }
 
 // Called to bind functionality to input
@@ -176,9 +165,11 @@ void ACEnemyCharacter::HitDamage(float e, ACharacter& Attacker, FVector HitLocat
 	//UE_LOG(LogTemp, Log, TEXT("Took Damage %f"), e);
 	if (HitLocation == FVector::ZeroVector) HitLocation == GetActorLocation();
 	HP -= e;
+
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(&Attacker);
 	PC->SetLastDealingEnemy(this);
 	PC->ShowDamageUI(e, HitLocation);
+
 	if (!bIsDying && HP < 0.f)
 	{
 		//PC->MonsterKilledCount(this->StaticClass());

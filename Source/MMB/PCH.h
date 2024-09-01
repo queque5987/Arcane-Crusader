@@ -63,9 +63,13 @@
 #define PLAYER_DIZZY				UINT(1) << 27
 
 #define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
-//#define UINT(1) << 29
-//#define UINT(1) << 30
-//#define UINT(1) << 31
+#define	PLAYER_BRUTEMODE_ORAORA		UINT(1) << 29
+#define PLAYER_BRUTEMODE_COMBO_IN	UINT(1) << 30
+#define PLAYER_ULT_INVINCIBLE		UINT(1) << 31
+
+#define PLAYER_INPUT_LMB			UINT(1) << 0
+#define PLAYER_INPUT_RMB			UINT(1) << 1
+
 
 #define EnemyAttackChannel		ECollisionChannel::ECC_EngineTraceChannel1
 #define PlayerAttackChannel		ECollisionChannel::ECC_EngineTraceChannel2
@@ -90,6 +94,7 @@
 #define E_RIFLE_SPAWN_EFFECT							2
 #define E_RIFLE_EXPLODE_EFFECT							3
 #define E_RIFLE_LAUNCH_EFFECT							4
+#define E_RIFLE_ULT_EXPLODE_EFFECT						5
 
 #define MAX_E_WEAPONEFFECT								15
 //BattleStaff Sound Effect
@@ -128,6 +133,11 @@
 #define ITEM_LEGENDARY		3
 #define MAX_ITEM_RARITY_NUM	4
 
+#define RGB_NORMAL		FVector(1.f, 0.962442f, 0.99769f)
+#define RGB_RARE		FVector(0.176293f, 0.559561f, 1.f)
+#define RGB_EPIC		FVector(0.47264f, 0.f, 0.734375f)
+#define RGB_LEGENDARY	FVector(1.f, 0.610103f, 0.268382f)
+
 #define PLAYER_HIT_REACT_STAND		0
 #define PLAYER_HIT_REACT_FLINCH		1
 #define PLAYER_HIT_REACT_HITDOWN	2
@@ -150,9 +160,14 @@
 #define ITEM_TYPE_GUITAR	4
 #define ITEM_TYPE_POTION	5
 
+#define RIFLESTAFF_BULLET_RIFLE			0
+#define RIFLESTAFF_BULLET_SHOTGUN		1
+#define RIFLESTAFF_BULLET_MACHINEGUN	2
+
 struct AttackResult
 {
 	float StaminaUsed;
+	bool Succeeded;
 };
 
 struct DELAY_START_PROJECTILE_CONFIGURE
@@ -165,12 +180,14 @@ struct DELAY_START_PROJECTILE_CONFIGURE
 struct MonsterConfigure
 {
 	MonsterConfigure(
+		UClass* MonsterClass = nullptr,
 		class UDataTable* DropTable = nullptr,
 		float HP = 100.f, float MaxHP = 100.f,
 		float AttackDamage = 20.f, float MaxWalkSpeed = 350.f,
 		float FlyAcc = 0.5f, float VirticalAcc = 120.f
 	)
 	{
+		_MonsterClass = MonsterClass;
 		_DropTable = DropTable;
 		_HP = HP;
 		_MaxHP = MaxHP;
@@ -180,6 +197,7 @@ struct MonsterConfigure
 		_VirticalAcc = VirticalAcc;
 	}
 
+	UClass* _MonsterClass;
 	class UDataTable* _DropTable;
 	float _HP;
 	float _MaxHP;

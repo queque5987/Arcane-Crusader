@@ -18,8 +18,8 @@ ACMainUIPawn::ACMainUIPawn()
 void ACMainUIPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorLocation(FVector(-125.f, -350.f, 0.f));
-	SetActorRotation(FRotator(0.f, 90.f, 0.f));
+	SetActorLocation(FVector(-340.060074f, -508.529527f, 0.f));
+	SetActorRotation(FRotator(0.f, 76.943646f, 0.f));
 	
 }
 

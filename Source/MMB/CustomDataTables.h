@@ -86,6 +86,40 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FMonsterConfigTableRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString MonsterClass;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 MonsterTextureArrayIndex;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString MonsterName;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString DropTable;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float MonsterHP;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float MonsterDamage;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float MaxWalkSpeed;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float FlyAcc;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float VirticalAcc;
+};
+
+USTRUCT(BlueprintType)
 struct FDropTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -94,28 +128,37 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString ItemCode;
 
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	//FString ItemClass;
-
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	//FText ItemName;
-
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	//float ItemAttackDamage;
-
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	//int ItemPrice;
-
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	//FString ItemTexture;
-
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float ItemDropRate;
-
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	//int Rarity;
 };
 
+USTRUCT(BlueprintType)
+struct FTeleportableMapMonsterTableRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FName DisplayLevelName;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 TextureArrayIndex;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FName LevelName;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString Level;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FVector Pos;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<FName> SpawnableMonsters;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<int32> SpawnableMonsterPreviews;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<int32> RelatedQuestIndexs;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float LevelClock;
+};
+
+//Deprecated
 USTRUCT(BlueprintType)
 struct FTeleportableMapTableRow : public FTableRowBase
 {

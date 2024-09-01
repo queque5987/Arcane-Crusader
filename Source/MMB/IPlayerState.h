@@ -20,6 +20,14 @@ public:
 	virtual bool GetState(UINT StateType) { return false; };
 	virtual void SetState(UINT StateType, bool b) {};
 
+	virtual bool GetKeyState(UINT StateType) { return false; };
+	virtual void SetKeyState(UINT StateType, bool b) {};
+
+	virtual float GetMaxHP() { return 0.f; };
+	virtual void SetMaxHP(float NewMaxHP) {};
+	virtual float GetMaxStamina() { return 0.f; };
+	virtual void SetMaxStamina(float NewMaxStamina) {};
+
 	virtual UINT32 GetPlayerGold() { return 0; };
 	virtual void SetPlayerGold(UINT32 e) {};
 	virtual void GainPlayerGold(UINT32 e) {};
@@ -35,10 +43,30 @@ public:
 	virtual void Equip(class ACWeapon& ActorToEquip) {};
 	virtual void Equip(class AActor& ActorToEquip) {};
 	virtual void UnEquip() {};
+	virtual void SwitchBruteMode(bool BruteMode) {};
 
 	virtual float GetBonusAttackDamage() { return 0.f; }
 
 	virtual void Heal(float HealPoint) {};
 
 	virtual void StaminaSpend(float RequiredStamina) {};
+
+	virtual void DealtDamage(float AttackDamage, float DamageScale, class ACharacter* TargetCharacter) {};
+
+	virtual FTransform GetSocketTransform(FName SocketName) { return FTransform(); }
+	virtual void GetLineTraceResult(FHitResult& HitResult, float AttackRange) {};
+//Weapon Effect
+	virtual void WeaponEffectActivate() {};
+	virtual void WeaponEffectDeactivate() {};
+	virtual void SetWeaponEffectCharge(float e, bool IsLeft = false) {};
+//Brute Mode
+	virtual void BruteRushContinue() {};
+	virtual bool IsBruteMode() { return false; };
+//Battle Staff Ult
+	virtual void ThrowStaffEffect() {};
+	virtual void TurnBruteMode() {};
+//Rifle Staff Ult
+	virtual void SwitchWeaponHoldingHand(bool ToLeft) {};
+	virtual void SpawnAndGraspBeacon() {};
+	virtual void ThrowBeacon() {};
 };

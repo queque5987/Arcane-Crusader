@@ -14,7 +14,7 @@ ACDroppedItem::ACDroppedItem()
 	SetRootComponent(StaticMeshComponent);
 
 	Collider = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	Collider->SetSphereRadius(1500.f);
+	Collider->SetSphereRadius(200.f);
 	Collider->SetupAttachment(StaticMeshComponent);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> SMFinder(TEXT("/Game/Isometric_World/Sky_Temple/Meshes/Runes/SM_Temple_Rune_Sphere_01"));
@@ -61,25 +61,23 @@ void ACDroppedItem::CheckSweepCharacter()
 		FCollisionShape::MakeSphere(300.f),
 		Params
 	))
-	{
+	{	// Player Colided
 		if (OverlapingPlayerCharacter != nullptr) return;
 
 		OverlapingPlayerCharacter = Cast<ACPlayerCharacter>(HitResult.GetActor());
 		if (OverlapingPlayerCharacter == nullptr) return;
-		//if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(OtherActor))
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
 		{
 			PCC->ShowDroppedItemList(true, *this, PossessingItem);
-			//UE_LOG(LogTemp, Log, TEXT("DropItem : Sweep Actor : %s"), *HitResult.GetActor()->GetName());
 		}
 		return;
 	}
+	// Player Dettached
 	if (OverlapingPlayerCharacter != nullptr)
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
 		{
 			PCC->ShowDroppedItemList(false, *this, PossessingItem);
-			UE_LOG(LogTemp, Log, TEXT("DropItem : EndOverlap"));
 		}
 		OverlapingPlayerCharacter = nullptr;
 		return;
@@ -92,7 +90,7 @@ void ACDroppedItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	CheckSweepCharacter();
-	DrawDebugSphere(GetWorld(), GetActorLocation(), 300.f, 32.f, FColor::Green);
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), 300.f, 32.f, FColor::Green);
 }
 
 //Deprecated

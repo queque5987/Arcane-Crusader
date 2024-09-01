@@ -36,6 +36,8 @@ DECLARE_DELEGATE(FMeleeAttackCombo3);
 DECLARE_DELEGATE(FFinishAttack);
 DECLARE_DELEGATE(FCombo1Attack);
 DECLARE_DELEGATE(FCombo2Attack);
+DECLARE_DELEGATE(FSheath);
+DECLARE_DELEGATE(FDraw);
 DECLARE_DELEGATE(FStandToRoll);
 DECLARE_DELEGATE(FHitDown);
 DECLARE_DELEGATE(FHitDownRecover);
@@ -54,6 +56,16 @@ DECLARE_DELEGATE(FDrink);
 DECLARE_DELEGATE(FInventoryOpened);
 DECLARE_DELEGATE(FFireRifle);
 DECLARE_DELEGATE(FAimOff);
+DECLARE_DELEGATE(FBulletChange);
+
+DECLARE_DELEGATE(FInitiatePunchCombo);
+DECLARE_DELEGATE_OneParam(FBruteRush0, bool);
+DECLARE_DELEGATE(FFinishPunch);
+
+DECLARE_DELEGATE_OneParam(FBrute_LMB_Combo, int32);
+
+DECLARE_DELEGATE(FBattleStaffUlt);
+DECLARE_DELEGATE(FRifleStaffUlt);
 
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
@@ -98,6 +110,8 @@ public:
 	class UInputAction* Quick3Action;
 	UPROPERTY()
 	class UInputAction* TabAction;
+	UPROPERTY()
+	class UInputAction* QAction;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmComponent;
@@ -113,6 +127,7 @@ public:
 
 	virtual void StopAnimMontage(class UAnimMontage* AnimMontage = nullptr);
 
+	// Anim Delegates
 	FLMBAttack LMBAttack;
 	FRMBCastStart RMBCastStart;
 	FRMBCastOnGoing RMBCastOnGoing;
@@ -123,6 +138,8 @@ public:
 	FFinishAttack FinishAttack;
 	FCombo1Attack Combo1Attack;
 	FCombo2Attack Combo2Attack;
+	FSheath Sheath;
+	FDraw Draw;
 	FStandToRoll StandToRoll;
 	FHitDown HitDown;
 	FHitDownRecover HitDownRecover;
@@ -138,6 +155,18 @@ public:
 	FInventoryOpened InventoryOpenedEvent;
 	FFireRifle FireRifle;
 	FAimOff AimOff;
+	FBulletChange BulletChange;
+
+// Brute Rush
+	FInitiatePunchCombo InitiatePunchCombo;
+	FBruteRush0 BruteRush0;
+	FFinishPunch FinishPunch;
+//Brute Rush End
+	FBrute_LMB_Combo Brute_LMB_Combo;
+
+	FBattleStaffUlt BattleStaffUlt;
+	FRifleStaffUlt RifleStaffUlt;
+
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;
@@ -146,7 +175,7 @@ public:
 	//void (*LMBPressedPointer)(ACPlayerCharacter);
 
 	//void testLMB(ACPlayerCharacter& PC);
-	void GetLineTraceResult(FHitResult& HitResult, float AttackRange);
+	virtual void GetLineTraceResult(FHitResult& HitResult, float AttackRange) override;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool IsWeaponEquiped = false;
@@ -165,8 +194,11 @@ protected:
 	float Stamina;
 	float MaxStamina;
 	float ShiftStamina;
+	UPROPERTY(EditAnyWhere)
+	float UltGauge;
 	UINT32 PlayerGold;
 	float ClimbSpeed = 10.f;
+	int32 BruteRushComboCounter = 0;
 	class ACEnemyCharacter* LastDealingEnemy;
 	FTimerHandle LastDealingEnemyTimerHandle;
 	FTimerHandle HitReactTimerHandle;
@@ -196,12 +228,15 @@ protected:
 	bool ContinueCombo;
 
 	UINT32 State;
+	UINT32 KeyState;
 
 	bool bRMBCastDone;
 
 	static const FName WeaponSocket;
 	static const FName MeleeSocket;
 	static const FName RifleSocket;
+	static const FName tempRifleSocket;
+	static const FName BackSocket;
 
 	FName CurrentWeaponMode;
 
@@ -210,16 +245,16 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	FVector RevivalPos;
 	void Revive(class ACPlayerController* PC);
+
+	void OnWeaponChanged();
 private:
 	void UpdateHUDStates();
 	bool CheckIsActing();
 	void SetStaminaRegain();
 	void OnDie();
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	void Move(const FInputActionValue& Value);
@@ -241,14 +276,20 @@ public:
 	void Quick2();
 	void Quick3();
 	void Tab();
+	void QCompleted();
 	void ItemUsageAction(int32 ItemType);
 	virtual void Heal(float HealPoint) override;
 
 	virtual void Equip(class ACWeapon& ActorToEquip) override;
 	virtual void Equip(class AActor& ActorToEquip) override;
 	virtual void UnEquip() override;
+	virtual void SwitchBruteMode(bool BruteMode) override;
 	//void Equip(TSubClassOf<AActor>& ActorToEquip);
 
+	virtual float GetMaxHP() override { return MaxHP; }
+	virtual void SetMaxHP(float NewMaxHP) override;
+	virtual float GetMaxStamina() override { return MaxStamina; }
+	virtual void SetMaxStamina(float NewMaxStamina) override;
 
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
@@ -257,6 +298,8 @@ public:
 	bool GetIsAttacking() { return IsAttacking; }*/
 	virtual bool GetState(UINT StateType) override;
 	virtual void SetState(UINT StateType, bool b) override;
+	virtual bool GetKeyState(UINT StateType) override;
+	virtual void SetKeyState(UINT StateType, bool b) override;
 	virtual void SetHoverringUI(UUserWidget* UI) override;
 
 	virtual UINT32 GetPlayerGold() override { return PlayerGold; }
@@ -298,7 +341,27 @@ public:
 	virtual void SetStartPos(FVector e) override;
 
 	virtual float GetBonusAttackDamage() override;
+
+	virtual void DealtDamage(float AttackDamage, float DamageScale, class ACharacter* TargetCharacter) override;
+
 	virtual void FallToRevivalPoint(class AActor* AttachedCamera, float Damage = 0.f) override;
+
+	virtual FTransform GetSocketTransform(FName SocketName) override;
+// Weapon Effect
+	virtual void WeaponEffectActivate() override;
+	virtual void WeaponEffectDeactivate() override;
+	virtual void SetWeaponEffectCharge(float e, bool IsLeft = false) override;
+// Brute Mode
+	virtual void BruteRushContinue() override;
+	virtual bool IsBruteMode() override;
+// Battle Staff Ult
+	virtual void ThrowStaffEffect() override;
+	virtual void TurnBruteMode() override;
+// Rifle Staff ult
+	virtual void SwitchWeaponHoldingHand(bool ToLeft) override;
+	virtual void SpawnAndGraspBeacon() override;
+	virtual void ThrowBeacon() override;
+
 	AActor* GetWeaponEquipped() { return WeaponEquipped; }
 
 	float GetCameraArmLength();

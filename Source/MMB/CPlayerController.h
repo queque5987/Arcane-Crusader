@@ -12,7 +12,6 @@
 #include "CUserWidgetPlayerHUD.h"
 #include "CDamageUI.h"
 #include "Containers/Queue.h"
-//#include "Quest_HuntMonster.h"
 #include "CNPCConversation.h"
 #include "CWidgetDroppedItemList.h"
 #include "CButtonAction.h"
@@ -110,6 +109,15 @@ protected:
 	void StartBattleMap();
 	struct ItemStat* CurrentItemStat;
 public:
+	virtual void SetHPPercent(float NewPercent) override;
+	virtual void SetMaxHP(float NewMaxHP) override;
+	virtual void SetStaminaPercent(float NewPercent) override;
+	virtual void SetMaxStamina(float NewMaxStamina) override;
+	virtual void SetCenterProgress(float NewPercent) override;
+	virtual void AddRecentDamage(float Damage) override;
+	virtual void SetEnemyHPVisibility(bool e) override;
+	virtual void SetEnemyHP(float NewPercent) override;
+
 	virtual bool SetInventoryVisibility() override;
 	virtual void AddInventoryItem(UClass* ItemClass) override;
 	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) override;
@@ -134,6 +142,8 @@ public:
 	void ShowDamageUI(float Damage, FVector Location, FColor C = FColor::White, bool IsAttacked = false);
 	void AlertSwingby(float e, FText Line);
 	void AddQuest(struct FQuestsRow* Q);
+	//void AddQuest(UFMonsterConfigure* MonsterConfig);
+	//Deprecated
 	void AddQuest(class UCQuestData* QuestData);
 	void CheckQuest(UObject* ToCheckObject);
 	void CheckQuest(UClass* ToCheckObjectClass);
@@ -182,4 +192,20 @@ public:
 	virtual void DragItem() override;
 	virtual void DragOutItem() override;
 	virtual class UCInventoryItemData* GetQuickSlot() override;
+
+// Battle Staff UI
+	virtual void SetBattleVIsibility(bool e) override;
+	virtual void SetBruteMode(bool e) override;
+	virtual void SetBruteGauge(float Percent) override;
+	virtual void SetBruteCooldown(float Percent) override;
+	virtual void SetBruteCooldownParam(float MaxCooldown) override;
+
+// Rifle Staff UI
+	virtual void SetAimVisibility(bool e) override;
+	virtual void SetAimSpriteColorOverlay(float Index) override;
+	virtual bool GetWeaponChangeReady() override;
+	virtual void SetAimSpriteBlur(float NewBlur) override;
+	virtual void SetAimProgressBarPercent(float NewPercent) override;
+	virtual void SetRifleSelectCylinder(FVector Bullets, FVector WeaponDisplaySequence) override;
+	virtual void DoRifleSelectBarrelRoll() override;
 };

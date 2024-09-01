@@ -22,7 +22,21 @@ void UCAnimNotifyState_PlayerAttack::NotifyTick(USkeletalMeshComponent* MeshComp
 	if (StopAttack) return;
 	if (PC != nullptr)
 	{
-		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(PC->WeaponEquipped)) StopAttack = IWeaponEquipped->MeleeAttackHitCheck();
+		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(PC->WeaponEquipped))
+		{
+			StopAttack = IWeaponEquipped->MeleeAttackHitCheck(Staff_0_LFist_1_RFist_2, DamageScale);
+		}
+	}
+}
+
+void UCAnimNotifyState_PlayerAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	if (PC != nullptr)
+	{
+		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(PC->WeaponEquipped))
+		{
+			IWeaponEquipped->OnAttackSwingEnd();
+		}
 	}
 }
 

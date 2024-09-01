@@ -27,7 +27,7 @@ public:
 	virtual void LMB_Completed(struct AttackResult& AttackResult) override {}
 	virtual void RMB_Triggered(struct AttackResult& AttackResult) override {}
 	virtual void RMB_Completed(struct AttackResult& AttackResult) override {}
-	virtual bool MeleeAttackHitCheck() override;
+	//virtual bool MeleeAttackHitCheck(int32 HitMode = 0) override;
 	virtual void SpawnEmitterAttachedToSocket() override {};
 
 

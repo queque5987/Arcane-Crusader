@@ -30,6 +30,8 @@ private:
 	//TArray<USlateBrushAsset*> SlateBrushArr;
 
 	class UDataTable* ItemTable;
+	class UDataTable* MonsterConfigTable;
+	//TArray<class UDataTable*> DropTables;s
 
 	class UCGameInstance* GameInstance;
 
@@ -46,8 +48,9 @@ public:
 
 	UClass* GetItemClass(int32 e);
 	UMaterialInstance* GetDropItemMaterial(int32 Rarity);
-	//FSlateBrush* GetSlateBrush(int32 e);
 	
 	virtual UTexture2D* IconGetter(FString IconAssetName) override;
 	virtual class UCInventoryItemData* GetItem(FName ItemRowName, int Count = 1) override;
+	//Deprecated
+	virtual void GetMonsterConfigure(FName RowName, class UFMonsterConfigure& RtnConfig) override;
 };

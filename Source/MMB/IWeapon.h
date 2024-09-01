@@ -24,8 +24,14 @@ public:
 	virtual void RMB_Triggered(struct AttackResult& AttackResult) {}
 	virtual void RMB_Completed(struct AttackResult& AttackResult) {}
 	virtual void Tab_Triggered(struct AttackResult& AttackResult) {}
-	virtual bool MeleeAttackHitCheck() { return bool(); };
+	virtual void Ult_Triggered(struct AttackResult& AttackResult) {}
+	virtual bool MeleeAttackHitCheck(int32 HitMode = 0, float fDamageScale = 0.f) { return bool(); };
+	virtual void OnAttackSwingEnd() {};
 	virtual void SpawnEmitterAttachedToSocket() {};
+	virtual void OnEquipped() {};
+	virtual void OnUnequipped() {};
+
+	virtual class UStaticMeshComponent* GetStaffStaticMeshComponent() { return nullptr; };
 protected:
 	virtual class UCInventoryItemData* GetItemData(ACharacter* PC) { return nullptr; };
 public:
@@ -50,4 +56,26 @@ public:
 	virtual class UStaticMeshComponent* GetStaticMeshComponent() { return nullptr; }
 	virtual void GetSocketTransform(FTransform& SocketTransform, FName SocketName) {}
 	virtual void UpdateCharacterStat() {}
+
+// Weapon Ora Effect
+	virtual void ActivateEffect() {};
+	virtual void DeactivateEffect() {};
+	virtual void SetCharge(float e, bool IsLeft = false) {};
+
+// Weapon Mode
+	virtual int32 GetWeaponMode() { return 0; }
+
+// Battle Only
+	virtual void AddBruteGauge(float BG) {};
+
+// Rifle Only
+	virtual float GetMaxBullet(int32 BulletType) { return 0.f; }
+	virtual float GetCurrBullet(int32 BulletType) { return 0.f; }
+
+	virtual void UltBombArea(FVector BombLocation, float Radius) {};
+// Ult Func
+	/*BS = ThrowStaffEffect, RS == SpawnAndGraspBeacon*/
+	virtual void UltFunc0() {};
+	/*BS = TurnBruteMode, RS == ThrowBeacon*/
+	virtual void UltFunc1() {};
 };

@@ -17,6 +17,15 @@ class MMB_API IIPlayerUIController
 	GENERATED_BODY()
 
 public:
+	virtual void SetHPPercent(float NewPercent) {};
+	virtual void SetMaxHP(float NewMaxHP) {};
+	virtual void SetStaminaPercent(float NewPercent) {};
+	virtual void SetMaxStamina(float NewMaxStamina) {};
+	virtual void SetCenterProgress(float NewPercent) {};
+	virtual void AddRecentDamage(float Damage) {};
+	virtual void SetEnemyHP(float NewPercent) {};
+	virtual void SetEnemyHPVisibility(bool e) {};
+
 	virtual void SetSelectedPortal(int ArrIndex) {};
 	virtual bool SetInventoryVisibility() { return false; };
 	virtual void AddInventoryItem(UClass* ItemClass) {};
@@ -59,4 +68,19 @@ public:
 	//virtual class UCInventoryItemData* SetUpQuickSlot() { return nullptr; }; Changed Name
 	virtual class UCInventoryItemData* GetQuickSlot() { return nullptr; };
 
+// Battle Staff UI
+	virtual void SetBattleVIsibility(bool e) {};
+	virtual void SetBruteMode(bool e) {};
+	virtual void SetBruteGauge(float Percent) {};
+	virtual void SetBruteCooldown(float Percent) {};
+	virtual void SetBruteCooldownParam(float MaxCooldown) {};
+
+// Rifle Staff UI
+	virtual void SetAimVisibility(bool e) {};
+	virtual void SetAimSpriteColorOverlay(float Index) {};
+	virtual bool GetWeaponChangeReady() { return false; }
+	virtual void SetAimSpriteBlur(float NewBlur) {};
+	virtual void SetAimProgressBarPercent(float NewPercent) {};
+	virtual void SetRifleSelectCylinder(FVector Bullets, FVector WeaponDisplaySequence) {};
+	virtual void DoRifleSelectBarrelRoll() {};
 };

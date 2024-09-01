@@ -6,9 +6,6 @@
 #include "CEnemyAnimInstance.h"
 #include "CEnemy_AnimInstance_Nightmare.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MMB_API UCEnemy_AnimInstance_Nightmare : public UCEnemyAnimInstance
 {

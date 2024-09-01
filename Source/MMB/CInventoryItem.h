@@ -24,7 +24,7 @@ protected:
 	double ClickedSec;
 	bool IsInShop;
 	bool bPicked = false;
-
+	int32 Rarity = 0;
 	int ItemType;
 
 	void Equip();
@@ -55,7 +55,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemQuantity;
 
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
 	void SwitchbPicked(bool bForce = false, bool e = false);
+protected:
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 };

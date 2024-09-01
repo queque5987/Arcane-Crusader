@@ -7,14 +7,12 @@
 #include "PCH.h"
 #include "CAttackEndNotify.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MMB_API UCAttackEndNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 protected:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
-	ACPlayerCharacter* PC;
+
+	IIPlayerState* PC;
 };

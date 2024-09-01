@@ -1,14 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "CAnimNotifyState_PlayerComboWait.h"
 #include "CAnimNotifyState_PlayerComboIn2.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MMB_API UCAnimNotifyState_PlayerComboIn2 : public UCAnimNotifyState_PlayerComboWait
 {

@@ -14,6 +14,8 @@
 #include "Blueprint/UserWidget.h"
 #include "CSavePoint.h"
 #include "CInventoryItem.h"
+#include "CUserWidget_CircularProgressBar.h"
+#include "FMonsterConfigure.h"
 
 ACPlayerController::ACPlayerController()
 {
@@ -167,6 +169,7 @@ void ACPlayerController::StartBattleMap()
 	UCGameInstance* GInstance = Cast<UCGameInstance>(GetGameInstance());
 	ACStageGameMode* GM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
 	
+	// Set Default Save Point
 	TArray<AActor*> arrOut;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("SavePoint"), arrOut);
 	if (arrOut.Num() > 0)
@@ -183,16 +186,109 @@ void ACPlayerController::StartBattleMap()
 		}
 	}
 	
+	// Add Hunt Quest
 	FQuestsRow* QR = GM->GetQuestbyIndex(GInstance->BattleQuestRowIndex);
 	if (QR != nullptr)
 	{
 		AddQuest(QR);
 	}
+
+	// Set Level Clock
 	if (GInstance->StartLevelClock > 0.f)
 	{
 		GM->InitLevelClock(GInstance->StartLevelClock * 60.f);
 		UE_LOG(LogTemp, Log, TEXT("Set StartLevel Clock : %f"), GInstance->StartLevelClock);
 	}
+
+	//Deprecated
+	// Spawn Monster
+	/*UFMonsterConfigure* MonsterConfig = GInstance->GetSpawnMonsterConfig();
+	if (MonsterConfig == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("SpawnMonsterConfig Can Not Found"));
+		return;
+	}
+	if (MonsterConfig->GetMonsterClass() == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("MonsterClass Can Not Found"));
+		return;
+	}
+	UE_LOG(LogTemp, Error, TEXT("TODO Spawn : %s"), *MonsterConfig->GetMonsterClass()->GetName());*/
+	
+}
+
+void ACPlayerController::SetHPPercent(float NewPercent)
+{
+	if (HUDOverlay == nullptr || HUDOverlay->CircularHPBar == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularHPBar Can Not Found"));
+		return;
+	}
+
+	HUDOverlay->CircularHPBar->SetProgress(NewPercent);
+}
+
+void ACPlayerController::SetMaxHP(float NewMaxHP)
+{
+	if (HUDOverlay == nullptr || HUDOverlay->CircularHPBar == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularHPBar Can Not Found"));
+		return;
+	}
+
+	HUDOverlay->CircularHPBar->SetSegments(NewMaxHP / 10.f);
+}
+
+void ACPlayerController::SetStaminaPercent(float NewPercent)
+{
+	if (HUDOverlay == nullptr || HUDOverlay->CircularHPBar == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularStaminaBar Can Not Found"));
+		return;
+	}
+
+	HUDOverlay->CircularHPBar->SetStaminaProgress(NewPercent);
+}
+
+void ACPlayerController::SetMaxStamina(float NewMaxStamina)
+{
+	if (HUDOverlay == nullptr || HUDOverlay->CircularHPBar == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularHPBar Can Not Found"));
+		return;
+	}
+
+	HUDOverlay->CircularHPBar->SetStaminaSegments(NewMaxStamina / 100.f);
+}
+
+void ACPlayerController::SetCenterProgress(float NewPercent)
+{
+	if (HUDOverlay == nullptr || HUDOverlay->CircularHPBar == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularStaminaBar Can Not Found"));
+		return;
+	}
+
+	HUDOverlay->CircularHPBar->SetCenterProgress(NewPercent);
+}
+
+void ACPlayerController::AddRecentDamage(float Damage)
+{
+	HUDOverlay->CircularHPBar->AddRecentDamage(Damage);
+}
+
+void ACPlayerController::SetEnemyHPVisibility(bool e)
+{
+	HUDOverlay->EnemyHPBar->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+	HUDOverlay->EnemyHPBar_BG->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+}
+
+void ACPlayerController::SetEnemyHP(float NewPercent)
+{
+	float CurrPercent = HUDOverlay->EnemyHPBar->GetPercent();
+	HUDOverlay->EnemyHPBar->SetPercent(NewPercent);
+	if (CurrPercent == NewPercent) return;
+	HUDOverlay->SetEnemyRecentDamage(CurrPercent - NewPercent);
 }
 
 bool ACPlayerController::SetInventoryVisibility()
@@ -647,6 +743,7 @@ void ACPlayerController::HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArra
 void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem& Dropped, UCInventoryItemData* ItemData)
 {
 	if (DroppedItemList == nullptr) return;
+	if (!IsValid(&Dropped) || ItemData == nullptr) return;
 	if (e)
 	{
 		DroppedItemList->SetVisibility(ESlateVisibility::Visible);
@@ -828,6 +925,8 @@ void ACPlayerController::PickUpItemInteract_Interact()
 	if (PC == nullptr) return;
 	PC->PickUp.ExecuteIfBound();
 	NPCInteract_UnShow();
+
+	DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void ACPlayerController::CharacterDied(bool b)
@@ -1308,4 +1407,65 @@ void ACPlayerController::DragOutItem()
 UCInventoryItemData* ACPlayerController::GetQuickSlot()
 {
 	return DraggingItemDat;
+}
+
+void ACPlayerController::SetBattleVIsibility(bool e)
+{
+	HUDOverlay->SetBattleVIsibility(e);
+}
+
+void ACPlayerController::SetBruteMode(bool e)
+{
+	HUDOverlay->SetBruteMode(e);
+}
+
+void ACPlayerController::SetBruteGauge(float Percent)
+{
+	HUDOverlay->SetBruteGauge(Percent);
+}
+
+void ACPlayerController::SetBruteCooldown(float Percent)
+{
+	HUDOverlay->SetBruteCooldown(Percent);
+}
+
+void ACPlayerController::SetBruteCooldownParam(float MaxCooldown)
+{
+	HUDOverlay->SetBruteCooldownParam(MaxCooldown);
+}
+
+void ACPlayerController::SetAimVisibility(bool e)
+{
+	HUDOverlay->SetAimVisibility(e);
+}
+
+void ACPlayerController::SetAimSpriteColorOverlay(float Index)
+{
+	HUDOverlay->SetAimSpriteColorOverlay(Index);
+}
+
+bool ACPlayerController::GetWeaponChangeReady()
+{
+	return HUDOverlay->GetWeaponChangeReady();
+}
+
+void ACPlayerController::SetAimSpriteBlur(float NewBlur)
+{
+	HUDOverlay->SetAimSpriteBlur(NewBlur);
+}
+
+void ACPlayerController::SetAimProgressBarPercent(float NewPercent)
+{
+	HUDOverlay->SetAimProgressBarPercent(NewPercent);
+}
+
+void ACPlayerController::SetRifleSelectCylinder(FVector Bullets, FVector WeaponDisplaySequence)
+{
+	HUDOverlay->SetRifleBullets(Bullets);
+	HUDOverlay->SetRifleSelectSequence(WeaponDisplaySequence);
+}
+
+void ACPlayerController::DoRifleSelectBarrelRoll()
+{
+	HUDOverlay->DoRifleSelectBarrelRoll();
 }
