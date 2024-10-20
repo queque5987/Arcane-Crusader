@@ -452,7 +452,7 @@ Player가 가지고 있는 퀘스트 중 상호작용 중인 NPC에게 클리어
 
 추가된 퀘스트 들의 상태를 검사하는 for 루프를 통해 Button들의 색을 회색, 흰색, 황색, 녹색으로 변경하여 클리어, 수락 가능 여부를 표시하였습니다.
 
-### d. 무기 UI
+### e. 무기 UI
 
 https://youtu.be/BgOAbAdi8f0?si=Hpja779f4S3Am2vm
 
