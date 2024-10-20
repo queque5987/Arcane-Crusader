@@ -1,5 +1,7 @@
 # Arcane Crusader<br><br>플레이 영상
 
+[![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
+*구버전*<br>
 [![플레이 영상](https://img.youtube.com/vi/p7fB2LRsM9Y/0.jpg)](https://youtu.be/p7fB2LRsM9Y)
 
 # 0. 목차
@@ -10,10 +12,12 @@
     + [b. 퀵슬롯](#b-퀵슬롯)
     + [c. NPC 대화](#c.-NPC---)
     + [d. 퀘스트](#d-퀘스트)
+    + [e. 무기 UI](#e-무기-UI)
   * [2-2. 전투 시스템](#2-2-전투-시스템)
     + [a. 플레이어 공격](#a-플레이어-공격)
     + [b. 몬스터 공격](#b-몬스터-공격)
-
+    + [c. 저스트 회피](#c-저스트-회피)
+  * [2-3. 무기 디자인](#2-3-무기-디자인)
 # 1. 게임 흐름
 ![MMB_Summary.drawio](https://github.com/queque5987/MMB/blob/master/MMB_Summary.drawio.png?raw=true)
 
@@ -448,6 +452,40 @@ Player가 가지고 있는 퀘스트 중 상호작용 중인 NPC에게 클리어
 
 추가된 퀘스트 들의 상태를 검사하는 for 루프를 통해 Button들의 색을 회색, 흰색, 황색, 녹색으로 변경하여 클리어, 수락 가능 여부를 표시하였습니다.
 
+### d. 무기 UI
+
+https://youtu.be/BgOAbAdi8f0?si=Hpja779f4S3Am2vm
+
+https://wdnote.tistory.com/211
+
+위 링크들을 참고하여 제작하였습니다.
+
+![image](https://github.com/user-attachments/assets/0476daee-0465-4bf7-9858-03b6de2f6c92)
+![image](https://github.com/user-attachments/assets/b0f57b3b-775e-4562-a0bb-1e359b9d09bd)
+
+![image](https://github.com/user-attachments/assets/f15afc62-d10d-4103-9ba6-407a26ba53b8)
+![image](https://github.com/user-attachments/assets/054333e9-cb32-4f3e-8be2-472d1d83818d)
+
+![image](https://github.com/user-attachments/assets/b6882fc6-145d-47d4-8b29-c3f502e4892d)
+
+![image](https://github.com/user-attachments/assets/d1ce824d-4727-4c13-abaf-bd0b62f27d13)
+
+Clock 값에 따라 정가운데를 중심으로 회전하는 Texcoord를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/c17f84e9-76d3-4f40-bf51-a3896b67f80a)
+
+각 원 사이는 Clock에 특정 값을 더하여 회전 각도의 차이를 벌려주었습니다.
+
+RadialGradient와 적절한 Texture들을 곱하여 아래와 같은 형태의 UI를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/0565dbae-a082-47ea-b306-d3880fa3e81e)
+![image](https://github.com/user-attachments/assets/6b1bddb6-f566-499b-9a40-27899062e035)
+
+![image](https://github.com/user-attachments/assets/cfc5ba98-da43-4b8a-b681-e31289d90970)
+![image](https://github.com/user-attachments/assets/35ca1a91-3811-495a-827e-a966c4b585aa)
+
+
+
 ## 2-2. 전투 시스템
 ### a. 플레이어 공격
 
@@ -676,3 +714,59 @@ CProjectile은 투명한 형태로 소환되어 충돌만 감지합니다.
 
 Skeletal Mesh의 Jaw1에 Attach된 Emitter를 지속적으로 소환하고, Queue에 추가하여 타이머를 통해 임의의 시간 이후 Destroy되게 구현하였습니다.
 
+### c. 저스트 회피
+
+https://youtu.be/9_39Wyo-uho?si=aO9v2rGrUoske_FD
+
+위 유튜브를 참고하여 제작하였습니다.
+
+![image](https://github.com/user-attachments/assets/7cac7b29-a396-4672-93e5-83ea3724343c)
+![image](https://github.com/user-attachments/assets/6b8b76e9-4679-4f30-b23c-4fc8bd8e808e)
+
+저스트 회피 시의 환경은 Desaturate 노드를 통해 만든 세피아 톤의 Texture와
+
+상하좌우 픽셀의 Scene Depth 차이를 통해 만든 외곽선이 강조된 Texture를 더하여 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/d5124aa1-b830-4c30-95ad-4e8a614f7565)
+
+그리고 플레이어의 위치와의 거리를 Radius 값으로 빼 구 형태의 Mask를 구현하였고,
+
+Lerp 노드를 통해 저스트 회피 환경과 아닌 환경을 구분하였습니다.
+
+![image](https://github.com/user-attachments/assets/84a77852-cbbd-4e57-8f31-9561f71d0732)
+![image](https://github.com/user-attachments/assets/bd6678af-3e57-40f5-bda7-0102b8e04799)
+
+플레이어의 위치는 매 Tick마다 갱신합니다.
+
+저스트 회피 시, Radius 값을 감소시켜 멀리서부터 흑백 화면이 다가오는 효과를 구현하였습니다.
+
+[![저스트 회피 예시](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA?si=n-eGo6t-CetbdwNl&t=261)
+
+## 2-3. 무기 디자인
+### a. 플레이어 공격
+
+무기의 원래 디자인
+
+![image](https://github.com/user-attachments/assets/c369ca57-3635-48b5-b2b3-d0d0391a84c2)
+
+무기의 머티리얼의 블렌드 모드를 Translucent로 변환하여 투명해지도록 하였습니다.
+
+Desaturate 노드를 통해 BaseColor를 통해 음영을 만들고, Lerp 노드를 통해 색을 곱하였습니다.
+
+RGB 값을 증폭시켜 아래와 같이 빛나는 형태를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/5cf6c4e9-7378-408c-a34e-00213074d776)
+
+흑백으로 변한 BaseColor를 토대로 Opacity에 연결할 Texture를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/89dec746-b841-4e57-9886-bc152d81b040)
+
+해당 Texture에 RadialGradient를 곱하여 원형으로 변형시킬 수 있도록 하였습니다.
+
+![image](https://github.com/user-attachments/assets/273b157d-2e33-4b64-82fd-bfffaf49e89e)
+
+결과적으로 Clock 값에 따라서 Opacity를 변화시키고, 무기가 숨쉬듯 결을 따라 빛나도록 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/b9d236ff-8d35-42c1-a76a-749df9001379)
+
+해당 Mesh는 무기 Actor에 Attach하고, 머티리얼 인스턴스의 파라미터 값을 조정하며 무기와 상호작용하도록 하였습니다.
