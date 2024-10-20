@@ -58,7 +58,7 @@ void ACDroppedItem::CheckSweepCharacter()
 		GetActorLocation(),
 		FQuat::Identity,
 		OQP,
-		FCollisionShape::MakeSphere(300.f),
+		FCollisionShape::MakeSphere(50.f),
 		Params
 	))
 	{	// Player Colided
@@ -68,16 +68,16 @@ void ACDroppedItem::CheckSweepCharacter()
 		if (OverlapingPlayerCharacter == nullptr) return;
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
 		{
-			PCC->ShowDroppedItemList(true, *this, PossessingItem);
+			PCC->ShowDroppedItemList(true, this, PossessingItem);
 		}
 		return;
 	}
-	// Player Dettached
 	if (OverlapingPlayerCharacter != nullptr)
 	{
+		// Player Dettached
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
 		{
-			PCC->ShowDroppedItemList(false, *this, PossessingItem);
+			PCC->ShowDroppedItemList(false, this, PossessingItem);
 		}
 		OverlapingPlayerCharacter = nullptr;
 		return;
@@ -100,7 +100,7 @@ void ACDroppedItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
 		{
-			PCC->ShowDroppedItemList(true, *this, PossessingItem);
+			PCC->ShowDroppedItemList(true, this, PossessingItem);
 		}
 	}
 }
@@ -112,7 +112,7 @@ void ACDroppedItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	{
 		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
 		{
-			PCC->ShowDroppedItemList(false, *this, PossessingItem);
+			PCC->ShowDroppedItemList(false, this, PossessingItem);
 			UE_LOG(LogTemp, Log, TEXT("DropItem : EndOverlap"));
 		}
 	}
@@ -133,4 +133,18 @@ void ACDroppedItem::SetPossessingItem(UCInventoryItemData& ItemData)
 			StaticMeshComponent->SetMaterial(0, Mat);
 		}
 	}
+}
+
+void ACDroppedItem::PlayerPickUp(ACPlayerController* PlayerController)
+{
+	Destroy();
+	//PlayerController->AddInventoryItem(PossessingItem);
+
+	//for (auto& temp : tempArr)
+	//{
+	//	tempItem = Cast<UCInventoryItemData>(temp);
+	//	if (tempItem == nullptr) continue;
+	//	AddInventoryItem(tempItem);
+	//	DroppedItemList->ItemList->RemoveItem(temp);
+	//}
 }

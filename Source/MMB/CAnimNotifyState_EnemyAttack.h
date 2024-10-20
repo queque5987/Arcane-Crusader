@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "CEnemyCharacter.h"
 #include "CAnimNotifyState_EnemyAttack.generated.h"
 
 /**
@@ -17,6 +16,15 @@ class MMB_API UCAnimNotifyState_EnemyAttack : public UAnimNotifyState
 protected:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration) override;
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime) override;
+	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+	class IIEnemyStateManager* EC;
+
+	/*0 : RHand, 1 : Head, 2 : Mouth, 3 : LHand, 4: Wings, 5: RWing, 6: FireBall Projectile*/
+	UPROPERTY(EditAnywhere)
 	int AttackType;
+	/*Damage Scale of Attack (Total Damage = EnemyCharacter's AttackDamage * DamageScale)*/
+	UPROPERTY(EditAnywhere)
+	float DamageScale;
 	bool ContinueAttack;
 };

@@ -85,4 +85,6 @@ public:
 
 	void SetExplodeSE(USoundBase* SE) { ExplodeSE = SE; }
 	void SetLaunchSE(USoundBase* SE) { LaunchSE = SE; }
+
+	void SetProjectileScae(FVector e);
 };

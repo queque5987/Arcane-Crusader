@@ -24,11 +24,14 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> QuestBG;
 
-	bool RefreshQuestRecap(UObject* AchievedObject = nullptr);
-	bool RefreshQuestRecap(UClass* AchievedObjectClass);
+	bool RefreshQuestRecap(UObject* AchievedObject = nullptr, int AchievedActionType = 0);
+	bool RefreshQuestRecap(UClass* AchievedObjectClass, int AchievedActionType = 0);
+	bool ManualAchieveQuestRecap(int AchievedObjectClassIndex);
 	FString GetQuestName() { return QuestNameString; }
 	bool IsCleared() { return bCleared; };
-	int GetQuestRewardIndex() { return QuestRewardIndex; }
+	int GetQuestRewardIndex() { 
+		UE_LOG(LogTemp, Log, TEXT("Quest Reward Index : %d"), QuestRewardIndex);
+		return QuestRewardIndex; }
 	int GetQuestInitializeIndex() { return QuestInitializeIndex; }
 	UClass* GetGivenNPC() { return GivenNPC; };
 	void SetGivenNPC(UClass* NPC) { GivenNPC = NPC; };
@@ -43,6 +46,7 @@ protected:
 	TArray<FString> RequiredClassNames;
 	TArray<int> AcquiredQuantities;
 	TArray<int> RequiredQuantities;
+	TArray<int> RequiredActions;
 	int QuestRewardIndex;
 	int QuestRewardDialogueIndex;
 	int QuestInitializeIndex;

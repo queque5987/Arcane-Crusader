@@ -10,10 +10,11 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "PCH.h"
 #include "IEnemyBBState.h"
+#include "IEnemyAITactics.h"
 #include "CEnemyAIController.generated.h"
 
 UCLASS()
-class MMB_API ACEnemyAIController : public AAIController, public IIEnemyBBState
+class MMB_API ACEnemyAIController : public AAIController, public IIEnemyBBState, public IIEnemyAITactics
 {
 	GENERATED_BODY()
 	
@@ -85,4 +86,12 @@ protected:
 	FTimerHandle PlayerLoseTimerHandle;
 	float PlayerLoseInterval;
 	float RoarCooldown;
+
+// AI Tactics
+public:
+	virtual ACharacter* GetPlayer() override;
+	virtual bool IsPlayerAttacking() override;
+	virtual float GetPlayerDistance() override;
+	virtual FVector GetPlayerVelocity() override;
+	virtual FVector GetPlayerLocation() override;
 };

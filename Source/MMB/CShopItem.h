@@ -33,12 +33,12 @@ protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	void OnHovered() { bHovered = true; }
-	void OnUnHovered() { bHovered = false; }
+	virtual void OnHovered() override;
+	virtual void OnUnHovered() override;
 
 	bool IsShopItem;
 	bool bPressed;
-
+	float ItemImageSize;
 
 	class UMaterialInstanceDynamic* ItemSelectSpriteMaterial;
 

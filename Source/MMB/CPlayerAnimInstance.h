@@ -41,7 +41,15 @@ protected:
 	float AimingYaw;
 	UPROPERTY(BlueprintReadOnly)
 	bool BruteMode;
+	UPROPERTY(BlueprintReadOnly)
+	bool DeactiveMovementBlend;
 	class IIPlayerState* PlayerCharacterStateInterface;
+
+	UPROPERTY(BlueprintReadOnly)
+	FRotator BoneRotation_Spine1;
+
+	UPROPERTY(BlueprintReadOnly)
+	FRotator BoneRotation_Spine2;
 
 	FTimerHandle DizzyTimerHandle;
 
@@ -55,6 +63,8 @@ protected:
 	UAnimSequenceBase* AnimSequenceMeleeCombo1;
 	UAnimSequenceBase* AnimSequenceMeleeCombo2;
 	UAnimSequenceBase* AnimSequenceMeleeCombo3;
+
+	UAnimSequenceBase* AnimSequenceBash;
 
 	UAnimSequenceBase* AnimSequenceMeleeFinishAttack;
 	UAnimSequenceBase* AnimSequenceMelee1ComboAttack;
@@ -96,7 +106,13 @@ protected:
 	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo5;
 	UAnimSequenceBase* AnimSequenceBrute_LMB_Combo6;
 
+	// Use Thie Anim As Weapon Swap Attack
 	UAnimSequenceBase* AnimSequenceBattleStaffUlt;
+	// Ult Anim Start 20240914
+	UAnimSequenceBase* AnimSequenceBattleStaffUlt_InwardSlash;
+	UAnimSequenceBase* AnimSequenceBattleStaffUlt_Jump;
+	UAnimSequenceBase* AnimSequenceBattleStaffUlt_Airbone;
+	UAnimSequenceBase* AnimSequenceBattleStaffUlt_Backflip;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateProperties(float Delta);
@@ -163,7 +179,7 @@ protected:
 	UFUNCTION()
 	void Brute_LMB_Combo(int32 ComboStack);
 	UFUNCTION()
-	void BattleStaffUlt();
+	void BattleStaffUlt(bool bSkip);
 	UFUNCTION()
 	void RifleStaffUlt();
 };

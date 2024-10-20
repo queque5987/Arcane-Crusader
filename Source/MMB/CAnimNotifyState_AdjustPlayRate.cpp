@@ -9,16 +9,18 @@ void UCAnimNotifyState_AdjustPlayRate::NotifyBegin(USkeletalMeshComponent* MeshC
 	if (C == nullptr) return;
 
 	PlayerAttackSpeed = 1.f;
-	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(C->GetController());
-	if (UIController)
+	if (!AbsoluteSpeed)
 	{
-		ItemStat tempStat;
-		UIController->EquippedItemStat(tempStat);
-		PlayerAttackSpeed += tempStat._AttackSpeed;
+		IIPlayerUIController* UIController = Cast<IIPlayerUIController>(C->GetController());
+		if (UIController)
+		{
+			ItemStat tempStat;
+			UIController->EquippedItemStat(tempStat);
+			PlayerAttackSpeed += tempStat._AttackSpeed;
+		}
 	}
 
 	AnimInst->Montage_SetPlayRate(C->GetCurrentMontage(), InPlayRate * PlayerAttackSpeed);
-
 }
 
 void UCAnimNotifyState_AdjustPlayRate::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)

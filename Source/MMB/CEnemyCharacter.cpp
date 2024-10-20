@@ -5,6 +5,7 @@
 #include "IEnemyBBState.h"
 #include "DrawDebugHelpers.h"
 #include "IPlayerState.h"
+#include "CStageGameMode.h"
 
 ACEnemyCharacter::ACEnemyCharacter()
 {
@@ -15,18 +16,30 @@ ACEnemyCharacter::ACEnemyCharacter()
 
 	RotationSpeed = 0.8f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	//GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetMesh()->SetCollisionObjectType(PlayerAttackChannel);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	GetMesh()->SetCollisionResponseToChannel(PlayerAttackChannel, ECollisionResponse::ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	BoneNameArr.SetNum(ENEMY_ATTACK_BONE_NUM);
 }
 
 void ACEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ACStageGameMode* StageGM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	if (StageGM != nullptr)
+	{
+		StageGM->PlayerDodged.BindUFunction(this, "OnPlayerDodged");
+		StageGM->PlayerDodgedEnd.BindUFunction(this, "OnPlayerDodgedEnd");
+	}
+
+	GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &ACEnemyCharacter::OnOverlapPlayer);
+	GetMesh()->OnComponentEndOverlap.AddDynamic(this, &ACEnemyCharacter::OnOverlapEndPlayer);
 }
 
 void ACEnemyCharacter::Tick(float DeltaTime)
@@ -39,28 +52,28 @@ void ACEnemyCharacter::Tick(float DeltaTime)
 		return;
 	}
 
-	if (bHostile && !bAttacking)
-	{
-		if (ACEnemyAIController* ECC = Cast<ACEnemyAIController>(GetController()))
-		{
-			ECC->GetChasingPlayerPos();
-			FVector Direction = ECC->GetChasingPlayerPos() - GetActorLocation();
-			Direction.Normalize();
-			FRotator PlayerHeadingRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	//if (bHostile && !bAttacking)
+	//{
+	//	if (ACEnemyAIController* ECC = Cast<ACEnemyAIController>(GetController()))
+	//	{
+	//		ECC->GetChasingPlayerPos();
+	//		FVector Direction = ECC->GetChasingPlayerPos() - GetActorLocation();
+	//		Direction.Normalize();
+	//		FRotator PlayerHeadingRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 
-			FRotator TargetRotation = FMath::RInterpTo(GetActorRotation(), PlayerHeadingRotation, DeltaTime, RotationSpeed);
+	//		FRotator TargetRotation = FMath::RInterpTo(GetActorRotation(), PlayerHeadingRotation, DeltaTime, RotationSpeed);
 
-			if (FMath::Abs(GetActorRotation().Yaw - PlayerHeadingRotation.Yaw) > 1.f)
-			{
-				//SetActorRotation(FRotator(GetActorRotation().Pitch, TargetRotation.Yaw, GetActorRotation().Roll));
-				//UE_LOG(LogTemp, Log, TEXT("Curr Yaw : %f, Target Yaw : %f"), GetActorRotation().Yaw, TargetRotation.Yaw);
-				//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Rotate Character To Rotation : %s"), *TargetRotation.ToString()));
-			}
-		}
-	}
+	//		if (FMath::Abs(GetActorRotation().Yaw - PlayerHeadingRotation.Yaw) > 1.f)
+	//		{
+	//			//SetActorRotation(FRotator(GetActorRotation().Pitch, TargetRotation.Yaw, GetActorRotation().Roll));
+	//			//UE_LOG(LogTemp, Log, TEXT("Curr Yaw : %f, Target Yaw : %f"), GetActorRotation().Yaw, TargetRotation.Yaw);
+	//			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Rotate Character To Rotation : %s"), *TargetRotation.ToString()));
+	//		}
+	//	}
+	//}
 
 	//Bone Correction
-	GetMesh();
+	//GetMesh();
 }
 
 // Called to bind functionality to input
@@ -78,10 +91,10 @@ void ACEnemyCharacter::SetbHostile(bool e)
 		//UE_LOG(LogTemp, Log, TEXT("Set IsHostile to %s"), e ? TEXT("true") : TEXT("false"));
 		EA->SetIsHostile(e);
 	}
-	e ? GetCharacterMovement()->MaxWalkSpeed = 850.f : GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	//e ? GetCharacterMovement()->MaxWalkSpeed = 850.f : GetCharacterMovement()->MaxWalkSpeed = 350.f;
 }
 
-bool ACEnemyCharacter::AttackHitCheck(int AttackType)
+bool ACEnemyCharacter::AttackHitCheck(int AttackType, float DamageScale)
 {
 	bool bResult = false;
 	TArray<bool> AdditionalResults;
@@ -93,37 +106,37 @@ bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 	switch (AttackType)
 	{
 	case(ENEMY_ATTACK_RHAND):
-		StartLocation = GetMesh()->GetBoneLocation("R_RowerArm");
-		EndLocation = GetMesh()->GetBoneLocation("R_Hand");
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_RHAND]);//"R_RowerArm");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_RHAND_E]);//"R_Hand");
 		Radius = ArmRadius * FScale;
 		break;
 	case(ENEMY_ATTACK_HEAD):
-		StartLocation = GetMesh()->GetBoneLocation("Head");
-		EndLocation = GetMesh()->GetBoneLocation("Jaw03");
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_HEAD]);// "Head");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_HEAD_E]);//"Jaw03");
 		Radius = HeadRadius * FScale;
 		AdditionalResults.Add(AttackHitCheck(ENEMY_ATTACK_LHAND));
 		AdditionalResults.Add(AttackHitCheck(ENEMY_ATTACK_RHAND));
 		break;
 	case(ENEMY_ATTACK_MOUTH):
-		StartLocation = GetMesh()->GetBoneLocation("Head");
-		EndLocation = GetMesh()->GetBoneLocation("Jaw03");
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_MOUTH]);//"Head");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_MOUTH_E]);//"Jaw03");
 		Radius = HeadRadius * FScale;
 		break;
 	case(ENEMY_ATTACK_LHAND):
-		StartLocation = GetMesh()->GetBoneLocation("L_LowerArm");
-		EndLocation = GetMesh()->GetBoneLocation("L_Hand");
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_LHAND]);//"L_LowerArm");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_LHAND_E]);//"L_Hand");
 		Radius = ArmRadius * FScale;
 		break;
 	case(ENEMY_ATTACK_WINGS):
-		StartLocation = GetMesh()->GetBoneLocation("WingClaw1_L");
-		EndLocation = GetMesh()->GetBoneLocation("WingClaw2_L");
-		Radius = WingClawRadius * FScale;
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS]);//"WingClaw1_L");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS_E]);//"WingClaw2_L");
+		Radius = ArmRadius * FScale;
 		AdditionalResults.Add(AttackHitCheck(ENEMY_ATTACK_WINGS_R));
 		break;
 	case(ENEMY_ATTACK_WINGS_R):
-		StartLocation = GetMesh()->GetBoneLocation("WingClaw1_R");
-		EndLocation = GetMesh()->GetBoneLocation("WingClaw2_R");
-		Radius = WingClawRadius * FScale;
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS_R]);//"WingClaw1_R");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS_R_E]);//"WingClaw2_R");
+		Radius = ArmRadius * FScale;
 		break;
 	}
 
@@ -154,9 +167,13 @@ bool ACEnemyCharacter::AttackHitCheck(int AttackType)
 		if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(HitResult.GetActor()))
 		{
 			UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
-			PC->HitDamage(AttackDamage * DamageScale, this, HitResult.Location, AttackPower);
+			bResult = PC->HitDamage(AttackDamage * DamageScale, this, HitResult.Location, AttackPower);
 		}
 	}
+
+	//DrawDebugSphere(GetWorld(), StartLocation, Radius, 32, bResult ? FColor::Green : FColor::Red);
+	//DrawDebugSphere(GetWorld(), EndLocation, Radius, 32, bResult ? FColor::Green : FColor::Red);
+
 	return bResult;
 }
 
@@ -239,8 +256,12 @@ void ACEnemyCharacter::Die()
 
 void ACEnemyCharacter::SetbAttacking(bool e)
 {
+	if (bAttacking_Comboing && !e)
+	{
+		bAttacking_Comboing = false;
+		return;
+	}
 	SetBBAttacking.ExecuteIfBound(e);
-	//UE_LOG(LogTemp, Log, TEXT("Set bAttacking to %d"), e);
 	bAttacking = e;
 }
 
@@ -252,4 +273,68 @@ void ACEnemyCharacter::SetMonsterConfig(MonsterConfigure& Config)
 	HP = Config._HP;
 	MaxHP = Config._MaxHP;
 
+}
+
+void ACEnemyCharacter::OnPlayerDodged()
+{
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	if (AnimInst == nullptr) return;
+	AnimInst->Montage_SetPlayRate(GetCurrentMontage(), 0.2f);
+}
+
+void ACEnemyCharacter::OnPlayerDodgedEnd()
+{
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	if (AnimInst == nullptr) return;
+	AnimInst->Montage_SetPlayRate(GetCurrentMontage(), 1.f);
+}
+
+void ACEnemyCharacter::OnOverlapPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	IIPlayerState* PC = Cast<IIPlayerState>(OtherActor);
+	if (PC != nullptr)
+	{
+		//UE_LOG(LogTemp, Log, TEXT("PC Name : %s"), *PC->GetName());
+		PC->OnOverlapEnemy(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Overlapping Actor Is Not Player"));
+	}
+}
+
+void ACEnemyCharacter::OnOverlapEndPlayer(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	IIPlayerState* PC = Cast<IIPlayerState>(OtherActor);
+	if (PC != nullptr)
+	{
+		//UE_LOG(LogTemp, Log, TEXT("PC Name : %s"), *PC->GetName());
+		PC->OnOverlapEndEnemy(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Overlapping End Actor Is Not Player"));
+	}
+}
+
+void ACEnemyCharacter::SetWalkSpeed(float e)
+{
+	GetCharacterMovement()->MaxWalkSpeed = e;
+}
+
+float ACEnemyCharacter::GetWalkSpeed()
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+
+ACharacter* ACEnemyCharacter::GetDealingPlayer()
+{
+	IIEnemyAITactics* AITactics = Cast<IIEnemyAITactics>(GetController());
+	if (AITactics == nullptr) return nullptr;
+	return AITactics->GetPlayer();
+}
+
+bool ACEnemyCharacter::IsBusy()
+{
+	return bAttacking;
 }

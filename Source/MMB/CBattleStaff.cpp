@@ -1,11 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CBattleStaff.h"
 #include "Sound/SoundCue.h"
 #include "IPlayerUIController.h"
 #include "CWeaponSilhouetteComponent.h"
 #include "CWeaponSilhouette_Gauntlet.h"
+#include "IStageMaterialManager.h"
 
 ACBattleStaff::ACBattleStaff() : Super()
 {
@@ -51,7 +49,16 @@ ACBattleStaff::ACBattleStaff() : Super()
 	ConstructorHelpers::FObjectFinder<UParticleSystem>	WeaponAttackTrail									(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_WeaponThrow/P_Skill_Throw_Fire_Trail_Base"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem>	WeaponAttackHitEffect								(TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_C"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem>	MeleeAttackCombo_Combo2AttackProjectileHitEffect	(TEXT("/Game/InfinityBladeEffects/Effects/FX_Treasure/Resources/P_Resource_Impact_Rock"));
-
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	UltHitGroundEffect									(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Lightning_Burst_Area_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	UltHitGroundBigEffect								(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_RockBurst/P_RBurst_Lightning_Eruption_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	UltJumpEffect										(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_Leap/P_Skill_Leap_Base_Impact"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	UltJumpAirEffect									(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_Leap/P_Skill_Leap_Base_Impact_Impact"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	BruteModeInitEffect									(TEXT("/Game/InfinityBladeEffects/Effects/FX_Monsters/FX_Monster_Gruntling/Lightning/P_Gruntling_Lightning_Impact_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>	BruteModeInit_LightningEffect						(TEXT("/Game/InfinityBladeEffects/Effects/FX_Skill_Whirlwind/P_Whirlwind_Lightning_Start_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>  BruteModePunchEffect								(TEXT("/Game/InfinityBladeEffects/Effects/FX_Monsters/FX_Monster_Gruntling/Lightning/P_GruntLightning_gun_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>  BruteModePunchHitEffect								(TEXT("/Game/InfinityBladeEffects/Effects/FX_Combat_Lightning/P_DOT_Lightning_01"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem>  BruteModeInit_Lightning_BigEffect					(TEXT("/Game/InfinityBladeEffects/Effects/FX_Mobile/Lightning/P_LineToPoint_Blast_Lightning_00"));
+	
 	if (BattleStaffMeshFinder.Succeeded()) StaticMeshComponent->SetStaticMesh(BattleStaffMeshFinder.Object);
 
 	if (MeleeAttackCombo_ExplodeEffect.Succeeded()) WeaponEffect[E_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_Combo2AttackExplode.Object;;
@@ -68,6 +75,15 @@ ACBattleStaff::ACBattleStaff() : Super()
 	if (WeaponAttackTrail.Succeeded()) WeaponEffect[E_MELLEWEAPON_ATTACK_TRAIL] = WeaponAttackTrail.Object;
 	if (WeaponAttackHitEffect.Succeeded()) WeaponEffect[E_MELLEWEAPON_ATTACK_HIT] = WeaponAttackHitEffect.Object;
 	if (MeleeAttackCombo_Combo2AttackProjectileHitEffect.Succeeded()) WeaponEffect[E_MELLEATTACKCOMBO_2_PROJECTILE_HIT] = MeleeAttackCombo_Combo2AttackProjectileHitEffect.Object;
+	if (UltHitGroundEffect.Succeeded())	WeaponEffect[E_ULT_HITGROUND] = UltHitGroundEffect.Object;
+	if (UltHitGroundBigEffect.Succeeded())	WeaponEffect[E_ULT_HITGROUND_BIG] = UltHitGroundBigEffect.Object;
+	if (UltJumpEffect.Succeeded())	WeaponEffect[E_ULT_JUMP] = UltJumpEffect.Object;
+	if (UltJumpAirEffect.Succeeded())	WeaponEffect[E_ULT_JUMP_AIR] = UltJumpAirEffect.Object;
+	if (BruteModeInitEffect.Succeeded())	WeaponEffect[E_BRUTEMODE_INIT] = BruteModeInitEffect.Object;
+	if (BruteModeInit_LightningEffect.Succeeded()) WeaponEffect[E_BRUTEMODE_INIT_LIGHTNING] = BruteModeInit_LightningEffect.Object;
+	if (BruteModePunchEffect.Succeeded()) WeaponEffect[E_BRUTEMODE_FIST_LIGHTNING] = BruteModePunchEffect.Object;
+	if (BruteModePunchHitEffect.Succeeded()) WeaponEffect[E_BRUTEMODE_FIST_HIT_EFFECT] = BruteModePunchHitEffect.Object;
+	if (BruteModeInit_Lightning_BigEffect.Succeeded()) WeaponEffect[E_BRUTEMODE_INIT_LIGHTNING_BIG] = BruteModeInit_Lightning_BigEffect.Object;
 
 	WeaponSoundEffect.SetNum(MAX_SE_WEAPON);
 
@@ -75,12 +91,15 @@ ACBattleStaff::ACBattleStaff() : Super()
 	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE(TEXT("/Game/Resources/Sound/Rock/small-rock-break-194553"));
 	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo2AttackProjectile_LauncchSE(TEXT("/Game/Resources/Sound/Rock/stones-falling-6375"));
 	ConstructorHelpers::FObjectFinder<USoundBase> MeleeAttackCombo_Combo1AttackProjectile_LauncchSE(TEXT("/Game/Resources/Sound/Rock/rocks-6129"));
-
-	if (MeleeAttackCombo_FinalAttack_ExplodeSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_FinalAttack_ExplodeSE.Object;
-	if (MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Object;
-	if (MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_LAUNCH] = MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Object;
-	if (MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Succeeded()) WeaponSoundEffect[SE_MELEEATTACKCOMBO_1_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Object;
-
+	ConstructorHelpers::FObjectFinder<USoundBase> UltHitGroundSE(TEXT("/Game/Resources/Sound/Bomb/SC_BSUltExplode"));
+	ConstructorHelpers::FObjectFinder<USoundBase> UltHitGroundSecSE(TEXT("/Game/Resources/Sound/Bomb/SC_BSUltExplodeSecondary"));
+	
+	if (MeleeAttackCombo_FinalAttack_ExplodeSE.Succeeded())				WeaponSoundEffect[SE_MELEEATTACKCOMBO_3_EXPLODE] = MeleeAttackCombo_FinalAttack_ExplodeSE.Object;
+	if (MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Succeeded())	WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_EXPLODE] = MeleeAttackCombo_Combo2AttackProjectile_ExplodeSE.Object;
+	if (MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Succeeded())	WeaponSoundEffect[SE_MELEEATTACKCOMBO_2_LAUNCH] = MeleeAttackCombo_Combo2AttackProjectile_LauncchSE.Object;
+	if (MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Succeeded())	WeaponSoundEffect[SE_MELEEATTACKCOMBO_1_LAUNCH] = MeleeAttackCombo_Combo1AttackProjectile_LauncchSE.Object;
+	if (UltHitGroundSE.Succeeded())										WeaponSoundEffect[SE_ULT_HITGROUND_A] = UltHitGroundSE.Object;
+	if (UltHitGroundSecSE.Succeeded())									WeaponSoundEffect[SE_ULT_HITGROUND_B] = UltHitGroundSecSE.Object;
 
 	
 
@@ -107,12 +126,17 @@ ACBattleStaff::ACBattleStaff() : Super()
 	BruteGaugeMax = 300.f;
 	BruteGauge = 0.f;
 	BruteLMBComboStack = 0;
+
+	StaticMeshComponent->SetRenderCustomDepth(true);
+	StaticMeshComponent->SetCustomDepthStencilValue(1);
 }
 
 void ACBattleStaff::BeginPlay()
 {
 	Super::BeginPlay();
 	if (WeaponOraEffect_BruteMode != nullptr) WeaponOraEffect_BruteMode->SetEffectVisibility(false);
+	
+	MaterialManager = Cast<IIStageMaterialManager>(GetWorld()->GetAuthGameMode());
 }
 
 void ACBattleStaff::LMB_Triggered(struct AttackResult& AttackResult)
@@ -136,10 +160,18 @@ void ACBattleStaff::LMB_Triggered(struct AttackResult& AttackResult)
 				BruteLMBComboStack = 0.f;
 				UE_LOG(LogTemp, Log, TEXT("ACBattleStaff Reset Combo Stack"));
 				}), 3.f, false);
-			//WeaponOraEffect_BruteMode->ActivateEffect();
+
 			ActivateEffect();
 			PC->SetState(PLAYER_ATTACKING, true);
 			PC->Brute_LMB_Combo.Execute(BruteLMBComboStack);
+			if (BruteLMBComboStack > 4.f)
+			{
+				WeaponOraEffect_BruteMode->GraspFist(false);
+			}
+			else
+			{
+				WeaponOraEffect_BruteMode->GraspFist(true);
+			}
 		}
 	}
 	else
@@ -183,6 +215,7 @@ void ACBattleStaff::RMB_Triggered(struct AttackResult& AttackResult)
 		{
 			ActivateEffect();
 			PC->InitiatePunchCombo.Execute();
+			WeaponOraEffect_BruteMode->GraspFist(true);
 		}
 		PC->SetState(PLAYER_BRUTEMODE_ORAORA, true);
 		PC->SetState(PLAYER_ATTACKING, true);
@@ -248,14 +281,40 @@ void ACBattleStaff::RMB_Completed(AttackResult& AttackResult)
 
 void ACBattleStaff::Tab_Triggered(AttackResult& AttackResult)
 {
-	if (BruteGauge < 1.f)
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+	if (!BruteMode)
 	{
-		AttackResult.Succeeded = false;
-		return;
+		bool bComboing = PC->GetState(PLAYER_COMBO_STACK_1) || PC->GetState(PLAYER_COMBO_STACK_3);
+		bool bComboing2 = PC->GetState(PLAYER_COMBO_STACK_2);
+		if (bComboing || bComboing2)
+		{
+			PC->SetContinueCombo(false);
+			PC->SetState(PLAYER_BS_ESCAPE_COMBO_TAB, true);
+			PC->StopAnimMontage();
+			PC->BattleStaffUlt.Execute(bComboing);
+			PC->SetState(PLAYER_ATTACKING, true);
+			AttackResult.Succeeded = true;
+		}
+		else
+		{
+			if (PC->GetState(PLAYER_ATTACKING) || BruteGauge < 1.f) return;
+			//WeaponOraEffect->SetEffectVisibility(false);
+			WeaponOraEffect_BruteMode->SetEffectVisibility(true);
+			BruteMode = true;
+			PC->Sheath.Execute();
+			//PC->SwitchBruteMode(true);
+		}
 	}
-	BruteMode = BruteMode ? false : true;
-	AttackResult.Succeeded = true;
-	WeaponOraEffect_BruteMode->SetEffectVisibility(BruteMode);
+	else
+	{
+		if (!PC->PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK)) return;
+
+		BruteMode = false;
+		WeaponOraEffect_BruteMode->SetEffectVisibility(false);
+		PC->Draw.Execute();
+		//PC->SwitchBruteMode(false);
+	}
 }
 
 void ACBattleStaff::Ult_Triggered(AttackResult& AttackResult)
@@ -266,32 +325,73 @@ void ACBattleStaff::Ult_Triggered(AttackResult& AttackResult)
 	PC->SetState(PLAYER_ATTACKING, true);
 	if (BruteMode) AbortBruteMode();
 
-	PC->BattleStaffUlt.Execute();
+	PC->InwardSlash.Execute();
+	//PC->BattleStaffUlt.Execute(false);
 }
 
 void ACBattleStaff::UltFunc0()
 {
 	ACharacter* PC = Cast<ACharacter>(GetOwner());
 	if (PC == nullptr) return;
-
+	if (BruteGauge < 1.f)
+	{
+		if (IIPlayerState* PlayerState = Cast<IIPlayerState>(PC))
+		{
+			PlayerState->SetState(PLAYER_BS_ESCAPE_COMBO_TAB, false);
+		}
+		return;
+	}
 	WeaponOraEffect->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 
 	FRotator Direction = PC->GetActorRotation();
 	Direction.Pitch = 0.f;
 	FVector DirectionalVector = Direction.Vector();
-	WeaponOraEffect->ThrowForward(PC->GetActorLocation(), PC->GetActorLocation() + DirectionalVector * 2500.f, this);
+	WeaponOraEffect->ThrowCircular(PC->GetActorLocation(), PC->GetActorLocation() + DirectionalVector * 2500.f, this);
 }
 
 void ACBattleStaff::UltFunc1()
 {
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 	if (PC == nullptr) return;
-
-	BruteGauge = BruteGaugeMax;
+	if (BruteGauge < 1.f) return;
+	//BruteGauge = BruteGaugeMax;
 	BruteMode = true;
 	WeaponOraEffect_BruteMode->SetEffectVisibility(BruteMode);
 
 	PC->FinishPunch.Execute();
+}
+
+void ACBattleStaff::UltFunc2()
+{
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr || WeaponOraEffect == nullptr) return;
+	BruteMode = true;
+
+	WeaponOraEffect_BruteMode->SetEffectVisibility(true);
+
+	FTransform EnemyTransform;
+	FVector ThrowDestination;
+	float Range = 1500.f;
+	bool IsDealingWithEnemy = PC->GetDealingEnemyTransform(EnemyTransform);
+	bool IsEnemyInRange = (FVector::Distance(PC->GetActorLocation(), EnemyTransform.GetLocation()) <= Range) ? true : false;
+
+	if (IsDealingWithEnemy && IsEnemyInRange)
+	{
+		ThrowDestination = EnemyTransform.GetLocation();
+	}
+	else
+	{
+		FRotator Direction = PC->GetActorRotation();
+		Direction.Pitch = 0.f;
+		FVector DirectionalVector = Direction.Vector();
+		ThrowDestination = PC->GetActorLocation() + DirectionalVector * 1500.f;
+	}
+	WeaponOraEffect->ThrowForward(PC->GetActorLocation(), ThrowDestination, this);
+}
+
+void ACBattleStaff::UltFunc3()
+{
+	WeaponOraEffect->InstantRetrieveStaff();
 }
 
 void ACBattleStaff::OnEquipped()
@@ -367,6 +467,7 @@ void ACBattleStaff::SetIsEquiped(bool e)
 void ACBattleStaff::OnAttackSwingEnd()
 {
 	BruteChargedAD = 0.f;
+	TempHitEnemiesArr.Empty();
 }
 
 UStaticMeshComponent* ACBattleStaff::GetStaffStaticMeshComponent()
@@ -416,15 +517,15 @@ void ACBattleStaff::Tick(float DeltaTime)
 		SetActorRotation(GetActorRotation() + FRotator(0.f, 3.f, 0.f));
 	}
 
-	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
-	if (!IsValid(PC)) return;
-	if (PC->GetState(PLAYER_ATTACKING))
-	{
-		FireSocketEffectComponent->SetActive(true);
-	}
-	else {
-		FireSocketEffectComponent->SetActive(false);
-	}
+	//ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	//if (!IsValid(PC)) return;
+	//if (PC->GetState(PLAYER_ATTACKING))
+	//{
+	//	FireSocketEffectComponent->SetActive(true);
+	//}
+	//else {
+	//	FireSocketEffectComponent->SetActive(false);
+	//}
 
 // Attack Effect
 	if (FireSocket == nullptr) return;
@@ -454,7 +555,7 @@ void ACBattleStaff::Tick(float DeltaTime)
 	}
 }
 
-bool ACBattleStaff::MeleeAttackHitCheck(int32 HitMode, float fDamageScale)
+bool ACBattleStaff::MeleeAttackHitCheck(int32 HitMode, float fDamageScale, float _ExplodeRadius)
 {
 	switch (HitMode)
 	{
@@ -472,6 +573,9 @@ bool ACBattleStaff::MeleeAttackHitCheck(int32 HitMode, float fDamageScale)
 		}
 		return StaffHitCheck(WeaponOraEffect->GetWeaponLocation(true), fDamageScale);
 		break;
+	case(4):
+		return ExplodeHitCheck(_ExplodeRadius, fDamageScale);
+		break;
 	default:
 		return StaffHitCheck(FVector::ZeroVector, fDamageScale);
 		break;
@@ -480,6 +584,10 @@ bool ACBattleStaff::MeleeAttackHitCheck(int32 HitMode, float fDamageScale)
 
 UParticleSystem* ACBattleStaff::GetWeaponEffect(int e)
 {
+	if (!WeaponEffect.IsValidIndex(e))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACBattleStaff::GetWeaponEffect : No Such Effect On Weapon"));
+	}
 	return WeaponEffect.IsValidIndex(e) ? WeaponEffect[e] : WeaponEffect[0];
 }
 
@@ -502,6 +610,34 @@ UStaticMeshSocket* ACBattleStaff::GetSocket(FName e)
 UStaticMeshComponent* ACBattleStaff::GetStaticMeshComponent()
 {
 	return StaticMeshComponent;
+}
+
+void ACBattleStaff::SpawnWeaponEffect(int32 Index, FTransform SpawnTransform, float LifeSpan)
+{
+	if (!WeaponEffect.IsValidIndex(Index))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACBattleStaff::SpawnWeaponEffect : No Such Effect On Weapon"));
+		return;
+	}
+
+	if (MaterialManager != nullptr)
+	{
+		MaterialManager->SpawnParticle(WeaponEffect[Index], LifeSpan, SpawnTransform.GetLocation(), SpawnTransform.GetRotation().Rotator(), SpawnTransform.GetScale3D());
+	}
+
+	//UParticleSystemComponent* SpawnedParticle = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[Index], SpawnTransform);
+	if (LifeSpan < 0.f) return;
+	// TODO Set Life Span
+}
+
+void ACBattleStaff::PlaySoundEffect(int32 Index, FVector SpawnLocation, float Volume, float Pitch)
+{
+	if (!WeaponSoundEffect.IsValidIndex(Index))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACBattleStaff::SpawnWeaponEffect : No Such Sound Effect On Weapon"));
+		return;
+	}
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSoundEffect[Index], SpawnLocation, Volume, Pitch);
 }
 
 void ACBattleStaff::GetSocketTransform(FTransform& SocketTransform, FName SocketName)
@@ -532,12 +668,16 @@ void ACBattleStaff::DequeueHitParticle()
 {
 	UParticleSystemComponent* temp;
 	HitParticleQueue.Dequeue(temp);
-	if (temp != nullptr) temp->Deactivate();
+	if (temp != nullptr)
+	{
+		temp->Deactivate();
+		UE_LOG(LogTemp, Log, TEXT("Dequeing Effect %s"), *temp->GetName());
+	}
 }
 
 bool ACBattleStaff::StaffHitCheck(FVector HitLocation, float fDamageScale)
 {
-	FHitResult HitResult;
+	//FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
 	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
 
@@ -551,9 +691,9 @@ bool ACBattleStaff::StaffHitCheck(FVector HitLocation, float fDamageScale)
 	{
 		if (FireSocket != nullptr) FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
 	}
-
-	bool bResult = GetWorld()->SweepSingleByObjectType(
-		HitResult,
+	TArray<FHitResult> tempResults;
+	bool bResult = GetWorld()->SweepMultiByObjectType(
+		tempResults,
 		FireSocketTransform.GetLocation(),
 		FireSocketTransform.GetLocation(),
 		FQuat::Identity,
@@ -561,38 +701,47 @@ bool ACBattleStaff::StaffHitCheck(FVector HitLocation, float fDamageScale)
 		UltAttacking ? FCollisionShape::MakeSphere(250.f) : FCollisionShape::MakeSphere(30.f),
 		Params
 	);
-	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
-	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Component : %s"), *HitResult.GetComponent()->GetFullName());
-	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetFullName());
+	//bool bResult = GetWorld()->SweepSingleByObjectType(
+	//	HitResult,
+	//	FireSocketTransform.GetLocation(),
+	//	FireSocketTransform.GetLocation(),
+	//	FQuat::Identity,
+	//	OQP,
+	//	UltAttacking ? FCollisionShape::MakeSphere(250.f) : FCollisionShape::MakeSphere(30.f),
+	//	Params
+	//);
 
 	if (bResult)
 	{
-		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
-		if (EC == nullptr) return false;
-		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
-		if (PC == nullptr)
+		for (FHitResult HitResult : tempResults)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
-			return false;
-		}
+			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+			if (EC == nullptr || TempHitEnemiesArr.Contains(EC)) continue;
 
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
+			ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
+			if (PC == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
+				return false;
+			}
 
-		UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, DamageScale);
-		PC->DealtDamage(AttackDamage, UltAttacking ? 5.f : fDamageScale, EC);
-		EC->HitDamage(AttackDamage * UltAttacking ? 5.f : fDamageScale, *PC, HitResult.Location);
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
 
-		FTransform HitEffectSpawnTransform;
-		HitEffectSpawnTransform.SetLocation(HitResult.Location);
-		FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
-		HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
-		HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+			UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, DamageScale);
+			PC->DealtDamage(AttackDamage, UltAttacking ? 5.f : fDamageScale, EC);
+			EC->HitDamage(AttackDamage * UltAttacking ? 5.f : fDamageScale, *PC, HitResult.Location);
+			TempHitEnemiesArr.Add(EC);
 
-		UParticleSystemComponent* tempParticle = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_MELLEWEAPON_ATTACK_HIT], HitEffectSpawnTransform);
-		if (tempParticle != nullptr)
-		{
-			HitParticleQueue.Enqueue(tempParticle);
-			GetWorld()->GetTimerManager().SetTimer(EffectSpawnTimerHandler, this, &ACBattleStaff::DequeueHitParticle, 0.5f);
+			FTransform HitEffectSpawnTransform;
+			HitEffectSpawnTransform.SetLocation(HitResult.Location);
+			FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
+			HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
+			HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+			if (MaterialManager != nullptr)
+			{
+				MaterialManager->SpawnParticle(WeaponEffect[E_MELLEWEAPON_ATTACK_HIT], 1.f, HitEffectSpawnTransform.GetLocation());
+			}
 		}
 	}
 
@@ -601,14 +750,15 @@ bool ACBattleStaff::StaffHitCheck(FVector HitLocation, float fDamageScale)
 
 bool ACBattleStaff::FistHitCheck(bool IsLeft, float fDamageScale)
 {
-	FHitResult HitResult;
+	//FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
 	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
 
 	FVector FistLocation = WeaponOraEffect_BruteMode->GetWeaponLocation(IsLeft);
 
-	bool bResult = GetWorld()->SweepSingleByObjectType(
-		HitResult,
+	TArray<FHitResult> tempResults;
+	bool bResult = GetWorld()->SweepMultiByObjectType(
+		tempResults,
 		FistLocation,
 		FistLocation,
 		FQuat::Identity,
@@ -616,40 +766,103 @@ bool ACBattleStaff::FistHitCheck(bool IsLeft, float fDamageScale)
 		FCollisionShape::MakeSphere(200.f),
 		Params
 	);
+	//bool bResult = GetWorld()->SweepSingleByObjectType(
+	//	HitResult,
+	//	FistLocation,
+	//	FistLocation,
+	//	FQuat::Identity,
+	//	OQP,
+	//	FCollisionShape::MakeSphere(200.f),
+	//	Params
+	//);
 	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
 	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Component : %s"), *HitResult.GetComponent()->GetFullName());
 	//if (bResult) UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetFullName());
 
 	if (bResult)
 	{
-		//DrawDebugSphere(GetWorld(), FistLocation, 200.f, 32.f, bResult ? FColor::Green : FColor::Red, false, 0.1f);
-
-		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
-		if (EC == nullptr) return false;
-		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
-		if (PC == nullptr)
+		for (FHitResult HitResult : tempResults)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
-			return false;
+			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+			if (EC == nullptr || TempHitEnemiesArr.Contains(EC)) return false;
+			ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
+			if (PC == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
+				return false;
+			}
+
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
+
+			UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, fDamageScale);
+			PC->DealtDamage(AttackDamage * 10.f * (1.f + BruteChargedAD), fDamageScale, EC);
+			EC->HitDamage(AttackDamage * 10.f * (1.f + BruteChargedAD) * fDamageScale, *PC, HitResult.Location);
+			TempHitEnemiesArr.Add(EC);
+
+			FTransform HitEffectSpawnTransform;
+			HitEffectSpawnTransform.SetLocation(HitResult.Location);
+			FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
+			HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
+			HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+			if (MaterialManager != nullptr)
+			{
+				MaterialManager->SpawnParticle(WeaponEffect[E_BRUTEMODE_FIST_HIT_EFFECT], 0.5f, HitEffectSpawnTransform.GetLocation());
+			}
 		}
+	}
 
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
 
-		UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, fDamageScale);
-		PC->DealtDamage(AttackDamage * 10.f * (1.f + BruteChargedAD), fDamageScale, EC);
-		EC->HitDamage(AttackDamage * 10.f * (1.f + BruteChargedAD) * fDamageScale, *PC, HitResult.Location);
+	return bResult;
+}
 
-		FTransform HitEffectSpawnTransform;
-		HitEffectSpawnTransform.SetLocation(HitResult.Location);
-		FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
-		HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
-		HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+bool ACBattleStaff::ExplodeHitCheck(float _ExplodeRadius, float fDamageScale)
+{
+	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
+	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
+	if (GetAttachParentActor() == nullptr) return false;
+	TArray<FHitResult> tempResults;
+	bool bResult = GetWorld()->SweepMultiByObjectType(
+		tempResults,
+		GetAttachParentActor()->GetActorLocation(),
+		GetAttachParentActor()->GetActorLocation(),
+		FQuat::Identity,
+		OQP,
+		FCollisionShape::MakeSphere(_ExplodeRadius),
+		Params
+	);
 
-		UParticleSystemComponent* tempParticle = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_MELLEWEAPON_ATTACK_HIT], HitEffectSpawnTransform);
-		if (tempParticle != nullptr)
+	//DrawDebugSphere(GetWorld(), GetAttachParentActor()->GetActorLocation(), _ExplodeRadius, 32, bResult ? FColor::Red : FColor::Green, false, 2.f);
+	if (bResult)
+	{
+		for (FHitResult HitResult : tempResults)
 		{
-			HitParticleQueue.Enqueue(tempParticle);
-			GetWorld()->GetTimerManager().SetTimer(EffectSpawnTimerHandler, this, &ACBattleStaff::DequeueHitParticle, 0.5f);
+			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+			if (EC == nullptr || TempHitEnemiesArr.Contains(EC)) return false;
+			ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
+			if (PC == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
+				return false;
+			}
+
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
+
+			UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, fDamageScale);
+			PC->DealtDamage(AttackDamage * 10.f, fDamageScale, EC);
+			EC->HitDamage(AttackDamage * 10.f * fDamageScale, *PC, HitResult.Location);
+			TempHitEnemiesArr.Add(EC);
+
+			FTransform HitEffectSpawnTransform;
+			HitEffectSpawnTransform.SetLocation(HitResult.Location);
+			FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
+			HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
+			HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+			if (MaterialManager != nullptr)
+			{
+				MaterialManager->SpawnParticle(WeaponEffect[E_BRUTEMODE_FIST_HIT_EFFECT], 0.5f, HitEffectSpawnTransform.GetLocation());
+			}
 		}
 	}
 
@@ -684,6 +897,11 @@ void ACBattleStaff::SetCharge(float e, bool IsLeft)
 	if (BruteMode) WeaponOraEffect_BruteMode->SetCharge(e, IsLeft);
 	BruteChargedAD = e;
 	UE_LOG(LogTemp, Log, TEXT("ACBattleStaff::SetCharge : BruteChargedAD : %f"), BruteChargedAD);
+}
+
+void ACBattleStaff::GetCurrentHammerEffectLocation(FVector& OutLocation)
+{
+	OutLocation = WeaponOraEffect->GetWeaponLocation(false);
 }
 
 void ACBattleStaff::CreateParticleSystem()

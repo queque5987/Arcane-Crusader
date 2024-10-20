@@ -98,10 +98,7 @@ void ACEnemyAIController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector tempVector = GetCharacter()->GetActorLocation() + GetCharacter()->GetViewRotation().RotateVector(FVector::ForwardVector * 1000.f);
-	//UE_LOG(LogTemp, Log, TEXT("Character Rotation : %s"), *tempVector.ToString());
 	Blackboard->SetValueAsVector(CornAheadPos, tempVector);
-
-	//DrawDebugSphere(GetCharacter()->GetWorld(), tempVector, 300.f, 32, FColor::Red);
 }
 
 //void ACEnemyAIController::SetPerceptionComponent(UAIPerceptionComponent& InPerceptionComponent)
@@ -220,3 +217,36 @@ void ACEnemyAIController::OnPlayerLoseTimer()
 		Blackboard->SetValueAsObject(PlayerCharacter, nullptr);
 	}
 }
+
+ACharacter* ACEnemyAIController::GetPlayer()
+{
+	ACharacter* tempChar = Cast<ACharacter>(Blackboard->GetValueAsObject(PlayerCharacter));
+	return tempChar;
+}
+
+bool ACEnemyAIController::IsPlayerAttacking()
+{
+	if (ChasingPlayer == nullptr) return false;
+	IIPlayerState* PS = Cast<IIPlayerState>(ChasingPlayer);
+	if (PS == nullptr) return false;
+	return PS->GetState(PLAYER_ATTACKING);
+}
+
+float ACEnemyAIController::GetPlayerDistance()
+{
+	if (ChasingPlayer == nullptr || GetOwner() == nullptr) return -1.f;
+	return FVector::Distance(GetOwner()->GetActorLocation(), ChasingPlayer->GetActorLocation());
+}
+
+FVector ACEnemyAIController::GetPlayerVelocity()
+{
+	if (ChasingPlayer == nullptr) return FVector::ZeroVector;
+	return ChasingPlayer->GetVelocity();
+}
+
+FVector ACEnemyAIController::GetPlayerLocation()
+{
+	if (ChasingPlayer == nullptr) return FVector::ZeroVector;
+	return ChasingPlayer->GetActorLocation();
+}
+

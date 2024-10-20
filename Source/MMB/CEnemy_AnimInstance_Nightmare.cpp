@@ -38,29 +38,29 @@ void UCEnemy_AnimInstance_Nightmare::NativeUpdateAnimation(float DeltaSeconds)
 
 void UCEnemy_AnimInstance_Nightmare::Roar()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceRoar, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceRoar, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_Nightmare::AttackHand()
 {
-	EnemyCharacter->SetDamageScale(0.3f);
+	//EnemyCharacter->SetDamageScale(0.3f);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_HITDOWN);
 	EnemyCharacter->SetbAttacking(true);
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHand, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHand, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_Nightmare::AttackHead()
 {
-	EnemyCharacter->SetDamageScale(0.8f);
+	//EnemyCharacter->SetDamageScale(0.8f);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_FLINCH);
 	EnemyCharacter->SetbAttacking(true);
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHead, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHead, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_Nightmare::AttackMouth()
 {
-	EnemyCharacter->SetDamageScale(1.8f);
+	//EnemyCharacter->SetDamageScale(1.8f);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_HITDOWN);
 	EnemyCharacter->SetbAttacking(true);
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackMouth, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackMouth, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }

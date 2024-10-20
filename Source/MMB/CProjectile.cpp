@@ -113,41 +113,50 @@ void ACProjectile::Explode(bool Hit)
 
 void ACProjectile::SweepOnLaunch()
 {
-	FHitResult HitResult;
+	//FHitResult HitResult;
 	FCollisionObjectQueryParams OQP(Collider->GetCollisionObjectType());
-
-	bool bResult = GetWorld()->SweepSingleByObjectType(
-		HitResult,
+	TArray<FHitResult> HitResults;
+	bool bResult = GetWorld()->SweepMultiByObjectType(
+		HitResults,
 		GetActorLocation(),
 		GetActorLocation(),
 		FQuat::Identity,
 		OQP,
 		Collider->GetCollisionShape()
 	);
+	//bool bResult = GetWorld()->SweepSingleByObjectType(
+	//	HitResult,
+	//	GetActorLocation(),
+	//	GetActorLocation(),
+	//	FQuat::Identity,
+	//	OQP,
+	//	Collider->GetCollisionShape()
+	//);
 	if (bResult)
 	{
-		if (bPenetrate)
+		for (FHitResult HitResult : HitResults)
 		{
-			SweepActor = Cast<ACharacter>(HitResult.GetActor());
-			HitLocation = GetActorLocation();
-		}
+			if (bPenetrate)
+			{
+				SweepActor = Cast<ACharacter>(HitResult.GetActor());
+				HitLocation = GetActorLocation();
+			}
 
-		if (ACPlayerCharacter* CPC = Cast<ACPlayerCharacter>(PC))
-		{
-			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
-			if (!IsValid(EC)) return;
-			//EC->HitDamage(TotalDamage, *PC, HitResult.Location);
-			EC->HitDamage(TotalDamage, *PC, GetActorLocation());
-			CPC->DealtDamage(TotalDamage, 0.1f, EC);
-			Explode(true);
-		}
-		else if (ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
-		{
-			ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(HitResult.GetActor());
-			if (!IsValid(EC)) return;
-			//EC->HitDamage(TotalDamage, Attacker, HitResult.Location, PlayerReactPower);
-			EC->HitDamage(TotalDamage, Attacker, GetActorLocation(), PlayerReactPower);
-			Explode(true);
+			if (ACPlayerCharacter* CPC = Cast<ACPlayerCharacter>(PC))
+			{
+				ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+				if (!IsValid(EC)) return;
+				EC->HitDamage(TotalDamage, *PC, GetActorLocation());
+				CPC->DealtDamage(TotalDamage, 0.1f, EC);
+				Explode(true);
+			}
+			else if (ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
+			{
+				ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(HitResult.GetActor());
+				if (!IsValid(EC)) return;
+				EC->HitDamage(TotalDamage, Attacker, GetActorLocation(), PlayerReactPower);
+				Explode(true);
+			}
 		}
 		//UE_LOG(LogTemp, Log, TEXT("Hit Actor : %s"), *HitResult.GetActor()->GetName());
 	}
@@ -269,5 +278,10 @@ void ACProjectile::SetLaunchQuick()
 void ACProjectile::SetProjCollisionScale(float e)
 {
 	Collider->SetSphereRadius(e);
+}
+
+void ACProjectile::SetProjectileScae(FVector e)
+{
+	ParticleSystemFireBall->SetRelativeScale3D(e);
 }
 

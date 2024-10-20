@@ -24,11 +24,11 @@ protected:
 
 	class UCInventoryItemData* PossessingItem;
 
-	void CheckSweepCharacter();
 
 	class ACPlayerCharacter* OverlapingPlayerCharacter;
-public:	
-	// Called every frame
+public:
+	void CheckSweepCharacter();
+
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
@@ -38,4 +38,6 @@ public:
 
 	void SetPossessingItem(class UCInventoryItemData& ItemData);
 	class UCInventoryItemData* GetPossessingItem() { return PossessingItem; }
+
+	void PlayerPickUp(class ACPlayerController* PlayerController);
 };

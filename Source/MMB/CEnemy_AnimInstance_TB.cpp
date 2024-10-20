@@ -61,48 +61,48 @@ void UCEnemy_AnimInstance_TB::UpdateProperties(float Delta)
 
 void UCEnemy_AnimInstance_TB::Roar()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceRoar, "NeckSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceRoar, "NeckSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_TB::AttackHand()
 {
-	EnemyCharacter->SetDamageScale(0.3f);
+	//EnemyCharacter->SetDamageScale(0.3f);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_FLINCH);
 	EnemyCharacter->SetbAttacking(true);
 	UE_LOG(LogTemp, Log, TEXT("Attack Hand"));
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHand, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackHand, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_TB::AttackMouth()
 {
-	EnemyCharacter->SetDamageScale(0.8f);
+	//EnemyCharacter->SetDamageScale(0.8f);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_HITDOWN);
 	EnemyCharacter->SetbAttacking(true);
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackMouth, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceAttackMouth, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_TB::AttackFire()
 {
 	EnemyCharacter->SetbAttacking(true);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_STAND);
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceFire, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceFire, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_TB::AttackFlyFire()
 {
 	EnemyCharacter->SetbAttacking(true);
 	EnemyCharacter->SetAttackPower(PLAYER_HIT_REACT_STAND);
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceFlyFire, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceFlyFire, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_TB::Land()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceLand, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceLand, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 void UCEnemy_AnimInstance_TB::TakeOff()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceTakeOff, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceTakeOff, "DefaultSlot", 0.25f, 0.25f, PlayRate);
 }
 
 //Deprecated

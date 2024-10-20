@@ -18,6 +18,7 @@ class MMB_API IIItemManager
 
 public:
 	virtual UTexture2D* IconGetter(FString IconAssetName) { return nullptr; };
+	virtual struct FQuestsRow* GetQuestbyIndex(int32 QuestIdx) { return nullptr; };
 
 	virtual class UCInventoryItemData* GetItem(FName ItemRowName, int Count = 1) { return nullptr; }
 	virtual class ACEnemyCharacter* GetMonsterClass(FName RowName) { return nullptr; }

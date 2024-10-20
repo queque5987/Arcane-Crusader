@@ -25,7 +25,7 @@ void UCMainUI::OnGameStartClicked()
 		//FString LevelName = L"/Game/Resources/Levels/Startlevel";
 		//UGameplayStatics::OpenLevel(GetOwningPlayer(), *LevelName, true);
 
-		OnLoadingScreenSet.Broadcast(FName(TEXT("Startlevel")));
+		OnLoadingScreenSet.Broadcast(FName(TEXT("Level_Town")));
 
 		//UGameplayStatics::OpenLevelBySoftObjectPtr(GetOwningPlayer()->GetWorld(), GM->LevelToLoad);
 		if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))

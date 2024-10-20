@@ -4,6 +4,8 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "CAnimNotify_RSUltThrowBeacon.generated.h"
 
+//Deprecated 20240914 Use CAnimNotify_WeaponCallFunc
+
 UCLASS()
 class MMB_API UCAnimNotify_RSUltThrowBeacon : public UAnimNotify
 {

@@ -15,9 +15,10 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyBegin(USkeletalMeshComponent* MeshCo
 	SpitFire = 0;
 
 	if (MeshComp == nullptr) return;
-	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
-	if (EC == nullptr) return;
-	IIFlyMonster* IEC = Cast<IIFlyMonster>(EC);
+	EnemyChar = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
+	EC = Cast<IIEnemyStateManager>(EnemyChar);
+	if (EC == nullptr || EnemyChar == nullptr) return;
+	IIFlyMonster* IEC = Cast<IIFlyMonster>(EnemyChar);
 	if (IEC == nullptr) return;
 	FireEffect = IEC->GetParticleSystem(E_ENEMYATTACK_FLAMETHROWER);
 	FString SoundAddress = "/Game/Resources/Sound/Dragon/fire-sound-efftect-21991_5.fire-sound-efftect-21991_5";
@@ -32,10 +33,8 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyBegin(USkeletalMeshComponent* MeshCo
 void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
 {
 	if (!ContinueAttack) return;
-	if (MeshComp == nullptr) return;
-	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
 	if (EC == nullptr) return;
-	IIFlyMonster* IEC = Cast<IIFlyMonster>(EC);
+	IIFlyMonster* IEC = Cast<IIFlyMonster>(MeshComp->GetOwner());
 	if (IEC == nullptr) return;
 	bool IsFlying = IEC->GetIsFlying();
 	float projscale = IsFlying ? 30.f : 30.f;
@@ -43,25 +42,26 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 	float projclock = IsFlying ? 1.4f : 0.65f;
 	float projscaleA = IsFlying ? 0.09f : 0.11f;
 
-	FVector JawLocation = MeshComp->GetBoneLocation("Jaw1");
-	FVector HeadLocation = MeshComp->GetBoneLocation("Head");
+	FVector JawLocation = MeshComp->GetBoneLocation(JawBoneNameOverride);
+	FVector HeadLocation = MeshComp->GetBoneLocation(HeadBoneNameOverride);
 
 	FVector JawToHead = (JawLocation - HeadLocation).GetSafeNormal();
 	FRotator HeadRotation = FRotationMatrix::MakeFromX(JawToHead).Rotator();
-
+	//HeadRotation.Pitch += 30.f;
+	//HeadRotation += FlameAxisAdjust;
 	ACProjectile* Proj = MeshComp->GetWorld()->SpawnActor<ACProjectile>(
 		ACProjectile::StaticClass(), JawLocation, HeadRotation);
 
 	Proj->SetLaunch(
-		EC,
+		EnemyChar,
 		nullptr,
 		nullptr,
 		nullptr,
 		nullptr,
-		0.5f,
-		1500.f,
+		2.5f,
+		2500.f,
 		projspeed,
-		projclock,
+		1.6f,
 		nullptr,
 		false,
 		false,
@@ -75,14 +75,15 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyTick(USkeletalMeshComponent* MeshCom
 		UParticleSystemComponent* FEC = UGameplayStatics::SpawnEmitterAttached(
 			FireEffect,
 			MeshComp,
-			"Jaw1",
+			JawBoneNameOverride,
 			IsFlying ? FVector(80.f, -120.f, 0.f) : FVector(40.f, -60.f, 0.f),
-			IsFlying ? FRotator(-90.f, 0.f, -50.f) : FRotator(-90.f, 0.f, -20.f),
+			//IsFlying ? FRotator(-90.f, 0.f, -50.f) : FRotator(-90.f, 0.f, -20.f),
+			FlameAxisAdjust,
 			IsFlying ? FVector(3.f, 3.f, 4.f) : FVector(2.5f, 2.f, 2.f),
 			EAttachLocation::KeepRelativeOffset,
 			true
 		);
-
+		if (FEC == nullptr) return;
 		FEQueue.Enqueue(FEC);
 
 		FTimerManager& TM = MeshComp->GetWorld()->GetTimerManager();
@@ -99,6 +100,7 @@ void UCAnimNotifyState_EnemyAtk_Fire::NotifyEnd(USkeletalMeshComponent* MeshComp
 	{
 		if (FEQueue.Dequeue(D))
 		{
+			if (D == nullptr) break;
 			D->SetActive(false);
 		}
 	}

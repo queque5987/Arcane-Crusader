@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,9 +5,6 @@
 #include "IEntrance.h"
 #include "CEntrance_Quest.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MMB_API ACEntrance_Quest : public AActor, public IIEntrance
 {
@@ -24,6 +19,9 @@ class MMB_API ACEntrance_Quest : public AActor, public IIEntrance
 
 	UPROPERTY(EditAnywhere)
 	class UCameraComponent* CinematicCameraComponent;
+
+	UPROPERTY(EditAnywhere)
+	float SequenceTime;
 public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;

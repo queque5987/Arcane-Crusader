@@ -18,7 +18,7 @@ void UCAnimNotifyState_PlayerComboWait::NotifyEnd(USkeletalMeshComponent* MeshCo
 	Super::NotifyEnd(MeshComp, Animation);
 	if (GetPC(MeshComp))
 	{
-		if (!PC->GetContinueCombo())
+		if (!PC->GetContinueCombo() && !PC->GetState(PLAYER_BS_ESCAPE_COMBO_TAB))
 		{
 			PC->StopAnimMontage();
 			PC->SetState(PLAYER_ATTACKING, false);

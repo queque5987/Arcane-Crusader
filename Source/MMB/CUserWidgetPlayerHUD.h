@@ -68,7 +68,9 @@ public:
 	TObjectPtr<UCanvasPanel> BattleUIPanel;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCUserWIdget_BattleGauge> BruteGauge;
-
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BruteModeRoundUI;
+	
 // Rifle Staff
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> RifleUIPanel;

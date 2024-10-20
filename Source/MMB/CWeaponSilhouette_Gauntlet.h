@@ -20,9 +20,15 @@ public:
 	class USkeletalMeshComponent* WeaponOraEffect_L;
 	UPROPERTY(EditAnywhere)
 	class UMaterialInstanceDynamic* OraEffectMaterial_L;
+
+	UPROPERTY(EditAnywhere)
+	class UParticleSystemComponent* ChargeEffect;
+	UPROPERTY(EditAnywhere)
+	class UParticleSystemComponent* ChargeEffect_L;
 protected:
 	virtual void BeginPlay() override;
 	float TurningOff;
+	bool bGrasping;
 
 	class UAnimSequenceBase* GraspAnim;
 	class UAnimSequenceBase* UnGraspAnim;

@@ -25,13 +25,16 @@ public:
 	virtual void RMB_Completed(struct AttackResult& AttackResult) {}
 	virtual void Tab_Triggered(struct AttackResult& AttackResult) {}
 	virtual void Ult_Triggered(struct AttackResult& AttackResult) {}
-	virtual bool MeleeAttackHitCheck(int32 HitMode = 0, float fDamageScale = 0.f) { return bool(); };
+	virtual bool MeleeAttackHitCheck(int32 HitMode = 0, float fDamageScale = 0.f, float _ExplodeRadius = 0.f) { return bool(); };
 	virtual void OnAttackSwingEnd() {};
 	virtual void SpawnEmitterAttachedToSocket() {};
 	virtual void OnEquipped() {};
 	virtual void OnUnequipped() {};
 
 	virtual class UStaticMeshComponent* GetStaffStaticMeshComponent() { return nullptr; };
+
+	virtual void SpawnWeaponEffect(int32 Index, FTransform SpawnTransform, float LifeSpan) {};
+	virtual void PlaySoundEffect(int32 Index, FVector SpawnLocation, float Volume = 1.f, float Pitch = 1.f) {};
 protected:
 	virtual class UCInventoryItemData* GetItemData(ACharacter* PC) { return nullptr; };
 public:
@@ -57,6 +60,7 @@ public:
 	virtual void GetSocketTransform(FTransform& SocketTransform, FName SocketName) {}
 	virtual void UpdateCharacterStat() {}
 
+	virtual void ResetDealtEnemies() {};
 // Weapon Ora Effect
 	virtual void ActivateEffect() {};
 	virtual void DeactivateEffect() {};
@@ -67,7 +71,8 @@ public:
 
 // Battle Only
 	virtual void AddBruteGauge(float BG) {};
-
+	virtual float GetBruteGauge() { return 0.f; };
+	virtual void GetCurrentHammerEffectLocation(FVector& OutLocation) {};
 // Rifle Only
 	virtual float GetMaxBullet(int32 BulletType) { return 0.f; }
 	virtual float GetCurrBullet(int32 BulletType) { return 0.f; }
@@ -78,4 +83,8 @@ public:
 	virtual void UltFunc0() {};
 	/*BS = TurnBruteMode, RS == ThrowBeacon*/
 	virtual void UltFunc1() {};
+	/*BS = ThrowStaffEffect Forward*/
+	virtual void UltFunc2() {};
+	/*BS = Instant Retreive Staff*/
+	virtual void UltFunc3() {};
 };

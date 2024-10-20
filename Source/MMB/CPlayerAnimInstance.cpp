@@ -62,6 +62,11 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 
 	ConstructorHelpers::FObjectFinder<UAnimSequenceBase>  BattleStaffUltFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Standing_Melee_Combo_Attack_Ver__1"));
 
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase>  BattleStaffInwardSlashFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Stable_Sword_Inward_Slash.Stable_Sword_Inward_Slash"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase>  BattleStaffRunningJumpFinder(TEXT("/Game/Player/Guard/Animation/Unarmed_Jump"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase>  BattleStaffUnarmedAirboneFinder(TEXT("/Game/Player/Guard/Animation/Unarmed_Jump_air"));
+	ConstructorHelpers::FObjectFinder<UAnimSequenceBase>  BattleStaffBackFlipFinder(TEXT("/Game/Player/Guard/Animation/Hostile/Brute/Backflip"));
+	
 	if (LMBAttackFinder.Succeeded())		AnimSequenceLMBAttack = LMBAttackFinder.Object;
 	if (RMBCastStartFinder.Succeeded())		AnimSequenceRMBCastStart = RMBCastStartFinder.Object;
 	if (RMBCastOngoingFinder.Succeeded())	AnimSequenceRMBCastOngoing = RMBCastOngoingFinder.Object;
@@ -98,8 +103,8 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if (RifleStaffUltFinder.Succeeded())	AnimSequenceRifleStaffUlt = RifleStaffUltFinder.Object;
 
 	if (InitiatePunchComboFinder.Succeeded())	AnimSequenceInitiatePunchCombo = InitiatePunchComboFinder.Object;
-	if (Rush0Finder.Succeeded())	AnimSequenceRush0 = Rush0Finder.Object;
-	if (FinishPunchFinder.Succeeded())	AnimSequenceFinishPunch = FinishPunchFinder.Object;
+	if (Rush0Finder.Succeeded())				AnimSequenceRush0 = Rush0Finder.Object;
+	if (FinishPunchFinder.Succeeded())			AnimSequenceFinishPunch = FinishPunchFinder.Object;
 
 	if (Brute_LMB_Combo1Finder.Succeeded())	AnimSequenceBrute_LMB_Combo1 = Brute_LMB_Combo1Finder.Object;
 	if (Brute_LMB_Combo2Finder.Succeeded())	AnimSequenceBrute_LMB_Combo2 = Brute_LMB_Combo2Finder.Object;
@@ -109,6 +114,11 @@ UCPlayerAnimInstance::UCPlayerAnimInstance()
 	if (Brute_LMB_Combo6Finder.Succeeded())	AnimSequenceBrute_LMB_Combo6 = Brute_LMB_Combo6Finder.Object;
 
 	if (BattleStaffUltFinder.Succeeded())	AnimSequenceBattleStaffUlt = BattleStaffUltFinder.Object;
+
+	if (BattleStaffInwardSlashFinder.Succeeded())		AnimSequenceBattleStaffUlt_InwardSlash = BattleStaffInwardSlashFinder.Object;
+	if (BattleStaffRunningJumpFinder.Succeeded())		AnimSequenceBattleStaffUlt_Jump = BattleStaffRunningJumpFinder.Object;
+	if (BattleStaffUnarmedAirboneFinder.Succeeded())	AnimSequenceBattleStaffUlt_Airbone = BattleStaffUnarmedAirboneFinder.Object;
+	if (BattleStaffBackFlipFinder.Succeeded())			AnimSequenceBattleStaffUlt_Backflip = BattleStaffBackFlipFinder.Object;
 }
 
 void UCPlayerAnimInstance::LMBAttack()
@@ -272,7 +282,6 @@ void UCPlayerAnimInstance::JumpPoint_Jump(float e)
 void UCPlayerAnimInstance::JumpPoint_Land()
 {
 	PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointLand, "UpperBody", 0.25f, 0.25f, 1.f);
-	float e = AnimSequenceJumpPointLand->GetPlayLength();
 }
 
 void UCPlayerAnimInstance::Die()
@@ -312,12 +321,12 @@ void UCPlayerAnimInstance::InitiatePunchCombo()
 
 void UCPlayerAnimInstance::BruteRush0(bool Initiating)
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceRush0, "UpperBody", Initiating ? 0.25f : 0.05f, Initiating ? 0.25f : 0.05f, 1.f, 1, -1.f, Initiating ? 0.f : 0.23f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceRush0, "DefaultSlot", Initiating ? 0.25f : 0.05f, Initiating ? 0.25f : 0.05f, 1.f, 1, -1.f, Initiating ? 0.f : 0.23f);
 }
 
 void UCPlayerAnimInstance::FinishPunch()
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceFinishPunch, "UpperBody", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceFinishPunch, FName("DefaultSlot"), 0.25f, 0.25f, 1.f);
 }
 
 void UCPlayerAnimInstance::Brute_LMB_Combo(int32 ComboStack)
@@ -334,29 +343,29 @@ void UCPlayerAnimInstance::Brute_LMB_Combo(int32 ComboStack)
 	switch (ComboStack)
 	{
 	case(0):
-		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo1, "UpperBody", 0.25f, 0.25f, 1.f + BonusSpeed);
+		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo1, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 		break;
 	case(1):
-		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo2, "UpperBody", 0.25f, 0.25f, 1.f + BonusSpeed);
+		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo2, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 		break;
 	case(2):
-		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo3, "UpperBody", 0.25f, 0.25f, 1.f + BonusSpeed);
+		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo3, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 		break;
 	case(3):
-		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo4, "UpperBody", 0.25f, 0.25f, 1.f + BonusSpeed);
+		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo4, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 		break;
 	case(4):
-		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo5, "UpperBody", 0.25f, 0.25f, 1.f + BonusSpeed);
+		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo5, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 		break;
 	default:
-		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo1, "UpperBody", 0.25f, 0.25f, 1.f + BonusSpeed);
+		PlaySlotAnimationAsDynamicMontage(AnimSequenceBrute_LMB_Combo1, "DefaultSlot", 0.25f, 0.25f, 1.f + BonusSpeed);
 		break;
 	}
 }
 
-void UCPlayerAnimInstance::BattleStaffUlt()
+void UCPlayerAnimInstance::BattleStaffUlt(bool bSkip)
 {
-	PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt, "DefaultSlot", 0.25f, 0.25f, 1.f, 1, -1.f, bSkip? 2.5f : 1.6f);
 }
 
 void UCPlayerAnimInstance::RifleStaffUlt()
@@ -407,7 +416,45 @@ void UCPlayerAnimInstance::NativeInitializeAnimation()
 		PC->Brute_LMB_Combo.BindUFunction(this, FName("Brute_LMB_Combo"));
 		PC->BattleStaffUlt.BindUFunction(this, FName("BattleStaffUlt"));
 		PC->RifleStaffUlt.BindUFunction(this, FName("RifleStaffUlt"));
+		PC->InwardSlash.BindLambda([&] {
+			PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt_InwardSlash, "DefaultSlot", 0.25f, 0.25f, 1.f);
+			}
+		);
+		PC->UnarmedJump.BindLambda([&] {
+			PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt_Jump, FName("LowerBody"), 0.25f, 0.25f, 1.f);
+			}
+		);
+		PC->OverrideBoneTransform.BindLambda([&](int32 BoneIndex, FRotator NewRot) {
+				switch (BoneIndex)
+				{
+				case(PLAYER_MESH_BONE_SPINE1):
+					BoneRotation_Spine1 = NewRot;
+					break;
+				case(PLAYER_MESH_BONE_SPINE2):
+					BoneRotation_Spine2 = NewRot;
+					break;
+				}
+			}
+		);
+		PC->UnarmedOnAir.BindLambda([&] {
+			PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt_Airbone, "LowerBody", 0.01f, 0.01f, 0.000001f, 999);
+			}
+		);
+		PC->UltLand.BindLambda([&] {
+			PlaySlotAnimationAsDynamicMontage(AnimSequenceJumpPointLand, "LowerBody", 0.25f, 0.25f, 0.5f);
+			}
+		);
+		PC->UltFinishPunch.BindLambda([&] {
+			PlaySlotAnimationAsDynamicMontage(AnimSequenceFinishPunch, FName("UpperBody"), 0.25f, 0.25f, 1.f);
+			}
+		);
+		PC->Backflip.BindLambda([&] {
+			PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt_Backflip, "DefaultSlot");
+			}
+		);
 		
+		//PC->InwardSlash
+
 		PlayerCharacterStateInterface = Cast<IIPlayerState>(PC);
 	}
 }
@@ -420,7 +467,8 @@ void UCPlayerAnimInstance::UpdateProperties(float Delta)
 	}
 	if (Pawn != nullptr)
 	{
-		IsAir = Pawn->GetMovementComponent()->IsFalling();
+		IsAir = Pawn->GetMovementComponent()->IsFalling() && !PlayerCharacterStateInterface->GetState(PLAYER_ULT_INVINCIBLE); // Ignore Gravity When Using Ult4
+		//UE_LOG(LogTemp, Log, TEXT("IsAir : %s ,PLAYER_ULT_INVINCIBLE : %s"), IsAir ? TEXT("True") : TEXT("False"), PlayerCharacterStateInterface->GetState(PLAYER_ULT_INVINCIBLE) ? TEXT("True") : TEXT("False"));
 		FVector PawnVelocity = Pawn->GetVelocity();
 		MovementSpeed = (PawnVelocity * FVector(1.f, 1.f, 0.f)).Size();
 		ZSpeed = PawnVelocity.Z;
@@ -441,5 +489,7 @@ void UCPlayerAnimInstance::UpdateProperties(float Delta)
 		{
 			AimingYaw -= 360.f;
 		}
+
+		DeactiveMovementBlend = PlayerCharacterStateInterface->GetState(PLAYER_ULT_INVINCIBLE);
 	}
 }

@@ -29,13 +29,17 @@ public:
 	virtual void SetSelectedPortal(int ArrIndex) {};
 	virtual bool SetInventoryVisibility() { return false; };
 	virtual void AddInventoryItem(UClass* ItemClass) {};
-	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) {};
+	virtual void AddInventoryItem(class UCInventoryItemData* ItemData, bool OnPickup = false) {};
 	virtual int32 UseItem(int32 QuickSlotNum) { return 0; };
 	virtual void ShowItemDetailUI(class UCInventoryItemData* ItemData) {};
 	virtual void UnShowItemDetailUI() {};
 	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) {};
 	virtual bool RemoveEquippedItem(FString EquippedSpace, class UCInventoryItemData* ItemData) { return false; };
 	virtual bool IsOnShop() { return false; };
+
+	virtual void AddQuest(struct FQuestsRow* Q) {};
+	virtual void RemoveQuest(struct FQuestsRow* Q) {};
+	virtual void RemoveQuestByName(FString QuestName) {};
 
 	virtual void SwitchESCMenu() {};
 
@@ -47,6 +51,7 @@ public:
 
 	virtual void SetPressedButton(UUserWidget* SelectedButton) {};
 
+	virtual void ManualQuestClear(FString QuestName, int AchieveQuestRequirementIndex) {}
 	virtual void RemoveQuest(UObject* QuestDat){}
 	virtual void MoveQuestToClearedByQuestName(FString QuestName) {}
 	virtual UINT32 IsPossesQuestCleared(FString QuestName) { return 0; }

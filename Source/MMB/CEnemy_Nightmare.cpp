@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CEnemy_Nightmare.h"
 #include "CEnemyAIController_NM.h"
 #include "Materials/Material.h"
@@ -10,8 +7,6 @@ ACEnemy_Nightmare::ACEnemy_Nightmare() : Super()
 	//check(IsInGameThread());
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SMFinder(TEXT("/Game/FourEvilDragonsHP/Meshes/DragonTheNightmare/DragonTheNightmareSK"));
-	//ConstructorHelpers::FObjectFinder<UAnimBlueprint> AnimBPFinder(TEXT("AnimBlueprint'/Game/Enemy/NightMare/Animation/BP_EnemyAnimIntance.BP_EnemyAnimIntance_C'"));
-	//ConstructorHelpers::FClassFinder<UAnimBlueprint> AnimBPFinder(TEXT("/Game/Enemy/NightMare/Animation/BP_EnemyAnimIntance"));
 
 	if (SMFinder.Succeeded())
 	{
@@ -42,7 +37,6 @@ ACEnemy_Nightmare::ACEnemy_Nightmare() : Super()
 			GetMesh()->SetMaterial(0, Mat0Finder.Object);
 		}
 	}
-	//if (AnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(AnimBPFinder.Class);//Object->GeneratedClass);
 	AIControllerClass = ACEnemyAIController_NM::StaticClass();
 }
 

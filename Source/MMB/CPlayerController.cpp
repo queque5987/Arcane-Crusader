@@ -191,6 +191,18 @@ void ACPlayerController::StartBattleMap()
 	if (QR != nullptr)
 	{
 		AddQuest(QR);
+
+		// Find Player Spawn Point
+		AActor* StartPoint = GetWorld()->GetAuthGameMode()->FindPlayerStart(this, QR->QuestStartPoint);
+		if (StartPoint != nullptr)
+		{
+			GetCharacter()->SetActorLocation(StartPoint->GetActorLocation());
+			GetCharacter()->SetActorRotation(StartPoint->GetActorRotation());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("No Specified Spawn Point"));
+		}
 	}
 
 	// Set Level Clock
@@ -198,23 +210,7 @@ void ACPlayerController::StartBattleMap()
 	{
 		GM->InitLevelClock(GInstance->StartLevelClock * 60.f);
 		UE_LOG(LogTemp, Log, TEXT("Set StartLevel Clock : %f"), GInstance->StartLevelClock);
-	}
-
-	//Deprecated
-	// Spawn Monster
-	/*UFMonsterConfigure* MonsterConfig = GInstance->GetSpawnMonsterConfig();
-	if (MonsterConfig == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("SpawnMonsterConfig Can Not Found"));
-		return;
-	}
-	if (MonsterConfig->GetMonsterClass() == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("MonsterClass Can Not Found"));
-		return;
-	}
-	UE_LOG(LogTemp, Error, TEXT("TODO Spawn : %s"), *MonsterConfig->GetMonsterClass()->GetName());*/
-	
+	}	
 }
 
 void ACPlayerController::SetHPPercent(float NewPercent)
@@ -322,7 +318,7 @@ void ACPlayerController::AddInventoryItem(UClass* ItemClass)
 	ItemInventory->ItemList->AddItem(To);
 }
 
-void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
+void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData, bool OnPickup)
 {
 	if (ItemData == nullptr) return;
 
@@ -338,6 +334,7 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 	{
 		for (UObject* HasItem : ItemInventory->ItemList->GetListItems())
 		{
+			if (HasItem == nullptr) continue;
 			UCInventoryItemData* HasItemData = Cast<UCInventoryItemData>(HasItem);
 			if (HasItemData->GetstrName() == ItemData->GetstrName())
 			{
@@ -349,6 +346,13 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData)
 	}
 	ItemInventory->ItemList->AddItem(ItemData);
 	CheckQuest(ItemData->GetItemClass());
+
+	//if (OnPickup)
+	//{
+	//	if (DroppedItemList == nullptr) return;
+	//	if (DroppedItemList->ItemList == nullptr) return;
+	//	DroppedItemList->ItemList->RemoveItem(ItemData);
+	//}
 }
 
 int32 ACPlayerController::UseItem(int32 QuickSlotNum)
@@ -369,6 +373,7 @@ int32 ACPlayerController::UseItem(int32 QuickSlotNum)
 			rtn = ID->GetItemType();
 			ItemStat* Stat = ID->GetItemStats();
 			IIPlayerState* tempState = Cast<IIPlayerState>(GetCharacter());
+			CheckQuest(ID->GetItemClass(), QUEST_ACHEIEVED_ACTION_USE);
 			if (rtn == ITEM_TYPE_POTION && (Stat != nullptr && PlayerState != nullptr))
 			{
 				tempState->Heal(Stat->_HealPoint);
@@ -512,6 +517,9 @@ bool ACPlayerController::EquipItem(int ItemType, UCInventoryItemData& ItemData)
 {
 	if (ItemInventory->EquipItem(ItemType, ItemData))
 	{
+		// Equip Quest Check
+		CheckQuest(ItemData.GetItemClass(), QUEST_ACHEIEVED_ACTION_EQUIP);
+
 		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
 		AActor* EquippedWeapon = nullptr;
 		if (PC != nullptr) EquippedWeapon = PC->GetWeaponEquipped();
@@ -660,6 +668,38 @@ void ACPlayerController::AddQuest(FQuestsRow* Q)
 	//UE_LOG(LogTemp, Log, TEXT("PLAYER CONTROLLER :: Adding Quest %s"), *QuestData->GetQuestName());
 }
 
+void ACPlayerController::RemoveQuest(FQuestsRow* Q)
+{
+	for (UObject* Quest : HUDOverlay->QuestList->GetListItems())
+	{
+		UCQuestData* Dat = Cast<UCQuestData>(Quest);
+		if (Dat == nullptr) continue;
+		if (Dat->GetQuestName() == Q->QuestName)
+		{
+			HUDOverlay->QuestList->RemoveItem(Quest);
+			UE_LOG(LogTemp, Log, TEXT("ACPlayerController : Quest %s Removed Successfully"), *Q->QuestName);
+			return;
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("ACPlayerController : Quest %s Is Not Exist"), *Q->QuestName);
+}
+
+void ACPlayerController::RemoveQuestByName(FString QuestName)
+{
+	for (UObject* Quest : HUDOverlay->QuestList->GetListItems())
+	{
+		UCQuestData* Dat = Cast<UCQuestData>(Quest);
+		if (Dat == nullptr) continue;
+		if (Dat->GetQuestName() == QuestName)
+		{
+			HUDOverlay->QuestList->RemoveItem(Quest);
+			UE_LOG(LogTemp, Log, TEXT("ACPlayerController : Quest %s Removed Successfully"), *QuestName);
+			return;
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("ACPlayerController : Quest %s Is Not Exist"), *QuestName);
+}
+
 void ACPlayerController::AddQuest(UCQuestData* QuestData)
 {
 	HUDOverlay->QuestList->AddItem(QuestData);
@@ -672,7 +712,7 @@ void ACPlayerController::AddQuest(UCQuestData* QuestData)
 	QuestManage->QuestInitialize(QuestInitializer);
 }
 
-void ACPlayerController::CheckQuest(UObject* ToCheckObject)
+void ACPlayerController::CheckQuest(UObject* ToCheckObject, int AchievedActionType)
 {
 	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
 	for (UUserWidget* QuestWidget : QuestWidgets)
@@ -690,7 +730,7 @@ void ACPlayerController::CheckQuest(UObject* ToCheckObject)
 	HUDOverlay->QuestList->RequestRefresh();
 }
 
-void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass)
+void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass, int AchievedActionType)
 {
 	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
 	for (UUserWidget* QuestWidget : QuestWidgets)
@@ -698,7 +738,25 @@ void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass)
 		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
 		if (WQ == nullptr) continue;
 		if (WQ->IsCleared()) continue;
-		if (WQ->RefreshQuestRecap(ToCheckObjectClass))
+		if (WQ->RefreshQuestRecap(ToCheckObjectClass, AchievedActionType)) // If Cleared Quest (Required Class All Completed)
+		{
+			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			if (QuestManage == nullptr) continue;
+			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+		}
+	}
+	HUDOverlay->QuestList->RequestRefresh();
+}
+
+void ACPlayerController::ManualQuestClear(FString QuestName, int AchieveQuestRequirementIndex)
+{
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	for (UUserWidget* QuestWidget : QuestWidgets)
+	{
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+		if (WQ->IsCleared() || WQ->GetQuestName() != QuestName) continue;
+		if (WQ->ManualAchieveQuestRecap(AchieveQuestRequirementIndex)) // If Cleared Quest (Required Class All Completed)
 		{
 			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
 			if (QuestManage == nullptr) continue;
@@ -740,26 +798,31 @@ void ACPlayerController::HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArra
 	}
 }
 
-void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem& Dropped, UCInventoryItemData* ItemData)
+void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem* Dropped, UCInventoryItemData* ItemData)
 {
+	if (Dropped == nullptr) return;
 	if (DroppedItemList == nullptr) return;
-	if (!IsValid(&Dropped) || ItemData == nullptr) return;
+	if (!IsValid(Dropped) || ItemData == nullptr) return;
 	if (e)
 	{
 		DroppedItemList->SetVisibility(ESlateVisibility::Visible);
 		DroppedItemList->ItemList->AddItem(ItemData);
-		DroppedItemPtrArr.Add(&Dropped);
+		DroppedItemPtrArr.Add(Dropped);
 		PickUpItemInteract_ShowAndInputReady();
 	}
 	else
 	{
 		DroppedItemList->ItemList->RemoveItem(ItemData);
-		if (DroppedItemPtrArr.Contains(&Dropped)) DroppedItemPtrArr.Remove(&Dropped);
+		//if (DroppedItemPtrArr.Contains(Dropped)) DroppedItemPtrArr.Remove(Dropped);
 		if (DroppedItemList->ItemList->GetNumItems() == 0)
 		{
 			DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
 			DroppedItemPtrArr.Empty();
 			NPCInteract_UnShow();
+		}
+		else
+		{
+			DroppedItemPtrArr.Remove(Dropped);
 		}
 	}
 }
@@ -880,6 +943,8 @@ void ACPlayerController::JumpPointsInteract_Interact()
 	if (PC == nullptr) return;
 	JumpPoints->TransferCharacter(PC, JumpStartPoint);
 	NPCInteract_UnShow();
+
+	CheckQuest(ACJumpPoints::StaticClass(), 3);
 	//PC->GetCharacterMovement()->GravityScale = 0;
 	//PC->GetMovementComponent()->StopMovementImmediately();
 	//PC->GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
@@ -919,6 +984,7 @@ void ACPlayerController::PickUpItemInteract_Interact()
 	{
 		tempDroppedItem = Cast<ACDroppedItem>(temp);
 		if (tempDroppedItem == nullptr) continue;
+		//tempDroppedItem->PlayerPickUp(this);
 		tempDroppedItem->Destroy();
 	}
 	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());

@@ -36,5 +36,5 @@ protected:
 	void OnMonsterDied(AActor* Act);
 	void GetCoordinate(FVector& Location);
 public:
-	class ACEnemyCharacter* SpawnMonster(TSubclassOf<class ACEnemyCharacter> MonsterClass);
+	class ACEnemyCharacter* SpawnMonster(TSubclassOf<class ACEnemyCharacter> MonsterClass, float SpawnZAxis= 0.f);
 };

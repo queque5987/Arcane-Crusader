@@ -5,6 +5,8 @@
 #include "IFlyMonster.h"
 #include "CStageGameMode.h"
 #include "GameFramework//PlayerStart.h"
+#include "IStageMaterialManager.h"
+#include "Materials/Material.h"
 
 const FName ACPlayerCharacter::WeaponSocket(TEXT("WeaponSocket"));
 const FName ACPlayerCharacter::MeleeSocket(TEXT("MeleeSocket"));
@@ -30,6 +32,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	ShiftStamina = 4.f;
 	StaminaRegain = 12.f;
 	LastDealingEnemy = nullptr;
+	SpineCapsuleDist = 0.f;
 
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -111,6 +114,18 @@ ACPlayerCharacter::ACPlayerCharacter()
 	PointLight->SetupAttachment(RootComponent);
 	PointLight->SetRelativeLocation(FVector(600.f, 0.f, 150.f));
 	PointLight->SetVisibility(false);
+
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Destructible, ECollisionResponse::ECR_Overlap);
+
+	DodgeDom = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DodgeDomComponent"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> DodgeDomFinder(TEXT("/Game/Resources/Meshes/Player_DodgeDom/SM_PlayerDodgeDom"));
+	if (DodgeDomFinder.Succeeded()) DodgeDom->SetStaticMesh(DodgeDomFinder.Object);
+	DodgeDom->SetupAttachment(GetRootComponent());
+	DodgeDom->SetVisibility(false);
+	DodgeDom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetMesh()->SetRenderCustomDepth(true);
+	GetMesh()->SetCustomDepthStencilValue(1);
 }
 
 void ACPlayerCharacter::PostInitializeComponents()
@@ -134,43 +149,43 @@ void ACPlayerCharacter::BeginPlay()
 		}
 	}
 
-	if (StartPos != FVector::ZeroVector)
-	{
-		SetActorLocation(StartPos);
-	}
-	else
-	{
-		AActor* PS = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
-		if (PS != nullptr)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Player Start Point : %s"), *PS->GetActorLocation().ToString());
-			//DrawDebugSphere(GetWorld(), PS->GetActorLocation(), 300.f, 32.f, FColor::Blue, false, 10.f);
-			StartPos = PS->GetActorLocation();
-		}
-	}
+	//if (StartPos != FVector::ZeroVector)
+	//{
+	//	SetActorLocation(StartPos);
+	//}
+	//else
+	//{
+	//	AActor* PS = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
+	//	if (PS != nullptr)
+	//	{
+	//		UE_LOG(LogTemp, Log, TEXT("Player Start Point : %s"), *PS->GetActorLocation().ToString());
+	//		//DrawDebugSphere(GetWorld(), PS->GetActorLocation(), 300.f, 32.f, FColor::Blue, false, 10.f);
+	//		StartPos = PS->GetActorLocation();
+	//	}
+	//}
 
-	GetWorld()->GetTimerManager().SetTimer(StageStartHandle, FTimerDelegate::CreateLambda([&] {
-		bool Flag = true;
-		for (ULevelStreaming* LS : GetWorld()->GetStreamingLevels())
-		{
-			if (LS != nullptr && !LS->IsLevelLoaded())
-			{
-				Flag = false;
-				break;
-			}
-		}
-		if (Flag)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Loaded"));
-			SetActorLocation(StartPos);
-			GetWorld()->GetTimerManager().ClearTimer(StageStartHandle);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Loading"));
-		}
-		}), 0.1f, true
-	);
+	//GetWorld()->GetTimerManager().SetTimer(StageStartHandle, FTimerDelegate::CreateLambda([&] {
+	//	bool Flag = true;
+	//	for (ULevelStreaming* LS : GetWorld()->GetStreamingLevels())
+	//	{
+	//		if (LS != nullptr && !LS->IsLevelLoaded())
+	//		{
+	//			Flag = false;
+	//			break;
+	//		}
+	//	}
+	//	if (Flag)
+	//	{
+	//		UE_LOG(LogTemp, Log, TEXT("Loaded"));
+	//		SetActorLocation(StartPos);
+	//		GetWorld()->GetTimerManager().ClearTimer(StageStartHandle);
+	//	}
+	//	else
+	//	{
+	//		UE_LOG(LogTemp, Log, TEXT("Loading"));
+	//	}
+	//	}), 0.1f, true
+	//);
 
 	if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
 	{
@@ -179,6 +194,14 @@ void ACPlayerCharacter::BeginPlay()
 	}
 
 	if (WeaponEquipped != nullptr) OnWeaponChanged();
+
+// Stage Game Mode Materail Set
+	StageMaterialManager = nullptr;
+	if (IIStageMaterialManager* IMM = Cast<IIStageMaterialManager>(GetWorld()->GetAuthGameMode()))
+	{
+		StageMaterialManager = IMM;
+	}
+	//if (StageMaterialManager != nullptr) StageMaterialManager->UpdatePlayerCharacterPos(GetActorLocation());
 }
 
 void ACPlayerCharacter::SetCanGetup()
@@ -243,6 +266,14 @@ void ACPlayerCharacter::GetLineTraceResult(FHitResult& HitResult, float AttackRa
 	{
 		UE_LOG(LogTemp, Log, TEXT("Line Trace ActorName : %s"), *HitResult.GetActor()->GetName());	
 	}
+}
+
+bool ACPlayerCharacter::GetDealingEnemyTransform(FTransform& OutTransform)
+{
+	if (LastDealingEnemy == nullptr) return false;
+
+	OutTransform = LastDealingEnemy->GetActorTransform();
+	return true;
 }
 
 void ACPlayerCharacter::SetMaxHP(float NewMaxHP)
@@ -311,6 +342,16 @@ bool ACPlayerCharacter::PlayerInputCheck(int InputType)
 	default:
 		return false;
 	}
+}
+
+void ACPlayerCharacter::OnOverlapEnemy(ACharacter* EnemyChar)
+{
+	OverlapingCharacters.AddUnique(EnemyChar);
+}
+
+void ACPlayerCharacter::OnOverlapEndEnemy(ACharacter* EnemyChar)
+{
+	OverlapingCharacters.Remove(EnemyChar);
 }
 
 void ACPlayerCharacter::Revive(ACPlayerController* PC)
@@ -436,9 +477,36 @@ void ACPlayerCharacter::OnDie()
 	//);
 }
 
+void ACPlayerCharacter::OnDodgedAttack()
+{
+	if (StageMaterialManager == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("StageMaterialManager Not Found"));
+		return;
+	}
+	StageMaterialManager->PostProcessZoom(true, GetActorLocation());
+	StageMaterialManager->ExecutePlayerDodgedEvent();
+	GetWorld()->GetTimerManager().ClearTimer(DodgeTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(DodgeTimerHandle, FTimerDelegate::CreateLambda(
+		[&] {
+			if (StageMaterialManager != nullptr) StageMaterialManager->ExecutePlayerDodgedEndEvent();
+			SetState(PLAYER_DODGED, false);
+			DodgeDom->SetVisibility(false);
+		}
+	), 3.f, false);
+	DodgeDom->SetRelativeScale3D(FVector(StageMaterialManager->GetPostProcessRadius() / 100.f));
+	DodgeDom->SetVisibility(true);
+	SetState(PLAYER_DODGED, true);
+}
+
 void ACPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//if (LastDealingEnemy != nullptr)
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Is Enemy On Left : %f"), FVector::DotProduct(LastDealingEnemy->GetActorLocation() - GetActorLocation(), GetActorRightVector()));
+	//}
 
 	if (!GetState(PLAYER_DIED) && HP <= 0.f)
 	{
@@ -584,6 +652,35 @@ void ACPlayerCharacter::Tick(float DeltaTime)
 		}
 
 	}
+
+// Stage Material Access
+	if (GetState(PLAYER_DODGED) && StageMaterialManager != nullptr)
+	{
+		DodgeDom->SetRelativeScale3D(FVector(StageMaterialManager->GetPostProcessRadius() / 100.f));
+	}
+
+// Mesh-Montage Adjusting
+	//FVector SpineLoc_Origin = GetMesh()->GetBoneLocation("Spine", EBoneSpaces::WorldSpace) - MeshAdjustingVector;
+	FVector SpineLoc = GetMesh()->GetBoneLocation("Spine", EBoneSpaces::WorldSpace);
+	FVector CapsuleLoc = GetCapsuleComponent()->GetComponentLocation();
+	SpineCapsuleDist = FVector::Dist2D(SpineLoc, CapsuleLoc);
+	//DrawDebugSphere(GetWorld(), SpineLoc, 150.f, 32.f, FColor::Green);
+	//DrawDebugSphere(GetWorld(), CapsuleLoc, 150.f, 32.f, FColor::Yellow);
+
+	//UE_LOG(LogTemp, Log, TEXT("Bone Diff : %f"), S_C_Distance);
+	//if (FVector::Dist2D(SpineLoc_Origin, CapsuleLoc) > 20.f)
+	//{
+	//	FVector SpineToCapsuleDirection = (CapsuleLoc - SpineLoc).GetSafeNormal2D();
+	//	if (FVector::Dist2D(MeshAdjustingVector, MeshAdjustingVector + SpineToCapsuleDirection * S_C_Distance * DeltaTime * 2.f) <= S_C_Distance)
+	//	{
+	//		MeshAdjustingVector += SpineToCapsuleDirection * S_C_Distance * DeltaTime * 2.f;
+	//	}
+	//}
+	//else
+	//{
+	//	MeshAdjustingVector = FVector::ZeroVector;
+	//}
+	//GetMesh()->SetRelativeLocation(MeshAdjustingVector + FVector(0.f, 0.f, -87.f));
 }
 
 void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -622,6 +719,8 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	if (SpineCapsuleDist > 40.f) return;
+
 	SetState(PLAYER_INPUT_W, MovementVector.Y > 0 ? true: false);
 	SetState(PLAYER_INPUT_S, MovementVector.Y < 0 ? true : false);
 	SetState(PLAYER_INPUT_D, MovementVector.X > 0 ? true : false);
@@ -636,7 +735,6 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 		SetState(PLAYER_DIZZY, false);
 		StopAnimMontage();
 	}
-
 
 	//CLIMB ROPE
 	if (GetState(PLAYER_CLIMBING_ROPE))
@@ -679,6 +777,11 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+		if (!CheckIsAtCharacter(ForwardDirection * MovementVector.Y + RightDirection * MovementVector.X))
+		{
+			return;
+		}
+
 		AddMovementInput(ForwardDirection, GetState(PLAYER_AIMING) ? 
 			MovementVector.Y * 0.1f : MovementVector.Y * CameraComponent->FieldOfView / 90.f);
 		AddMovementInput(RightDirection, GetState(PLAYER_AIMING) ? 
@@ -689,6 +792,25 @@ void ACPlayerCharacter::Move(const FInputActionValue& Value)
 
 		//UE_LOG(LogTemp, Log, TEXT("%s"), *Rotation.ToString());
 	}
+}
+
+bool ACPlayerCharacter::CheckIsAtCharacter(FVector Direction)
+{
+	FVector CurrLocation = GetActorLocation();
+
+	//DrawDebugLine(GetWorld(), CurrLocation, CurrLocation + Direction * 500.f, FColor::Blue, false, -1.f, 0U, 80.f);
+
+	for (ACharacter* C : OverlapingCharacters)
+	{
+		FVector EDirection = (CurrLocation - C->GetActorLocation()).GetSafeNormal2D();
+
+		float Rad = FMath::Acos(FVector::DotProduct(Direction, EDirection) / (Direction.Size() * EDirection.Size()));
+
+		UE_LOG(LogTemp, Log, TEXT("CheckIsAtCharacter : %s : %f"), *C->GetName(), Rad);
+		if (Rad > 1.2f) return false;
+	}
+
+	return true;
 }
 
 void ACPlayerCharacter::StopMove(const FInputActionValue& Value)
@@ -855,6 +977,12 @@ void ACPlayerCharacter::ShiftTriggered()
 			Stamina -= ShiftStamina;
 		}
 	}
+
+	//if (StageMaterialManager != nullptr)
+	//{
+	//	OnDodgedAttack();
+	//	//StageMaterialManager->PostProcessZoom(true, GetActorLocation());
+	//}
 }
 void ACPlayerCharacter::E_Triggered()
 {
@@ -937,12 +1065,24 @@ void ACPlayerCharacter::Quick3()
 
 void ACPlayerCharacter::Tab()
 {
-	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK)) return;
+	////Test
+	//if (StageMaterialManager != nullptr)
+	//{
+	//	StageMaterialManager->PostProcessZoom(false, GetActorLocation());
+	//	SetState(PLAYER_DODGED, false);
+	//	//BWSphereComponent->SetVisibility(false);
+	//	DodgeDom->SetVisibility(false);
+	//}
+	//// Test
+
 	if (WeaponEquipped == nullptr) return;
 
 	bool RS = WeaponEquipped->IsA(ACRifleStaff::StaticClass());
+	// Rifle Staff No Switch Weapon When Attacking
 	if (RS && (!GetState(PLAYER_AIMING) && GetState(PLAYER_ATTACKING))) return;
-	if (!RS && GetState(PLAYER_ATTACKING)) return;
+	//if (!RS && GetState(PLAYER_ATTACKING)) return;
+	// Rifle Staff General Input Check
+	if (RS && !PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK)) return;
 
 	AttackResult AR = AttackResult();
 	IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped);
@@ -965,17 +1105,17 @@ void ACPlayerCharacter::Tab()
 	}
 	else if (WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
 	{
-		if (!UIController->GetWeaponChangeReady())
-		{
-			UE_LOG(LogTemp, Log, TEXT("Weapon Change Is Not Ready"));
-			return;
-		}
-		SwitchBruteMode(IWeaponEquipped->GetWeaponMode() <= 0);
+		//if (!UIController->GetWeaponChangeReady())
+		//{
+		//	UE_LOG(LogTemp, Log, TEXT("Weapon Change Is Not Ready"));
+		//	return;
+		//}
 		IWeaponEquipped->Tab_Triggered(AR);
-		if (AR.Succeeded)
-		{
-			UIController->SetAimSpriteColorOverlay(-1.f);
-		}
+		//if (AR.Succeeded)
+		//{
+		//	SwitchBruteMode(IWeaponEquipped->GetWeaponMode() <= 0);
+		//	UIController->SetAimSpriteColorOverlay(-1.f);
+		//}
 	}
 }
 
@@ -1078,9 +1218,17 @@ void ACPlayerCharacter::SwitchBruteMode(bool BruteMode)
 
 	AttackResult AR = AttackResult();
 	FName SocketName = BruteMode ? BackSocket : MeleeSocket;
-	//UE_LOG(LogTemp, Log, TEXT("Change Weapon Socket To %s / Mode : %d"), *SocketName.ToString(), IWeaponEquipped->GetWeaponMode());
+	
 	WeaponEquipped->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 	WeaponEquipped->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), SocketName);
+
+	if (BruteMode)
+	{
+		UGameplayStatics::SpawnEmitterAttached(IWeaponEquipped->GetWeaponEffect(E_BRUTEMODE_INIT), GetMesh(), NAME_None, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator);
+		UGameplayStatics::SpawnEmitterAttached(IWeaponEquipped->GetWeaponEffect(E_BRUTEMODE_INIT_LIGHTNING), GetMesh(), NAME_None, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), IWeaponEquipped->GetWeaponEffect(E_BRUTEMODE_INIT_LIGHTNING_BIG), GetActorLocation() + GetActorUpVector() * -90.f);
+			//SpawnEmitterAttached(IWeaponEquipped->GetWeaponEffect(E_BRUTEMODE_INIT_LIGHTNING_BIG), GetMesh(), NAME_None, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator);
+	}
 }
 
 bool ACPlayerCharacter::GetState(UINT StateType)
@@ -1096,7 +1244,6 @@ void ACPlayerCharacter::SetState(UINT StateType, bool b)
 		if (b) State += StateType;
 		else State -= StateType;
 	}
-
 
 	//Exceptions
 
@@ -1168,7 +1315,7 @@ void ACPlayerCharacter::ShowDamageUI(float Damage, FVector Location, bool IsAtta
 
 	PC->ShowDamageUI(Damage, Location, IsAttacked ? FColor::Red : FColor::White, IsAttacked);
 
-	if (!IsAttacked)
+	if (!IsAttacked && (!GetState(PLAYER_BRUTEMODE_ORAORA) && !GetState(PLAYER_ULT_INVINCIBLE)))
 	{
 		GetMesh()->bPauseAnims = true;
 		GetWorld()->GetTimerManager().SetTimer(HitReactTimerHandle, this, &ACPlayerCharacter::SetAnimPauseFree, 0.15f);
@@ -1179,6 +1326,10 @@ bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector H
 {
 	if (GetState(PLAYER_ROLL_INVINCIBLE))
 	{
+		if (!GetState(PLAYER_DODGED))
+		{
+			OnDodgedAttack();
+		}
 		UE_LOG(LogTemp, Log, TEXT("Player Roll Dodged"));
 		return false;
 	}
@@ -1311,11 +1462,35 @@ void ACPlayerCharacter::AxisAdjustOnScreenRotation(float DeltaTime)
 	
 }
 
+void ACPlayerCharacter::Grasped(ACharacter& GraspedEnemyCharacter, FName GraspBoneName)
+{
+	UnarmedOnAir.ExecuteIfBound();
+	//GetMesh()->AttachToComponent(GraspedEnemyCharacter.GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GraspBoneName);
+	GetCapsuleComponent()->AttachToComponent(GraspedEnemyCharacter.GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GraspBoneName);
+	//SpringArmComponent->AttachToComponent(GraspedEnemyCharacter.GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GraspBoneName);
+	//SpringArmComponent->TargetArmLength = 1550.f;
+
+	SetState(PLAYER_ROLLING, true);
+}
+
+void ACPlayerCharacter::UnGrasp()
+{
+	//GetMesh()->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+	GetCapsuleComponent()->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	//SpringArmComponent->TargetArmLength = 550.f;
+	//SpringArmComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	//SpringArmComponent->bUsePawnControlRotation = true;
+	//SpringArmComponent->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	SetState(PLAYER_ROLLING, false);
+	OnHitDown();
+}
+
 void ACPlayerCharacter::OnHitDown()
 {
 	if (!GetState(PLAYER_RAGDOLL)) //DOWN(RAGDOLL)
 	{
-		UE_LOG(LogTemp, Log, TEXT("collision prifile name : %s"), *GetMesh()->GetCollisionProfileName().ToString());
+		//UE_LOG(LogTemp, Log, TEXT("collision prifile name : %s"), *GetMesh()->GetCollisionProfileName().ToString());
 
 		SetState(PLAYER_RAGDOLL, true);
 		SetState(PLAYER_CANGETUP, false);
@@ -1353,7 +1528,7 @@ void ACPlayerCharacter::OnHitDown()
 		GetMesh()->PutAllRigidBodiesToSleep();
 		GetMesh()->bBlendPhysics = false;
 
-		GetMesh()->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		GetMesh()->AttachToComponent(CapsuleComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -87.f), FRotator(0.f, -90.f, 0.f));
 
 		UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
@@ -1445,9 +1620,8 @@ float ACPlayerCharacter::GetBonusAttackDamage()
 
 void ACPlayerCharacter::DealtDamage(float AttackDamage, float DamageScale, ACharacter* TargetCharacter)
 {
-	UE_LOG(LogTemp, Log, TEXT("ACPlayerCharacter::DealtDamage - Dealt %f To %s TODO Add Some Ult Game Based On Damage"), AttackDamage * DamageScale, *TargetCharacter->GetName());
-
-	UltGauge += (FMath::Min(FMath::Floor(AttackDamage / 10.f), 10.f) * DamageScale) * 10.f;
+	//UltGauge += (FMath::Min(FMath::Floor(AttackDamage / 10.f), 10.f) * DamageScale) * 20.f;
+	UltGauge += AttackDamage / 5.f;
 	if (UltGauge > 100.f) UltGauge = 100.f;
 
 	if (IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController()))
@@ -1464,7 +1638,8 @@ void ACPlayerCharacter::DealtDamage(float AttackDamage, float DamageScale, AChar
 			UE_LOG(LogTemp, Error, TEXT("WeaponEquipped Is Not Correct Type"));
 			return;
 		}
-		IW->AddBruteGauge((FMath::Min(FMath::Floor(AttackDamage / 10.f), 10.f) * (2.f + DamageScale)));
+		//IW->AddBruteGauge((FMath::Min(FMath::Floor(AttackDamage / 10.f), 10.f) * (2.f + DamageScale)));
+		IW->AddBruteGauge(AttackDamage * 2.5f);
 	}
 }
 
@@ -1533,7 +1708,7 @@ void ACPlayerCharacter::BruteRushContinue()
 	}
 	else
 	{
-		if (IsBruteMode() && BruteRushComboCounter > 2)
+		if (IsBruteMode() && BruteRushComboCounter > 0)
 		{
 			FinishPunch.Execute();
 		}
@@ -1594,9 +1769,203 @@ void ACPlayerCharacter::TurnBruteMode()
 	}
 	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
 	if (IW == nullptr) return;
+	if (IW->GetBruteGauge() < 1.f) return;
 
 	SwitchBruteMode(true);
 	IW->UltFunc1();
+}
+
+void ACPlayerCharacter::Ult_ThrowStaffEffectDirect()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+
+	IW->AddBruteGauge(300.f);
+	SwitchBruteMode(true);
+	IW->UltFunc2();
+}
+
+void ACPlayerCharacter::Ult_Jump()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+
+	UnarmedJump.Execute();
+}
+
+void ACPlayerCharacter::Ult_PunchInit()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+	FTransform Playertransform = GetActorTransform();
+	Playertransform.SetLocation(Playertransform.GetLocation() + FVector(0.f, 0.f, -90.f));
+	IW->SpawnWeaponEffect(E_ULT_JUMP, Playertransform, 0.f);
+
+	//SetState(PLAYER_BS_JUMP_UP, true);
+
+	LaunchCharacter(GetActorUpVector() * 1500.f, false, true);
+
+	// Punch Initiate
+	UltFinishPunch.Execute();
+
+	OverrideBoneTransform.Execute(PLAYER_MESH_BONE_SPINE1, FRotator(0.f, 0.f, 15.f));
+	OverrideBoneTransform.Execute(PLAYER_MESH_BONE_SPINE2, FRotator(0.f, 0.f, 15.f));
+}
+
+void ACPlayerCharacter::Ult_Airbone()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+
+	//SetState(PLAYER_BS_JUMP_UP, false);
+
+	GetCharacterMovement()->GravityScale = 0.1f;
+	GetMovementComponent()->StopMovementImmediately();
+
+	UnarmedOnAir.Execute(); // Airbone Anim Loop
+}
+
+void ACPlayerCharacter::Ult_Land()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+
+	// Get Launch Direction
+	FVector Destination;
+	FVector Direction;
+	IW->GetCurrentHammerEffectLocation(Destination);
+	if (!Destination.IsZero())
+	{
+		Direction = (Destination - GetActorLocation()).GetSafeNormal();
+	}
+	else
+	{
+		Direction = GetActorForwardVector() + GetActorUpVector() * -1.f;
+	}
+
+	// Leap Effect
+	FTransform Playertransform = GetActorTransform();
+	Playertransform.SetLocation(Playertransform.GetLocation() + FVector(0.f, 0.f, -90.f));
+
+	Playertransform.SetRotation(FQuat(Direction.Rotation()));
+	IW->SpawnWeaponEffect(E_ULT_JUMP_AIR, Playertransform, 0.f);
+
+	LaunchCharacter(Direction * 3000.f, false, true);
+	GetCharacterMovement()->GravityScale = 1;
+
+	GetMesh()->bPauseAnims = true;
+	GetWorld()->GetTimerManager().ClearTimer(HitReactTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(HitReactTimerHandle, FTimerDelegate::CreateLambda(
+		[&]	{
+			SetAnimPauseFree();
+		}), 0.15f, false
+	);
+	UltLand.ExecuteIfBound();
+
+	OverrideBoneTransform.Execute(PLAYER_MESH_BONE_SPINE1, FRotator(0.f, 0.f, 30.f));
+	OverrideBoneTransform.Execute(PLAYER_MESH_BONE_SPINE2, FRotator(0.f, 0.f, 30.f));
+
+}
+
+void ACPlayerCharacter::Ult_HitGround()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+	FTransform EffectSpawnTransform = GetActorTransform();
+	EffectSpawnTransform.SetLocation(EffectSpawnTransform.GetLocation() + GetActorUpVector() * -90.f);
+
+	IW->SpawnWeaponEffect(E_ULT_HITGROUND, EffectSpawnTransform, 1.5f);
+	IW->PlaySoundEffect(SE_ULT_HITGROUND_A, EffectSpawnTransform.GetLocation());
+	IW->MeleeAttackHitCheck(4, 2.5f, 300.f);
+
+	GetMesh()->bPauseAnims = true;
+	GetWorld()->GetTimerManager().ClearTimer(HitReactTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(HitReactTimerHandle, FTimerDelegate::CreateLambda(
+		[&] {
+			IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+			if (IW == nullptr) return;
+			FTransform EffectSpawnTransform = GetActorTransform();
+			EffectSpawnTransform.SetLocation(EffectSpawnTransform.GetLocation() + GetActorUpVector() * -90.f);
+			EffectSpawnTransform.SetScale3D(FVector(2.f));
+			IW->SpawnWeaponEffect(E_ULT_HITGROUND, EffectSpawnTransform, 1.5f);
+			IW->PlaySoundEffect(SE_ULT_HITGROUND_B, EffectSpawnTransform.GetLocation(), 1.2f);
+			IW->MeleeAttackHitCheck(4, 3.f, 500.f);
+			SetAnimPauseFree();
+			Ult_Backflip();
+		}), 0.25f, false
+	);
+}
+
+void ACPlayerCharacter::Ult_Backflip()
+{
+	if (!GetState(PLAYER_ULT_INVINCIBLE)) return;
+
+	if (WeaponEquipped == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Not Found"));
+		return;
+	}
+	if (!WeaponEquipped->IsA(ACBattleStaff::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Weapon Is Not BattleStaff"));
+		return;
+	}
+	IIWeapon* IW = Cast<IIWeapon>(WeaponEquipped);
+	if (IW == nullptr) return;
+
+	IW->UltFunc3();
+
+	OverrideBoneTransform.Execute(PLAYER_MESH_BONE_SPINE1, FRotator(0.f, 0.f, 0.f));
+	OverrideBoneTransform.Execute(PLAYER_MESH_BONE_SPINE2, FRotator(0.f, 0.f, 0.f));
+
+	Backflip.Execute();
+	
+	//SetState(PLAYER_ULT_INVINCIBLE, false);
 }
 
 void ACPlayerCharacter::SwitchWeaponHoldingHand(bool ToLeft)

@@ -17,6 +17,8 @@ class MMB_API IIEnemyBBState
 	GENERATED_BODY()
 
 public:
+	virtual void SetbFalling(bool e) {};
+
 	virtual bool GetbSeePlayer() { return false; }
 	virtual void SetbBusy(bool e) {}
 	virtual bool GetbBusy() { return false; }

@@ -33,6 +33,9 @@ class MMB_API UCQuestData : public UObject
 	TArray<UClass*> RMonsterClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	TArray<FString> RClassName;
+	/*Required Action 0 : Kill / Acquire , 1 : Equip*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	TArray<int> RAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	TArray<int> RQuantity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
@@ -46,8 +49,6 @@ class MMB_API UCQuestData : public UObject
 
 	UINT32 QuestState = 0;
 
-	//Deprecated
-	//bool bCleared;
 public:
 	void SetDetails(FQuestsRow* Row);
 	void SetQuestByMonsterConfig(class UFMonsterConfigure* MonsterConfig);
@@ -65,6 +66,8 @@ public:
 	void SetQuestRewardIndex(int e) { QuestRewardIndex = e; }
 	TArray<UClass*> GetRMonsterClass() { return RMonsterClass; }
 	void SetRMonsterClass(TArray<UClass*> e) { RMonsterClass = e; }
+	TArray<int> GetRAction() { return RAction; }
+	void SetRAction(TArray<int> e) { RAction = e; }
 	TArray<int> GetRQuantity() { return RQuantity; }
 	void SetRQuantity(TArray<int> e) { RQuantity = e; }
 	UClass* GetGivenNPC() { return GivenNPC; }

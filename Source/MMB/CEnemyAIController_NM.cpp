@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CEnemyAIController_NM.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardData.h"
@@ -30,7 +27,7 @@ void ACEnemyAIController_NM::OnPossess(APawn* InPawn)
 		Blackboard->SetValueAsVector(HomePosKey, InPawn->GetActorLocation());
 		if (!RunBehaviorTree(BTAsset))
 		{
-			UE_LOG(LogTemp, Log, TEXT("AIController coudn't run behavior tree!"));
+			UE_LOG(LogTemp, Error, TEXT("AIController coudn't run behavior tree!"));
 		}
 	}
 }

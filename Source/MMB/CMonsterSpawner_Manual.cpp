@@ -41,10 +41,11 @@ void ACMonsterSpawner_Manual::GetCoordinate(FVector& Location)
 	}
 }
 
-class ACEnemyCharacter* ACMonsterSpawner_Manual::SpawnMonster(TSubclassOf<class ACEnemyCharacter> MonsterClass)
+class ACEnemyCharacter* ACMonsterSpawner_Manual::SpawnMonster(TSubclassOf<class ACEnemyCharacter> MonsterClass, float SpawnZAxis)
 {
 	FVector SpawnLocation;
 	GetCoordinate(SpawnLocation);
+	SpawnLocation.Z += SpawnZAxis;
 	ACEnemyCharacter* EC = GetWorld()->SpawnActor<ACEnemyCharacter>(MonsterClass, SpawnLocation + FVector::UpVector * 100.f, FRotator::ZeroRotator);
 
 	if (EC != nullptr)

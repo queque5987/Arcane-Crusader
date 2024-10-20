@@ -8,7 +8,7 @@ ACEntrance_Quest::ACEntrance_Quest()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	GateNum = 6;
+	GateNum = 3;
 	GateWidth = 200.f;
 	OpenGateSpeed = 120.f;
 
@@ -78,15 +78,7 @@ void ACEntrance_Quest::Tick(float DeltaTime)
 		else Speed = OpenGateSpeed;
 		FTransform T = SM->GetRelativeTransform();
 		FVector L = T.GetLocation();
-		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0))
-		{
-			//if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && OpeningSEArr[i]->IsPlaying()) OpeningSEArr[i]->Stop();
-			continue;
-		}
-		//if (OpeningSEArr.IsValidIndex(i) && IsValid(OpeningSEArr[i]) && !OpeningSEArr[i]->IsPlaying())
-		//{
-		//	OpeningSEArr[i]->Play();
-		//}
+		if (OpenGate ? (L.Z <= GateWidth * -3) : (L.Z >= 0)) continue;
 		L += FVector(0.f, 0.f, DeltaTime * Speed * (OpenGate ? -1 : 1));
 		T.SetLocation(L);
 		SM->SetRelativeTransform(T);
@@ -97,10 +89,10 @@ void ACEntrance_Quest::Tick(float DeltaTime)
 		FTransform CameraTransform = CinematicCameraComponent->GetComponentTransform();
 
 		CameraTransform.SetLocation(
-			FMath::Lerp(CameraTransform.GetLocation(), CinematicCameraFixedTransform.GetLocation(), CameraMoveSpeed)
+			(CameraMoveSpeed > 0 ? FMath::Lerp(CameraTransform.GetLocation(), CinematicCameraFixedTransform.GetLocation(), CameraMoveSpeed) : CinematicCameraFixedTransform.GetLocation())
 		);
 		CameraTransform.SetRotation(
-			FMath::Lerp(CameraTransform.GetRotation(), CinematicCameraFixedTransform.GetRotation(), CameraMoveSpeed)
+			(CameraMoveSpeed > 0 ? FMath::Lerp(CameraTransform.GetRotation(), CinematicCameraFixedTransform.GetRotation(), CameraMoveSpeed) : CinematicCameraFixedTransform.GetRotation())
 		);
 
 		CinematicCameraComponent->SetWorldTransform(CameraTransform);
@@ -182,6 +174,6 @@ void ACEntrance_Quest::FocusToGate(ACPlayerCharacter* PC)
 			DoCinematic = false;
 			tempController->SetViewTargetWithBlend(tempCharacter->CameraComponent->GetOwner());
 		}
-		}), 1.5f, false);
+		}), SequenceTime, false);
 	
 }

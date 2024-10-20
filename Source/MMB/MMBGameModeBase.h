@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -13,6 +11,8 @@
 #include "Slate/SlateBrushAsset.h"
 #include "IItemManager.h"
 #include "MMBGameModeBase.generated.h"
+
+DECLARE_DELEGATE_TwoParams(FEquippedItem, AController*, UClass*)
 
 UCLASS()
 class MMB_API AMMBGameModeBase : public AGameModeBase, public IIItemManager

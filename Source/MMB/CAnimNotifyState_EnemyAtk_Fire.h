@@ -21,6 +21,7 @@ protected:
 	UParticleSystem* FireEffect;
 	FTimerHandle AttackTimerHandle;
 	TQueue<class UParticleSystemComponent*> FEQueue;
+	class ACEnemyCharacter* EnemyChar;
 
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration) override;
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime) override;
@@ -28,8 +29,10 @@ protected:
 public:
 	UFUNCTION()
 	void FEOff();
-
-	//FName, EventName, float, EmitterTime, int32, ParticleTime, FVector, Location, FVector, Velocity, FVector, Direction, FVector, Normal, FName, BoneName, UPhysicalMaterial*, PhysMat
-	//UFUNCTION()
-	//void ParticleCollideTest(FName EventName, float EmitterTime, int32 ParticleTime, FVector Location, FVector Velocity, FVector Direction, FVector Normal, FName BoneName, UPhysicalMaterial* PhysMat);
+	UPROPERTY(EditAnywhere)
+	FName JawBoneNameOverride;
+	UPROPERTY(EditAnywhere)
+	FName HeadBoneNameOverride;
+	UPROPERTY(EditAnywhere)
+	FRotator FlameAxisAdjust;
 };

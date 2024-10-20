@@ -19,6 +19,7 @@ void UCQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 		RequiredClasses = QD->GetRMonsterClass();
 		AcquiredQuantities.Init(0, RequiredClasses.Num());
 		RequiredQuantities = QD->GetRQuantity();
+		RequiredActions = QD->GetRAction();
 		QuestRecapString = QD->GetQuestRecap();
 		QuestRewardIndex = QD->GetQuestRewardIndex();
 		QuestInitializeIndex = QD->GetQuestInitializeIndex();
@@ -31,7 +32,7 @@ void UCQuest::NativeOnListItemObjectSet(UObject* ListItemObject)
 	//UE_LOG(LogTemp, Log, TEXT("QuestData Loaded"));
 }
 
-bool UCQuest::RefreshQuestRecap(UObject* AchievedObject)
+bool UCQuest::RefreshQuestRecap(UObject* AchievedObject, int AchievedActionType)
 {
 	FString Recap = QuestRecapString + "\n";
 	int Achieved = RequiredClasses.Num();
@@ -61,7 +62,7 @@ bool UCQuest::RefreshQuestRecap(UObject* AchievedObject)
 	return bCleared;
 }
 
-bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass)
+bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass, int AchievedActionType)
 {
 	FString Recap = QuestRecapString + "\n";
 	int Achieved = RequiredClasses.Num();
@@ -69,13 +70,13 @@ bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass)
 	{
 		if (AchievedObjectClass != nullptr)
 		{
-			if (AchievedObjectClass == RequiredClasses[i])
+			//UE_LOG(LogTemp, Log, TEXT("UCQuest::RefreshQuestRecap : %s / %s"), *AchievedObjectClass->GetName(), *RequiredClasses[i]->GetName());
+			if (RequiredActions[i] == AchievedActionType && AchievedObjectClass == RequiredClasses[i])
 			{
 				AcquiredQuantities[i] += 1;
 			}
 		}
 
-		//Recap += "\n" + RequiredClasses[i]->GetName() +
 		Recap += "\n" + RequiredClassNames[i] +
 			" " + FString::FromInt(AcquiredQuantities[i]) +
 			" / " + FString::FromInt(RequiredQuantities[i]);
@@ -87,6 +88,37 @@ bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass)
 		QuestBG->SetColorAndOpacity(QualifiedColor);
 		bCleared = true;
 		//if (QuestData != nullptr) QuestData->SetbCleared(bCleared);
+	}
+	return bCleared;
+}
+
+bool UCQuest::ManualAchieveQuestRecap(int AchievedObjectClassIndex)
+{
+	FString Recap = QuestRecapString + "\n";
+	if (!RequiredClasses.IsValidIndex(AchievedObjectClassIndex))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ManualAchieveQuestRecap : Invalid Index"));
+		return false;
+	}
+	int Achieved = RequiredClasses.Num();
+
+	for (int i = 0; i < RequiredClasses.Num(); i++)
+	{
+		if (i == AchievedObjectClassIndex)
+		{
+			AcquiredQuantities[i] += 1;
+		}
+
+		Recap += "\n" + RequiredClassNames[i] +
+			" " + FString::FromInt(AcquiredQuantities[i]) +
+			" / " + FString::FromInt(RequiredQuantities[i]);
+		if (AcquiredQuantities[i] >= RequiredQuantities[i]) Achieved--;
+	}
+	QuestRecap->SetText(FText::FromString(Recap));
+	if (Achieved <= 0)
+	{
+		QuestBG->SetColorAndOpacity(QualifiedColor);
+		bCleared = true;
 	}
 	return bCleared;
 }

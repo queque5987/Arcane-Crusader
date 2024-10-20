@@ -3,6 +3,7 @@
 
 #include "CEnemyAnimInstance.h"
 #include "PCH.h"
+#include "CStageGameMode.h"
 
 UCEnemyAnimInstance::UCEnemyAnimInstance()
 {
@@ -12,23 +13,7 @@ UCEnemyAnimInstance::UCEnemyAnimInstance()
 	ZSpeed = 0.f;
 	PawnAnimRadian = 0.f;
 	IsHostile = false;
-
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RoarFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/ScreamAnim.ScreamAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHandFinder(TEXT("/Game/FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHandAnim.AttackHandAnim"));
-	//ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AttackHeadFinder(TEXT("
-	// FourEvilDragonsHP/Animations/DragonTheNightmare/AttackHornAnim.AttackHornAnim"));
-	//if (RoarFinder.Succeeded())
-	//{
-	//	AnimSequenceRoar = RoarFinder.Object;
-	//}
-	//if (AttackHandFinder.Succeeded())
-	//{
-	//	AnimSequenceAttackHand = AttackHandFinder.Object;
-	//}
-	//if (AttackHeadFinder.Succeeded())
-	//{
-	//	AnimSequenceAttackHead = AttackHeadFinder.Object;
-	//}
+	PlayRate = 1.f;
 }
 
 void UCEnemyAnimInstance::NativeInitializeAnimation()
@@ -37,6 +22,19 @@ void UCEnemyAnimInstance::NativeInitializeAnimation()
 	if (EnemyCharacter != nullptr)
 	{
 		OnMontageEnded.AddDynamic(this, &UCEnemyAnimInstance::SetbAttackingFree);
+	}
+
+	ACStageGameMode* StageGM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	if (StageGM != nullptr)
+	{
+		StageGM->PlayerDodged.BindLambda([&]() {
+				PlayRate = 0.2f;
+			}
+		);
+		StageGM->PlayerDodgedEnd.BindLambda([&]() {
+			PlayRate = 1.f;
+			}
+		);
 	}
 }
 

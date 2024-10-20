@@ -19,12 +19,12 @@ void UCAnimNotifyState_PlayerAttack::NotifyBegin(USkeletalMeshComponent* MeshCom
 
 void UCAnimNotifyState_PlayerAttack::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
 {
-	if (StopAttack) return;
+	//if (StopAttack) return;
 	if (PC != nullptr)
 	{
 		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(PC->WeaponEquipped))
 		{
-			StopAttack = IWeaponEquipped->MeleeAttackHitCheck(Staff_0_LFist_1_RFist_2, DamageScale);
+			IWeaponEquipped->MeleeAttackHitCheck(Staff_0_LFist_1_RFist_2, DamageScale);
 		}
 	}
 }

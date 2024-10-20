@@ -120,7 +120,7 @@ public:
 
 	virtual bool SetInventoryVisibility() override;
 	virtual void AddInventoryItem(UClass* ItemClass) override;
-	virtual void AddInventoryItem(class UCInventoryItemData* ItemData) override;
+	virtual void AddInventoryItem(class UCInventoryItemData* ItemData, bool OnPickup = false) override;
 	virtual int32 UseItem(int32 QuickSlotNum) override;
 	virtual void RemoveInventoryItem(class UCInventoryItemData* ItemData) override;
 	virtual bool RemoveEquippedItem(FString EquippedSpace, class UCInventoryItemData* ItemData) override;
@@ -141,16 +141,21 @@ public:
 	virtual void AddAlert(FText e) override;
 	void ShowDamageUI(float Damage, FVector Location, FColor C = FColor::White, bool IsAttacked = false);
 	void AlertSwingby(float e, FText Line);
-	void AddQuest(struct FQuestsRow* Q);
+	virtual void AddQuest(struct FQuestsRow* Q) override;
+	virtual void RemoveQuest(struct FQuestsRow* Q) override;
+	virtual void RemoveQuestByName(FString QuestName) override;
 	//void AddQuest(UFMonsterConfigure* MonsterConfig);
 	//Deprecated
 	void AddQuest(class UCQuestData* QuestData);
-	void CheckQuest(UObject* ToCheckObject);
-	void CheckQuest(UClass* ToCheckObjectClass);
+	//void CheckQuest(UObject* ToCheckObject);
+	void CheckQuest(UObject* ToCheckObject, int AchievedActionType = 0);
+	//void CheckQuest(UClass* ToCheckObjectClass);
+	void CheckQuest(UClass* ToCheckObjectClass, int AchievedActionType = 0);
+	virtual void ManualQuestClear(FString QuestName, int AchieveQuestRequirementIndex) override;
 	bool CheckQuest_Cleared(FString QuestName);
 
 	virtual void HoxyPossessClearableQuest(class ACStaticNPC* NPC, TArray<class UCQuestData*>& OutArr) override;
-	void ShowDroppedItemList(bool e, class ACDroppedItem& Dropped, class UCInventoryItemData* ItemData);
+	void ShowDroppedItemList(bool e, class ACDroppedItem* Dropped, class UCInventoryItemData* ItemData);
 
 
 	void OnInteract();

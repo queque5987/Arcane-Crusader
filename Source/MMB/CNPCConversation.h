@@ -91,26 +91,20 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> SwingbyLine;
 
+	// Select Stage
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> TeleportableListBox;
-	//UPROPERTY(meta = (BindWidget))
-	//TObjectPtr<UTileView> TeleportableMapList;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> MapSelection;
+	TObjectPtr<UImage> Teleportable_MapPreview;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> MonsterSelection;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Btn_Map_L;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Btn_Map_R;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Btn_Monster_L;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Btn_Monster_R;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnTeleportClose;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BtnTeleportSend;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> StageList;
+	// Select Stage End
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> QuestListBox;
@@ -190,6 +184,10 @@ public:
 	void QuestBox_LoadNPCQuest();
 
 	void SetSelectedButton(UUserWidget* SelectedButton);
+
+	//UFUNCTION()
+	//void SetSelectedStage(FString StageName);
+	void SetSelectedStage(UUserWidget* StageButton);
 private:
 
 	bool AllowInput;
@@ -217,10 +215,15 @@ private:
 	class UMaterialInstanceDynamic* MonsterSelectionMaterialInstance;
 
 	TArray<FTeleportableMapMonsterTableRow*> SelectableMapArr;
+	UUserWidget* SelectedStage;
+	/*Deprecated*/
 	float SelectedMapIndex;
+	/*Deprecated*/
 	float SelectedMonsterIndex;
 
+	/*Deprecated*/
 	void SetSelectedMapIndex(float NewMapIndex);
+	/*Deprecated*/
 	void SetSelectedMonsterIndex(float NewMonsterIndex);
 
 	//Deprecated

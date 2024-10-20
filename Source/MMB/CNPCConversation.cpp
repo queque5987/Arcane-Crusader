@@ -15,6 +15,7 @@
 //#include "Async/Async.h"
 #include "FMonsterConfigure.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "CUserWidget_ListedStage.h"
 
 void UCNPCConversation::NativeConstruct()
 {
@@ -29,10 +30,10 @@ void UCNPCConversation::NativeConstruct()
 	BtnLeave->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonLeaveClicked);
 	//BtnTeleport->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonTeleportClicked);
 
-	Btn_Map_L->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMapLeftClicked);
-	Btn_Map_R->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMapRightClicked);
-	Btn_Monster_L->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMonsterLeftClicked);
-	Btn_Monster_R->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMonsterRightClicked);
+	//Btn_Map_L->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMapLeftClicked);
+	//Btn_Map_R->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMapRightClicked);
+	//Btn_Monster_L->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMonsterLeftClicked);
+	//Btn_Monster_R->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonMonsterRightClicked);
 
 	BtnTeleportClose->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonTeleportCloseClicked);
 	BtnTeleportSend->OnClicked.AddDynamic(this, &UCNPCConversation::OnButtonTeleportSendClicked);
@@ -56,10 +57,12 @@ void UCNPCConversation::NativeConstruct()
 	QuestRewardBox->SetVisibility(ESlateVisibility::Hidden);
 
 	// Material Interface Instance Load
-	if (MapSelection != nullptr) MapSelectionMaterialInstance = MapSelection->GetDynamicMaterial();
+	if (Teleportable_MapPreview != nullptr) MapSelectionMaterialInstance = Teleportable_MapPreview->GetDynamicMaterial();
 	if (MapSelectionMaterialInstance == nullptr) UE_LOG(LogTemp, Error, TEXT("MapSelectionMaterialInstance Not Found"));
 	if (MonsterSelection != nullptr) MonsterSelectionMaterialInstance = MonsterSelection->GetDynamicMaterial();
 	if (MonsterSelectionMaterialInstance == nullptr) UE_LOG(LogTemp, Error, TEXT("MonsterSelectionMaterialInstance Not Found"));
+
+	StageList->SetSelectionMode(ESelectionMode::Single);
 }
 
 void UCNPCConversation::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -193,11 +196,20 @@ void UCNPCConversation::OnButtonYesClicked()
 			SelectableMapArr.Empty();
 			TNPC->GetTeleportableMaps(SelectableMapArr);
 
-			SetSelectedMapIndex(0.f);
+			//SetSelectedMapIndex(0.f);
 			//SetSelectedMonsterIndex(0.f);
-		}
 
-		if (SelectableMapArr.Num() > 1) TeleportableListBox->SetVisibility(ESlateVisibility::Visible);
+			TeleportableListBox->SetVisibility(ESlateVisibility::Visible);
+
+			if (SelectableMapArr.Num() > 1)
+			{
+				for (FTeleportableMapMonsterTableRow* SelectableMap : SelectableMapArr)
+				{
+					UCTeleportableMapData* temp = NewObject<UCTeleportableMapData>(this, UCTeleportableMapData::StaticClass(), SelectableMap->DisplayLevelName);
+					StageList->AddItem(temp);
+				}
+			}
+		}
 		
 		if (BUTTON_YES_POSTLINE == Dialogues.Num())
 		{
@@ -214,8 +226,6 @@ void UCNPCConversation::OnButtonYesClicked()
 			//UE_LOG(LogTemp, Log, TEXT("TODO Teleport Immediate To : %s"), *SelectableMapArr[SelectedMapIndex]->LevelName.ToString());
 		}
 		SetLineFromDialogues(BUTTON_YES_POSTLINE);
-
-		
 	}
 }
 
@@ -350,41 +360,18 @@ void UCNPCConversation::OnButtonTeleportCloseClicked()
 
 void UCNPCConversation::OnButtonTeleportSendClicked()
 {
+	if (SelectedMapIndex < 0) return;
+
 	PlayNPCAnimation(1);
-
-	UE_LOG(LogTemp, Log, TEXT("Player Teleport To : %s"), *SelectableMapArr[SelectedMapIndex]->LevelName.ToString());
-	UE_LOG(LogTemp, Log, TEXT("Spawning Monster At : %s"), *SelectableMapArr[SelectedMapIndex]->SpawnableMonsters[SelectedMonsterIndex].ToString());
-
-	//if (TeleportableMapList->GetNumItems() > LoadedMapIndex && LoadedMapIndex >= 0)
-	//{
-		//UCTeleportableMapData* LoadedMap = Cast<UCTeleportableMapData>(TeleportableMapList->GetItemAt(LoadedMapIndex));
-	//	
-		//TSoftObjectPtr<UWorld> dLevel = LoadedMap->GetDestLevel();
-
-	//	AController* ACC = GetOwningPlayer();
-	//	if (ACC == nullptr) return;
-	//	ACharacter* AC = ACC->GetCharacter();
-	//	if (AC == nullptr) return;
 
 	FName LoadedMapName = SelectableMapArr[SelectedMapIndex]->LevelName;
 
-	OnLoadingScreenSet.Broadcast(LoadedMapName);
-	UGameplayStatics::OpenLevel(this, LoadedMapName);
 	UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
 
 	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
 	if (ItemManager == nullptr) return;
-	
-	//UFMonsterConfigure* MonsterConfig = NewObject<UFMonsterConfigure>(GetWorld(), UFMonsterConfigure::StaticClass(), TEXT("MonsterConfig"));
-	//MonsterConfigure MonsterConfig;
 
-	//Random Monster Select
-	if (SelectableMapArr[SelectedMapIndex]->SpawnableMonsters[SelectedMonsterIndex] == FName("Random"))
-	{
-		SelectedMonsterIndex = FMath::Floor(FMath::FRandRange(SelectedMonsterIndex + 1, SelectableMapArr[SelectedMapIndex]->SpawnableMonsters.Num()));
-	}
-
-	GI->BattleQuestRowIndex = SelectableMapArr[SelectedMapIndex]->RelatedQuestIndexs[SelectedMonsterIndex];
+	GI->BattleQuestRowIndex = SelectableMapArr[SelectedMapIndex]->QuestIndex;
 	GI->StartLevelClock = SelectableMapArr[SelectedMapIndex]->LevelClock;
 
 	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
@@ -393,6 +380,9 @@ void UCNPCConversation::OnButtonTeleportSendClicked()
 		if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
 		else PCC->SaveGame(GI->SelectedSaveSlot);
 	}
+
+	OnLoadingScreenSet.Broadcast(LoadedMapName);
+	UGameplayStatics::OpenLevel(this, LoadedMapName);
 }
 
 void UCNPCConversation::OnButtonBuyClicked()
@@ -523,6 +513,33 @@ bool UCNPCConversation::IsOnShop()
 	return ShoppingBox->GetVisibility() == ESlateVisibility::Visible ? true : false;
 }
 
+void UCNPCConversation::SetSelectedStage(UUserWidget* StageButton)
+{
+	SelectedStage = (SelectedStage == StageButton) ? nullptr : StageButton;
+	if (SelectedStage == nullptr)
+	{
+		SelectedMapIndex = -1;
+		MapSelectionMaterialInstance->SetScalarParameterValue("SelectedMapIndex", -1.f);
+	}
+
+	TArray<UUserWidget*> tempArr = StageList->GetDisplayedEntryWidgets();
+	for (int i = 0; i < tempArr.Num(); i++)
+	{
+		UCUserWidget_ListedStage* CWidget = Cast<UCUserWidget_ListedStage>(tempArr[i]);
+		if (CWidget != nullptr)
+		{
+			bool IsIt = (SelectedStage == tempArr[i]) ? true : false;
+			CWidget->SwitchPressed(IsIt);
+			if (IsIt && (MapSelectionMaterialInstance != nullptr && MonsterSelectionMaterialInstance != nullptr))
+			{
+				MapSelectionMaterialInstance->SetScalarParameterValue("SelectedMapIndex", SelectableMapArr[i]->TextureArrayIndex);
+				MonsterSelectionMaterialInstance->SetScalarParameterValue("SelectedMonsterIndex", SelectableMapArr[i]->MonsterTextureArrayIndex);
+				SelectedMapIndex = i;
+			}
+		}
+	}
+}
+
 void UCNPCConversation::SetSelectedMapIndex(float NewMapIndex)
 {
 	//MapSelection
@@ -580,33 +597,12 @@ void UCNPCConversation::SetLineFromDialogues(int e)
 
 		if (BUTTON_REWARD_POSTLINE >= 0) OpenQuestRewardBox();
 
-		/*TArray<FString> out;
-		const TCHAR* d[] = { TEXT("//") };
-		Row->NPCDialogue.ToString().ParseIntoArray(out, d, 1);
-		out.SetNum(MAX_BUTTON_NUM+1);
-		UE_LOG(LogTemp, Log, TEXT("Line : %s"), *out[NPC_LINE]);
-
-		NPCLine->SetText(FText::FromString(out[NPC_LINE]));
-
-		BUTTON_NEXT_POSTLINE =		(FCString::Atoi(*out[BUTTON_NEXT]));
-		BUTTON_YES_POSTLINE =		(FCString::Atoi(*out[BUTTON_YES]));
-		BUTTON_NO_POSTLINE =		(FCString::Atoi(*out[BUTTON_NO]));
-		BUTTON_SHOP_POSTLINE =		(FCString::Atoi(*out[BUTTON_SHOP]));
-		BUTTON_QUEST_POSTLINE =		(FCString::Atoi(*out[BUTTON_QUEST]));
-		BUTTON_LEAVE_POSTLINE =		(FCString::Atoi(*out[BUTTON_LEAVE]));
-		BUTTON_REWARD_POSTLINE =	(FCString::Atoi(*out[REWARD_GIVE]));
-
-		if (FCString::Atoi(*out[REWARD_GIVE]) >= 0) OpenQuestRewardBox();*/
-
 		BtnNext->SetIsEnabled((BUTTON_NEXT_POSTLINE >= 0) ? true : false);
 		BtnYes->SetIsEnabled((BUTTON_YES_POSTLINE >= 0) ? true : false);
 		BtnNo->SetIsEnabled((BUTTON_NO_POSTLINE >= 0) ? true : false);
 		BtnShopIn->SetIsEnabled((BUTTON_SHOP_POSTLINE >= 0) ? true : false);
 		BtnQuest->SetIsEnabled((BUTTON_QUEST_POSTLINE >= 0) ? true : false);
 		BtnLeave->SetIsEnabled((BUTTON_LEAVE_POSTLINE >= 0) ? true : false);
-
-		// Set Accept Button To Work As Teleport Button Or Quest Accept
-		//IsQuest_NotTeleport = (BUTTON_QUEST_POSTLINE >= 0) ? true : false;
 	}
 }
 
@@ -815,4 +811,5 @@ void UCNPCConversation::SetSelectedButton(UUserWidget* SelectedButton)
 {
 	if (SelectedButton->IsA(UCShopItem::StaticClass())) SetSelectedShopItem(SelectedButton);
 	else if (SelectedButton->IsA(UCListedQuest::StaticClass())) SetSelectedQuest(SelectedButton);
+	else if (SelectedButton->IsA(UCUserWidget_ListedStage::StaticClass())) SetSelectedStage(SelectedButton);
 }

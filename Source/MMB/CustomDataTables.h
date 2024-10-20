@@ -15,6 +15,8 @@ struct FQuestsRow : public FTableRowBase
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString QuestName;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	FString QuestStartPoint;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int QuestDialogueIndex;
@@ -29,12 +31,19 @@ public:
 	int QuestInitializeIndex;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int QuestRequestSatisfiedCallFuncIndex;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int QuestRewardIndex;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<FString> QuestRequiredClass;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<FString> QuestRequiredClassName;
+
+	/* 0 : Kill / Acquired , 1 : Equipped */
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<int> QuestRequiredAction;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<int> QuestRequiredQuantity;
@@ -143,9 +152,16 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 TextureArrayIndex;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 MonsterTextureArrayIndex;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FName LevelName;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString Level;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float LevelClock;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	int32 QuestIndex;
+
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FVector Pos;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
@@ -154,8 +170,6 @@ public:
 	TArray<int32> SpawnableMonsterPreviews;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	TArray<int32> RelatedQuestIndexs;
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	float LevelClock;
 };
 
 //Deprecated

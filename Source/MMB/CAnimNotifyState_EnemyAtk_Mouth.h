@@ -14,5 +14,5 @@ class MMB_API UCAnimNotifyState_EnemyAtk_Mouth : public UCAnimNotifyState_EnemyA
 {
 	GENERATED_BODY()
 private:
-	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration) override;
+	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 };

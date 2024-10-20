@@ -33,6 +33,8 @@ public:
 	virtual void Ult_Triggered(struct AttackResult& AttackResult) override;
 	virtual void UltFunc0() override;
 	virtual void UltFunc1() override;
+	virtual void UltFunc2() override;
+	virtual void UltFunc3() override;
 
 	virtual void OnEquipped() override;
 	//virtual void OnUnequipped() override;
@@ -68,17 +70,21 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	class UParticleSystemComponent* FireSocketEffectComponent;
 
-	virtual bool MeleeAttackHitCheck(int32 HitMode = 0, float fDamageScale = 0.f) override;
+	virtual bool MeleeAttackHitCheck(int32 HitMode = 0, float fDamageScale = 0.f, float _ExplodeRadius = 0.f) override;
 
 	virtual class UParticleSystem* GetWeaponEffect(int e) override;
 	virtual class USoundBase* GetWeaponSoundEffect(int e) override;
 	virtual TArray<class UParticleSystem*>* GetWeaponEffect() override;
 	virtual class UStaticMeshSocket* GetSocket(FName e) override;
 	virtual class UStaticMeshComponent* GetStaticMeshComponent() override;
+	virtual void SpawnWeaponEffect(int32 Index, FTransform SpawnTransform, float LifeSpan) override;
+	//virtual class UParticleSystem* GetWeaponEffect(int32 Index) override;
+	virtual void PlaySoundEffect(int32 Index, FVector SpawnLocation, float Volume = 1.f, float Pitch = 1.f) override;
 	virtual void GetSocketTransform(FTransform& SocketTransform, FName SocketName) override;
 protected:
 	virtual class UCInventoryItemData* GetItemData(ACharacter* PC) override;
 	//class UCInventoryItemData* GetItemData(ACharacter* PC);
+	class IIStageMaterialManager* MaterialManager;
 	UStaticMeshSocket* FireSocket;
 	FVector PrevFireSocketPos;
 	FVector SwingingDirection;
@@ -88,8 +94,11 @@ protected:
 	void DequeueHitParticle();
 private:
 //HitCheck
+	TArray<ACEnemyCharacter*> TempHitEnemiesArr;
+
 	bool StaffHitCheck(FVector HitLocation = FVector::ZeroVector, float fDamageScale = 0.f);
 	bool FistHitCheck(bool IsLeft, float fDamageScale = 0.f);
+	bool ExplodeHitCheck(float _ExplodeRadius, float fDamageScale = 0.f);
 
 	float AttackingEffectClock = 2.4f;
 	//float CAEC = 0.f; ????
@@ -102,6 +111,7 @@ private:
 	float BruteCoolDownMax;
 	float BruteCoolDown;
 	float BruteGaugeMax;
+	UPROPERTY(EditAnywhere)
 	float BruteGauge;
 	float BruteChargedAD;
 	int32 BruteLMBComboStack;
@@ -111,8 +121,9 @@ public:
 	float GetBruteCoolDownMax() { return BruteCoolDownMax; };
 	float GetBruteCoolDown() { return BruteCoolDown; };
 	float GetBruteGaugeMax() { return BruteGaugeMax; };
-	float GetBruteGauge() { return BruteGauge; };
+	//float GetBruteGauge() { return BruteGauge; };
 	virtual void AddBruteGauge(float BG) override;
+	virtual float GetBruteGauge() override { return BruteGauge; };
 // Brute Mode End
 public:
 	class UStaticMeshComponent* StaticMeshComponent;
@@ -131,6 +142,7 @@ public:
 	virtual void ActivateEffect() override;
 	virtual void DeactivateEffect() override;
 	virtual void SetCharge(float e, bool IsLeft = false) override;
+	virtual void GetCurrentHammerEffectLocation(FVector& OutLocation) override;
 protected:
 	float tempDamage0;
 	float tempDamage1;

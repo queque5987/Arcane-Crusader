@@ -20,6 +20,8 @@ protected:
 	float PlayerAttackSpeed;
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool AbsoluteSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float InPlayRate;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float OutPlayRate;

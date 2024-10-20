@@ -52,7 +52,11 @@ public:
 	virtual float GetMaxBullet(int32 ToGetBulletType = 3) override;
 	virtual float GetCurrBullet(int32 ToGetBulletType = 3) override;
 
+	UFUNCTION()
+	void OnPickUp(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 protected:
+	virtual class UCInventoryItemData* GetItemData(ACharacter* PC) override;
+
 	FRotator DefaultRotator;
 
 	class ACRifleStaffBeacon* UltBeacon;

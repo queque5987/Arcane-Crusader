@@ -21,16 +21,34 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class USplineComponent* SplineComponent;
+
 protected:
+	class UParticleSystemComponent* AttachedEffectComponent;
 	virtual void BeginPlay() override;
 	float TurningOff;
-	bool ThrowingStaff;
+
+	int32 BoolState;
+
+	static const int32 ThrowingStaff;
+	static const int32 ThrowingForward;
+	static const int32 RetrieveStaff;
+
+	//bool ThrowingStaff;
+	//bool ThrowingForward;
+	//bool RetrieveStaff;
+
+	float ThrowingRotateTime;
 	float ThrowingSplineTime;
 	int32 ThrowingHitStack;
 	float ThrowingHitInterval;
 	class AActor* AttachedWeapon;
 
+	/* Update Throwing Circular Spline */
 	void UpdateSpline(FVector RetrieveLocation);
+
+	bool GetBoolState(int32 StateIndex);
+	void SetBoolState(int32 StateIndex, bool b);
+
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -41,6 +59,7 @@ public:
 
 	virtual FVector GetWeaponLocation(bool IsLeft);
 
+	void ThrowCircular(FVector StartLocation, FVector EndLocation, class AActor* Weapon);
 	void ThrowForward(FVector StartLocation, FVector EndLocation, class AActor* Weapon);
-	void RetrieveStaff();
+	void InstantRetrieveStaff();
 };

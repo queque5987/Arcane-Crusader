@@ -41,6 +41,8 @@ void UCShopItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 		ItemSelectSpriteMaterial->SetVectorParameterValue("TextureColorOverride", RarityColor);
 		UE_LOG(LogTemp, Log, TEXT("TextureColorOverride %s Set %s"), *ItemName->GetText().ToString(), *RarityColor.ToString());
 	}
+
+	ItemImageSize = 100.f;
 }
 
 void UCShopItem::OnRightClicked()
@@ -105,11 +107,54 @@ void UCShopItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		//UE_LOG(LogTemp, Log, TEXT("Set TextureIndex To %f"), CurrentTextureIndex);
 	}
 
+	CurrentTextureIndex += InDeltaTime * 10.f;
+
 	if (bPressed || bHovered)
 	{
-		CurrentTextureIndex += InDeltaTime * 10.f;
-		//UE_LOG(LogTemp, Log, TEXT("Should GIF Be Working"));
+		float tempMaxSize = (bPressed ? 150.f : 120.f);
+		if (ItemImageSize < tempMaxSize)
+		{
+			ItemImageSize += 50.f * InDeltaTime / (bPressed ? 0.35f : 0.7f);
+			if (ItemImageSize > tempMaxSize)
+			{
+				ItemImageSize = tempMaxSize;
+			}
+			ItemImage->SetBrushSize(FVector2D(ItemImageSize));
+			ItemSelectSpriteMaterial->SetScalarParameterValue("SizeOfImage", ItemImageSize);
+		}
 	}
+	else
+	{
+		if (ItemImageSize > 100.f)
+		{
+			ItemImageSize -= 50.f * InDeltaTime / 0.8f;
+			if (ItemImageSize < 100.f)
+			{
+				ItemImageSize = 100.f;
+			}
+			ItemImage->SetBrushSize(FVector2D(ItemImageSize));
+			ItemSelectSpriteMaterial->SetScalarParameterValue("SizeOfImage", ItemImageSize);
+		}
+	}
+	//if (bPressed || bHovered)
+	//{
+	//	CurrentTextureIndex += InDeltaTime * 10.f;
+	//	//UE_LOG(LogTemp, Log, TEXT("Should GIF Be Working"));
+	//}
+}
+
+void UCShopItem::OnHovered()
+{
+	Super::OnHovered();
+
+	bHovered = true;
+}
+
+void UCShopItem::OnUnHovered()
+{
+	Super::OnUnHovered();
+
+	bHovered = false;
 }
 
 void UCShopItem::BuyItem()

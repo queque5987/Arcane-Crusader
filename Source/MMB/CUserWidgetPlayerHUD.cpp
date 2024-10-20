@@ -138,6 +138,7 @@ void UCUserWidgetPlayerHUD::InitializeUI()
 
 	RifleUIPanel->SetVisibility(ESlateVisibility::Hidden);
 	BruteGauge->SetVisibility(ESlateVisibility::Hidden);
+	BruteModeRoundUI->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCUserWidgetPlayerHUD::ShowDieUI(bool b)
@@ -277,6 +278,7 @@ void UCUserWidgetPlayerHUD::SetBattleVIsibility(bool e)
 void UCUserWidgetPlayerHUD::SetBruteMode(bool e)
 {
 	BruteGauge->SetBruteMode(e);
+	BruteModeRoundUI->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 }
 
 void UCUserWidgetPlayerHUD::SetBruteGauge(float Percent)

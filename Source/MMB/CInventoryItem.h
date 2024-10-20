@@ -33,9 +33,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnButtonClicked();
 	UFUNCTION()
-	void OnHovered();
+	virtual void OnHovered();
 	UFUNCTION()
-	void OnUnHovered();
+	virtual void OnUnHovered();
 	UFUNCTION()
 	void OnButtonReleased();
 	UFUNCTION()

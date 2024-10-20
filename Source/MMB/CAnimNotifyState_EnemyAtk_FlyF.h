@@ -15,6 +15,8 @@ class MMB_API UCAnimNotifyState_EnemyAtk_FlyF : public UCAnimNotifyState_EnemyAt
 	GENERATED_BODY()
 private:
 	FRotator TargetRot;
+	class ACEnemyAIController* ECC;
+	class ACharacter* AC;
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration) override;
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime) override;
 	

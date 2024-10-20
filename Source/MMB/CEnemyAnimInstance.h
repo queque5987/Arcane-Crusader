@@ -20,6 +20,8 @@ protected:
 public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds);
+
+	float PlayRate;
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	APawn* Pawn;
@@ -42,6 +44,7 @@ protected:
 	UAnimSequenceBase* AnimSequenceAttackHand;
 	UAnimSequenceBase* AnimSequenceAttackHead;
 	UAnimSequenceBase* AnimSequenceAttackMouth;
+	UAnimSequenceBase* AnimSequenceHitReact;
 
 	//UAnimSequenceBase* AnimSequenceRMBCastOngoing;
 
@@ -58,6 +61,8 @@ public:
 	virtual void AttackHead();
 	UFUNCTION()
 	virtual void AttackMouth();
+	UFUNCTION()
+	virtual void HitReact() {};
 	void SetIsHostile(bool e) { IsHostile = e; }
 	bool GetIsHostile() { return IsHostile; }
 	void SetIsStrafe(float e) { IsStrafe = e; }

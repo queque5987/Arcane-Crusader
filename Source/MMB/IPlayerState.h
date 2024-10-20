@@ -53,8 +53,17 @@ public:
 
 	virtual void DealtDamage(float AttackDamage, float DamageScale, class ACharacter* TargetCharacter) {};
 
+	virtual void OnHitDown() {};
+
 	virtual FTransform GetSocketTransform(FName SocketName) { return FTransform(); }
 	virtual void GetLineTraceResult(FHitResult& HitResult, float AttackRange) {};
+	virtual bool GetDealingEnemyTransform(FTransform& OutTransform) { return false; };
+
+	virtual void OnOverlapEnemy(class ACharacter* EnemyChar) {};
+	virtual void OnOverlapEndEnemy(class ACharacter* EnemyChar) {};
+
+	virtual void Grasped(class ACharacter& GraspedEnemyCharacter, FName GraspBoneName) {};
+	virtual void UnGrasp() {};
 //Weapon Effect
 	virtual void WeaponEffectActivate() {};
 	virtual void WeaponEffectDeactivate() {};
@@ -62,10 +71,17 @@ public:
 //Brute Mode
 	virtual void BruteRushContinue() {};
 	virtual bool IsBruteMode() { return false; };
-//Battle Staff Ult
+//Battle Staff Func
 	virtual void ThrowStaffEffect() {};
 	virtual void TurnBruteMode() {};
-//Rifle Staff Ult
+	virtual void Ult_ThrowStaffEffectDirect() {};
+	virtual void Ult_Jump() {};
+	virtual void Ult_PunchInit() {};
+	virtual void Ult_Airbone() {};
+	virtual void Ult_Land() {};
+	virtual void Ult_HitGround() {};
+	virtual void Ult_Backflip() {};
+//Rifle Staff Func
 	virtual void SwitchWeaponHoldingHand(bool ToLeft) {};
 	virtual void SpawnAndGraspBeacon() {};
 	virtual void ThrowBeacon() {};

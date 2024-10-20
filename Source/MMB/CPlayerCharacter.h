@@ -14,9 +14,6 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-//#include "CPlayerController.h"
-//#include "CPlayerAnimInstance.h"
-//#include "Quest.h"
 #include "IWeapon.h"
 #include "CMonsterSpawner.h"
 #include "Kismet/GameplayStatics.h"
@@ -64,8 +61,18 @@ DECLARE_DELEGATE(FFinishPunch);
 
 DECLARE_DELEGATE_OneParam(FBrute_LMB_Combo, int32);
 
-DECLARE_DELEGATE(FBattleStaffUlt);
+DECLARE_DELEGATE_OneParam(FBattleStaffUlt, bool);
 DECLARE_DELEGATE(FRifleStaffUlt);
+DECLARE_DELEGATE(FInwardSlash);
+DECLARE_DELEGATE(FUnarmedJump);
+DECLARE_DELEGATE(FUnarmedOnAir);
+DECLARE_DELEGATE(FUltFinishPunch);
+DECLARE_DELEGATE(FBackflip);
+DECLARE_DELEGATE(FUltLand);
+
+DECLARE_DELEGATE_TwoParams(FOverrideBoneTransform, int32, FRotator);
+
+//DECLARE_DELEGATE(FPlayerDodged);
 
 UCLASS()
 class MMB_API ACPlayerCharacter : public ACharacter, public IIPlayerState, public IIPlayerQuest
@@ -166,7 +173,15 @@ public:
 
 	FBattleStaffUlt BattleStaffUlt;
 	FRifleStaffUlt RifleStaffUlt;
+	FInwardSlash InwardSlash;
+	FUnarmedJump UnarmedJump;
+	FUnarmedOnAir UnarmedOnAir;
+	FUltFinishPunch UltFinishPunch;
+	FBackflip Backflip;
+	FUltLand UltLand;
 
+//Bone Transform Override
+	FOverrideBoneTransform OverrideBoneTransform;
 	class UParticleSystemComponent* ParticleSystemAimCircle;
 
 	FVector DebugAimLocation;
@@ -176,13 +191,22 @@ public:
 
 	//void testLMB(ACPlayerCharacter& PC);
 	virtual void GetLineTraceResult(FHitResult& HitResult, float AttackRange) override;
+	virtual bool GetDealingEnemyTransform(FTransform& OutTransform) override;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool IsWeaponEquiped = false;
+// Stage Material Access
+	class IIStageMaterialManager* StageMaterialManager;
+	//class USphereComponent* BWSphereComponent;
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* DodgeDom;
+
+	bool PlayerInputCheck(int InputType = 0);
+
 protected:
 	virtual void BeginPlay() override;
 	FVector StartPos;
-
+	float SpineCapsuleDist;
 	UQuestComponent* QuestComponent;
 
 	UPROPERTY()
@@ -200,12 +224,15 @@ protected:
 	float ClimbSpeed = 10.f;
 	int32 BruteRushComboCounter = 0;
 	class ACEnemyCharacter* LastDealingEnemy;
+
 	FTimerHandle LastDealingEnemyTimerHandle;
 	FTimerHandle HitReactTimerHandle;
 	FTimerHandle HitDownRecoverHandle;
 	FTimerHandle StaminaRegainHandle;
 	FTimerHandle StageStartHandle;
 	FTimerHandle PotionTimerHandle;
+	FTimerHandle DodgeTimerHandle;
+
 	void SetCanGetup();
 	void Getup();
 	void LazyGetUp();
@@ -241,7 +268,6 @@ protected:
 	FName CurrentWeaponMode;
 
 	//bool PlayerInputCheck(bool bBtn = true);
-	bool PlayerInputCheck(int InputType = 0);
 	UPROPERTY(VisibleAnywhere)
 	FVector RevivalPos;
 	void Revive(class ACPlayerController* PC);
@@ -252,12 +278,24 @@ private:
 	bool CheckIsActing();
 	void SetStaminaRegain();
 	void OnDie();
+
+	void OnDodgedAttack();
 public:	
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
+
+// Movement
+	virtual void OnOverlapEnemy(class ACharacter* EnemyChar) override;
+	virtual void OnOverlapEndEnemy(class ACharacter* EnemyChar) override;
 	void Move(const FInputActionValue& Value);
+private:
+	TArray<class ACharacter*> OverlapingCharacters;
+	bool CheckIsAtCharacter(FVector Direction);
+// Movement End
+
+public:
 	void StopMove(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void LMB();
@@ -325,8 +363,10 @@ public:
 	//void TransferToLevel(FName e);
 
 	void AxisAdjustOnScreenRotation(float DeltaTime = 1/60);
+	virtual void Grasped(class ACharacter& GraspedEnemyCharacter, FName GraspBoneName) override;
+	virtual void UnGrasp() override;
 
-	void OnHitDown();
+	virtual void OnHitDown() override;
 	virtual void StaminaSpend(float RequiredStamina) override;
 	void MonsterKilledCount(class ACEnemyCharacter* MonsterKilled);
 	void OnGraspRope(FTransform GraspLocation);
@@ -354,10 +394,17 @@ public:
 // Brute Mode
 	virtual void BruteRushContinue() override;
 	virtual bool IsBruteMode() override;
-// Battle Staff Ult
+// Battle Staff Func
 	virtual void ThrowStaffEffect() override;
 	virtual void TurnBruteMode() override;
-// Rifle Staff ult
+	virtual void Ult_ThrowStaffEffectDirect() override;
+	virtual void Ult_Jump() override;
+	virtual void Ult_PunchInit() override;
+	virtual void Ult_Airbone() override;
+	virtual void Ult_Land() override;
+	virtual void Ult_HitGround() override;
+	virtual void Ult_Backflip() override;
+// Rifle Staff Func
 	virtual void SwitchWeaponHoldingHand(bool ToLeft) override;
 	virtual void SpawnAndGraspBeacon() override;
 	virtual void ThrowBeacon() override;
@@ -365,4 +412,5 @@ public:
 	AActor* GetWeaponEquipped() { return WeaponEquipped; }
 
 	float GetCameraArmLength();
+
 };

@@ -4,6 +4,7 @@
 #include "CAnimNotifyState_EnemyAtk_FlyF.h"
 #include "CEnemyAIController.h"
 #include "IFlyMonster.h"
+#include "IEnemyStateManager.h"
 #include "PCH.h"
 
 void UCAnimNotifyState_EnemyAtk_FlyF::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
@@ -11,11 +12,12 @@ void UCAnimNotifyState_EnemyAtk_FlyF::NotifyBegin(USkeletalMeshComponent* MeshCo
 	ContinueAttack = true;
 	//AttackType = ENEMY_ATTACK_RHAND;
 	if (MeshComp == nullptr) return;
-	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
-	if (!IsValid(EC)) return;
-	ACEnemyAIController* ECC = Cast<ACEnemyAIController>(EC->GetController());
-	if (!IsValid(ECC)) return;
-	FVector TargetDirection = ECC->GetChasingPlayerPos() - EC->GetActorLocation();
+	EC = Cast<IIEnemyStateManager>(MeshComp->GetOwner());
+	AC = Cast<ACharacter>(MeshComp->GetOwner());
+	if (EC == nullptr || AC == nullptr) return;
+	ECC = Cast<ACEnemyAIController>(AC->GetController());
+	if (ECC == nullptr) return;
+	FVector TargetDirection = ECC->GetChasingPlayerPos() - AC->GetActorLocation();
 	TargetDirection = TargetDirection.GetSafeNormal();
 	TargetRot = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
 
@@ -26,28 +28,25 @@ void UCAnimNotifyState_EnemyAtk_FlyF::NotifyTick(USkeletalMeshComponent* MeshCom
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime);
 	if (!ContinueAttack) return;
-	if (MeshComp == nullptr) return;
-	ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(MeshComp->GetOwner());
-	if (!IsValid(EC)) return;
-	ACEnemyAIController* ECC = Cast<ACEnemyAIController>(EC->GetController());
-	if (!IsValid(ECC)) return;
-	IIFlyMonster* IFly = Cast<IIFlyMonster>(EC);
+	if (EC == nullptr) return;
+	if (ECC == nullptr) return;
+	IIFlyMonster* IFly = Cast<IIFlyMonster>(AC);
 	if (IFly == nullptr) return;
 
-	FVector tempVector = EC->GetActorLocation();
-	FVector DesiredFireDirection = tempVector + (EC->GetActorForwardVector() * IFly->GetCurrentAltitude()*3);
-	FVector DesiredFireLocation = ECC->GetChasingPlayerPos() - (EC->GetActorForwardVector() * IFly->GetCurrentAltitude() * 3);
+	FVector tempVector = AC->GetActorLocation();
+	FVector DesiredFireDirection = tempVector + (AC->GetActorForwardVector() * IFly->GetCurrentAltitude()*3);
+	FVector DesiredFireLocation = ECC->GetChasingPlayerPos() - (AC->GetActorForwardVector() * IFly->GetCurrentAltitude() * 3);
 	//DrawDebugLine(MeshComp->GetWorld(), tempVector, tempDrawVector, FColor::Cyan, false, 0.1f, 0U, 50.f);
 
 	//DrawDebugSphere(MeshComp->GetWorld(), tempDrawVector, 120.f, 32.f, FColor::Cyan, false, 0.4f);
 
 
 	FHitResult HitResult;
-	FCollisionObjectQueryParams OQP(EC->GetMesh()->GetCollisionObjectType());
+	FCollisionObjectQueryParams OQP(AC->GetMesh()->GetCollisionObjectType());
 	FCollisionShape CS = FCollisionShape();
 	CS.SetSphere(120.f);
 	bool bResult = MeshComp->GetWorld()->SweepSingleByChannel(
-		HitResult, tempVector, DesiredFireDirection, FQuat::Identity, EC->GetMesh()->GetCollisionObjectType(), CS
+		HitResult, tempVector, DesiredFireDirection, FQuat::Identity, AC->GetMesh()->GetCollisionObjectType(), CS
 	);
 
 	if (bResult && Cast<ACPlayerCharacter>(HitResult.GetActor()))
@@ -62,7 +61,7 @@ void UCAnimNotifyState_EnemyAtk_FlyF::NotifyTick(USkeletalMeshComponent* MeshCom
 		return;
 		if (RotationAcc < MaxRotAcc)
 		{
-			FVector TargetDirection = DesiredFireLocation - EC->GetActorLocation();
+			FVector TargetDirection = DesiredFireLocation - AC->GetActorLocation();
 			TargetDirection = TargetDirection.GetSafeNormal();
 			FRotator CurrTargetRot = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
 			RotationAcc += IFly->GetRotationSpeed() * FrameDeltaTime;

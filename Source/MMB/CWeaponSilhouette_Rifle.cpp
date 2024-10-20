@@ -28,6 +28,13 @@ UCWeaponSilhouette_Rifle::UCWeaponSilhouette_Rifle()
 	MachineGunSMComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
 
 	CurrEffect = 0;
+
+	SniperRifleSMComponent->SetRenderCustomDepth(true);
+	ShotGunSMComponent->SetRenderCustomDepth(true);
+	MachineGunSMComponent->SetRenderCustomDepth(true);
+	SniperRifleSMComponent->SetCustomDepthStencilValue(1);
+	ShotGunSMComponent->SetCustomDepthStencilValue(1);
+	MachineGunSMComponent->SetCustomDepthStencilValue(1);
 }
 
 

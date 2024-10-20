@@ -1,10 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CAnimNotifyState_EnemyAtk_Mouth.h"
+#include "IEnemyStateManager.h"
 
-void UCAnimNotifyState_EnemyAtk_Mouth::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+void UCAnimNotifyState_EnemyAtk_Mouth::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	ContinueAttack = true;
-	AttackType = ENEMY_ATTACK_MOUTH;
+	if (ContinueAttack) return;
+	// Grasped Player
+	if (EC != nullptr)
+	{
+		EC->BiteGraspPlayer();
+	}
 }

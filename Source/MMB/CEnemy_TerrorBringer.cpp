@@ -120,23 +120,6 @@ bool ACEnemy_TerrorBringer::FlyTo(FVector Destination, float DeltaSeconds, float
 {
 	FVector Dest = FMath::Lerp(GetActorLocation(), Destination, FlyAcc * DeltaSeconds * AccWeight);
 
-	//FVector Direction = Destination - GetActorLocation();
-	//FRotator DestHeadingRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-
-	//FRotator TurnRotation = FMath::RInterpTo(GetActorRotation(), DestHeadingRotation, DeltaSeconds, RotationSpeed*3.f);
-	//
-	//SetActorRotation(FRotator(GetActorRotation().Pitch,
-	//	(FMath::Abs(GetActorRotation().Yaw - DestHeadingRotation.Yaw) > 1.f) ? TurnRotation.Yaw : DestHeadingRotation.Yaw,
-	//	GetActorRotation().Roll)
-	//);
-
-	//SetActorRotation(FRotationMatrix::MakeFromX(
-	//	(Destination - GetActorLocation()).GetSafeNormal()).Rotator()
-	//);
-
-	//DrawDebugSphere(GetWorld(), GetActorLocation(), 60.f, 32.f, FColor::Cyan, false, 0.2f);
-	//DrawDebugSphere(GetWorld(), Destination, 60.f, 32.f, FColor::Black, false, 0.2f);
-
 	SetActorLocation(Dest);
 	return FVector::Distance(Dest, Destination) < AcceptableRadius ? true : false;
 }

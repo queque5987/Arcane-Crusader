@@ -4,6 +4,7 @@
 #include "CQuestData.h"
 #include "UObject/ConstructorHelpers.h"
 #include "FMonsterConfigure.h"
+#include "CPotion.h"
 
 UCQuestData::UCQuestData(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -15,18 +16,23 @@ void UCQuestData::SetDetails(FQuestsRow* Row)
 	QuestRecap = Row->QuestRecap;
 	QuestRewardIndex = Row->QuestRewardIndex;
 	QuestDialogueIndex = Row->QuestDialogueIndex;
+
+	RAction = Row->QuestRequiredAction;
 	RMonsterClass = TArray<UClass*>();
+
 	for (FString ClassPath : Row->QuestRequiredClass)
 	{
 		RMonsterClass.Add(GetClassFromPath(ClassPath));
 	}
 	RQuantity = Row->QuestRequiredQuantity;
 	RClassName = Row->QuestRequiredClassName;
+
 	QuestInitializeIndex = Row->QuestInitializeIndex;
 	QuestRewardDialogueIndex = Row->QuestRewardDialogueIndex;
 	QuestRewards = Row->QuestRewards;
 	RequiredQuest = Row->RequiredQuest;
 	QuestRewardsQuantity = Row->QuestRewardsQuantity;
+
 	GivenNPC = GetClassFromPath(Row->ClearableNPCClass);
 }
 

@@ -81,7 +81,7 @@ ACRifleStaff::ACRifleStaff()
 	tempDamage1 = 3.2f;
 	tempDamage2 = 3.5f;
 
-	//Collider->OnComponentBeginOverlap.AddDynamic(this, &ACRifleStaff::OnPickUp);
+	Collider->OnComponentBeginOverlap.AddDynamic(this, &ACRifleStaff::OnPickUp);
 
 	UStaticMesh* SM = StaticMeshComponent->GetStaticMesh();
 	if (SM != nullptr) FireSocket = SM->FindSocket("FireSocket");
@@ -99,6 +99,9 @@ ACRifleStaff::ACRifleStaff()
 	CurrBullet.Add(50);
 	CurrBullet.Add(50);
 	CurrBullet.Add(50);
+
+	StaticMeshComponent->SetRenderCustomDepth(true);
+	StaticMeshComponent->SetCustomDepthStencilValue(1);
 }
 
 void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
@@ -224,6 +227,8 @@ void ACRifleStaff::Tab_Triggered(AttackResult& AttackResult)
 	);
 	CancleFire();
 
+	SetSpendBullet(BulletType, 0.f);
+
 	UE_LOG(LogTemp, Log, TEXT("To BulletType : %d"), BulletType);
 
 }
@@ -311,6 +316,8 @@ void ACRifleStaff::UltFunc1()
 void ACRifleStaff::SetIsEquiped(bool e)
 {
 	IsEquiped = e;
+	if (e) Collider->OnComponentBeginOverlap.RemoveDynamic(this, &ACRifleStaff::OnPickUp);
+	else Collider->OnComponentBeginOverlap.AddDynamic(this, &ACRifleStaff::OnPickUp);
 }
 
 
@@ -368,6 +375,35 @@ float ACRifleStaff::GetMaxBullet(int32 ToGetBulletType)
 float ACRifleStaff::GetCurrBullet(int32 ToGetBulletType)
 {
 	return CurrBullet.IsValidIndex(ToGetBulletType) ? CurrBullet[ToGetBulletType] : CurrBullet[BulletType];
+}
+
+void ACRifleStaff::OnPickUp(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (ACPlayerCharacter* PlayerCharacter = Cast<ACPlayerCharacter>(OtherActor))
+	{
+		ACPlayerController* PCC = Cast<ACPlayerController>(PlayerCharacter->GetController());
+		UCInventoryItemData* ID = GetItemData(PlayerCharacter);
+		PCC->AddInventoryItem(ID);
+		this->Destroy();
+	}
+}
+
+UCInventoryItemData* ACRifleStaff::GetItemData(ACharacter* PC)
+{
+	UCInventoryItemData* ID = NewObject<UCInventoryItemData>(PC, UCInventoryItemData::StaticClass(), WeaponName);
+	ID->SetIconTexture(ItemData_IconTexture);
+	ID->SetPrice(ItemData_ItemPrice);
+	ID->SetDT_RowName(ItemDTRowName);
+	//ID->SetAttackType(ItemData_AttackType);
+	ID->SetItemType(0);
+	//ID->SetAttackDamage(AttackDamage);
+	ID->SetItemStats(
+		AttackDamage
+	);
+	ID->SetstrName(WeaponName.ToString());
+	ID->SetItemClass(ACRifleStaff::StaticClass());
+	ID->SetItemDetail(FText::FromString(ItemDTDetail));
+	return ID;
 }
 
 // Called when the game starts or when spawned
@@ -499,7 +535,6 @@ bool ACRifleStaff::SetSpendBullet(int32 Type, float Amount)
 {
 	if (CurrBullet[Type] < Amount) return false;
 	CurrBullet[Type] -= Amount;
-	//UE_LOG(LogTemp, Log, TEXT("ACRifleStaff - Execute BulletCountUpdated : Spend Amount : %f"), Amount);
 	BulletCountUpdated.Execute(CurrBullet[BulletType] / MaxBullet[BulletType]);
 	return true;
 }
@@ -507,7 +542,7 @@ bool ACRifleStaff::SetSpendBullet(int32 Type, float Amount)
 bool ACRifleStaff::HitCheckAtLocation(FVector SweepLocation, float Radius, float OverrideDamageScale)
 {
 	FHitResult HitResult;
-	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
+	FCollisionQueryParams Params(NAME_None, false, GetOwner());
 	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
 
 	bool bResult = GetWorld()->SweepSingleByObjectType(
@@ -529,7 +564,7 @@ bool ACRifleStaff::HitCheckAtLocation(FVector SweepLocation, float Radius, float
 
 		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
 		if (EC == nullptr) return false;
-		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
+		ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
 		if (PC == nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
@@ -575,10 +610,6 @@ void ACRifleStaff::UltBombArea(FVector BombLocation, float Radius)
 	BombCounter = 24;
 
 	GetWorld()->GetTimerManager().SetTimer(UltBombTimerHandler, FTimerDelegate::CreateLambda([&, BombLocation, Radius] {
-		if (BombCounter < 0)
-		{
-			GetWorld()->GetTimerManager().ClearTimer(UltBombTimerHandler);
-		}
 
 		float Theta = FMath::FRandRange(0.f, 2 * PI);
 		float r = Radius * FMath::Sqrt(FMath::FRand());
@@ -597,6 +628,11 @@ void ACRifleStaff::UltBombArea(FVector BombLocation, float Radius)
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_RIFLE_ULT_EXPLODE_EFFECT], RandomLocation, FRotator(0.f, 0.f, r / Radius * 360.f), FVector(Scale, Scale, Scale));
 
 		BombCounter -= 1;
+
+		if (BombCounter < 0)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(UltBombTimerHandler);
+		}
 		}
 	), 0.28f, true);
 }
