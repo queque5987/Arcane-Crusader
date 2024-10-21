@@ -484,7 +484,37 @@ RadialGradient와 적절한 Texture들을 곱하여 아래와 같은 형태의 U
 ![image](https://github.com/user-attachments/assets/cfc5ba98-da43-4b8a-b681-e31289d90970)
 ![image](https://github.com/user-attachments/assets/35ca1a91-3811-495a-827e-a966c4b585aa)
 
+```C++
+void UCUserWidgetPlayerHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	//...
+	if (BarrelRollLeft > 0)
+	{
+		if (RifleSelectMaterial != nullptr)
+		{
+			CylinderAngle += BarrelRollLeft % 2 > 0 ? (InDeltaTime * 1.3f) : -(InDeltaTime * 3.5f);
+	
+			if (CylinderAngle < -0.5f)
+			{
+				CylinderAngle = -0.5f;
+				BarrelRollLeft--;
+			}
+			else if (CylinderAngle > 0.f)
+			{
+				CylinderAngle = 0.f;
+				BarrelRollLeft--;
+			}
+			UE_LOG(LogTemp, Log, TEXT("CylinderAngle : %f"), CylinderAngle);
+			RifleSelectMaterial->SetScalarParameterValue("Clock", CylinderAngle);
+		}
+	}
+	//...
+}
+```
 
+Tab을 입력 받은 뒤 BarrelRollLeft 변수에 2를 대입하여 위 Tick 함수 내 기능을 실행합니다.
+
+결과적으로 자연스럽게 우측으로 회전한 뒤, 좌측으로 다시 돌아오는 UI 애니메이션을 구현하였습니다.
 
 ## 2-2. 전투 시스템
 ### a. 플레이어 공격
