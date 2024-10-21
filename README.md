@@ -458,23 +458,33 @@ https://youtu.be/BgOAbAdi8f0?si=Hpja779f4S3Am2vm
 
 https://wdnote.tistory.com/211
 
-위 링크들을 참고하여 제작하였습니다.
+Rifle Staff의 하단 UI를 포함한 대부분의 머티리얼 UI는 위 링크들을 참고하여 제작하였습니다.
 
-![image](https://github.com/user-attachments/assets/0476daee-0465-4bf7-9858-03b6de2f6c92)
-![image](https://github.com/user-attachments/assets/b0f57b3b-775e-4562-a0bb-1e359b9d09bd)
+LinearGradient를 통해 원형의 Progress Bar를 만드는 것을 응용하여 원형의 조준점, 리볼버 형태의 무기 선택 UI 등을 구현하였습니다.
+
+우선, **Float** Clock 값에 따라 정가운데를 중심으로 회전하는 Texcoord를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/b6882fc6-145d-47d4-8b29-c3f502e4892d)
+
+![image](https://github.com/user-attachments/assets/0476daee-0465-4bf7-9858-03b6de2f6c92) 
+![image](https://github.com/user-attachments/assets/b0f57b3b-775e-4562-a0bb-1e359b9d09bd) 
+
+*좌 Clock = 0.f 우 Clock = 0.2f*
+
+![image](https://github.com/user-attachments/assets/d1ce824d-4727-4c13-abaf-bd0b62f27d13)
 
 ![image](https://github.com/user-attachments/assets/f15afc62-d10d-4103-9ba6-407a26ba53b8)
 ![image](https://github.com/user-attachments/assets/054333e9-cb32-4f3e-8be2-472d1d83818d)
 
-![image](https://github.com/user-attachments/assets/b6882fc6-145d-47d4-8b29-c3f502e4892d)
+*좌 Clock = 0.f 우 Clock = 0.2f*
 
-![image](https://github.com/user-attachments/assets/d1ce824d-4727-4c13-abaf-bd0b62f27d13)
+해당 Texcoord를 사용하여 특정 좌표에 RadialGradient 노드를 통해 생성한 원형의 Texture와
 
-Clock 값에 따라 정가운데를 중심으로 회전하는 Texcoord를 구현하였습니다.
+리볼버 형태의 Texture를 위치시켰으며, Clock 값에 따라 원점을 중심으로 회전하도록 하였습니다.
 
 ![image](https://github.com/user-attachments/assets/c17f84e9-76d3-4f40-bf51-a3896b67f80a)
 
-각 원 사이는 Clock에 특정 값을 더하여 회전 각도의 차이를 벌려주었습니다.
+각 원은 동일한 함수를 사용하나, Clock 값에 일정 수치를 더하여 회전 각도의 차이를 벌려주었습니다.
 
 RadialGradient와 적절한 Texture들을 곱하여 아래와 같은 형태의 UI를 구현하였습니다.
 
@@ -483,6 +493,7 @@ RadialGradient와 적절한 Texture들을 곱하여 아래와 같은 형태의 U
 
 ![image](https://github.com/user-attachments/assets/cfc5ba98-da43-4b8a-b681-e31289d90970)
 ![image](https://github.com/user-attachments/assets/35ca1a91-3811-495a-827e-a966c4b585aa)
+
 
 ```C++
 void UCUserWidgetPlayerHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -515,6 +526,10 @@ void UCUserWidgetPlayerHUD::NativeTick(const FGeometry& MyGeometry, float InDelt
 Tab을 입력 받은 뒤 BarrelRollLeft 변수에 2를 대입하여 위 Tick 함수 내 기능을 실행합니다.
 
 결과적으로 자연스럽게 우측으로 회전한 뒤, 좌측으로 다시 돌아오는 UI 애니메이션을 구현하였습니다.
+
+**예시**
+
+[![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA?si=Eu4lNhP0UEvp1vbK&t=306)
 
 ## 2-2. 전투 시스템
 ### a. 플레이어 공격
