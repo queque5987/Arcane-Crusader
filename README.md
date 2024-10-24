@@ -783,7 +783,43 @@ Lerp 노드를 통해 저스트 회피 환경과 아닌 환경을 구분하였�
 
 플레이어의 위치는 매 Tick마다 갱신합니다.
 
-저스트 회피 시, Radius 값을 감소시켜 멀리서부터 흑백 화면이 다가오는 효과를 구현하였습니다.
+```C++
+void ACEnemyCharacter::OnPlayerDodged()
+{
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	if (AnimInst == nullptr) return;
+	AnimInst->Montage_SetPlayRate(GetCurrentMontage(), 0.2f);
+}
+```
+
+```C++
+void UCEnemyAnimInstance::NativeInitializeAnimation()
+{
+	// ...
+	ACStageGameMode* StageGM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	if (StageGM != nullptr)
+	{
+		StageGM->PlayerDodged.BindLambda([&]() {
+				PlayRate = 0.2f;
+			}
+		);
+		StageGM->PlayerDodgedEnd.BindLambda([&]() {
+			PlayRate = 1.f;
+			}
+		);
+	}
+}
+```
+저스트 회피 시, 게임모드 클래스를 통해 Delegate를 호출합니다.
+
+해당 Delegate는 Character 클래스와 Animinstance 클래스를 오버라이드하는 클래스에서
+
+현재 재생중인 몬티지와 앞으로 재생 될 몬티지의 재생 속도를 조절합니다.
+
+
+결과적으로 저스트 회피 시, Radius 값을 감소시켜 멀리서부터 흑백효과가 다가오면서
+
+플레이어를 제외한 몬스터가 느려지는 효과를 구현하였습니다.
 
 ![justevade](https://github.com/user-attachments/assets/a8b9b675-13f3-4398-be97-4a19198ef90a)
 
