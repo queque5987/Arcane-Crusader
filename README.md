@@ -785,7 +785,7 @@ Lerp 노드를 통해 저스트 회피 환경과 아닌 환경을 구분하였�
 
 저스트 회피 시, Radius 값을 감소시켜 멀리서부터 흑백 화면이 다가오는 효과를 구현하였습니다.
 
-[![저스트 회피 예시](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA?si=n-eGo6t-CetbdwNl&t=261)
+![justevade](https://github.com/user-attachments/assets/a8b9b675-13f3-4398-be97-4a19198ef90a)
 
 ## 2-3. 무기 디자인
 ### a. 플레이어 공격
@@ -808,10 +808,10 @@ RGB 값을 증폭시켜 아래와 같이 빛나는 형태를 구현하였습니�
 
 해당 Texture에 RadialGradient를 곱하여 원형으로 변형시킬 수 있도록 하였습니다.
 
-![image](https://github.com/user-attachments/assets/273b157d-2e33-4b64-82fd-bfffaf49e89e)
+![hammer_opacity](https://github.com/user-attachments/assets/91cc8768-53fb-4e1c-80bc-5bb277ad1355)<br>*Opacity 노드에 연결 될 Texture*
 
 결과적으로 Clock 값에 따라서 Opacity를 변화시키고, 무기가 숨쉬듯 결을 따라 빛나도록 구현하였습니다.
 
-![image](https://github.com/user-attachments/assets/b9d236ff-8d35-42c1-a76a-749df9001379)
+![hammer](https://github.com/user-attachments/assets/d2ff2ee6-79f3-4640-81ec-42a01c19736d)
 
 해당 Mesh는 무기 Actor에 Attach하고, 머티리얼 인스턴스의 파라미터 값을 조정하며 무기와 상호작용하도록 하였습니다.
