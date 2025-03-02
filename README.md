@@ -5,7 +5,7 @@
 # 0. 목차
 - [1. UI]()
   
-	* [**인벤토리 시스템**](1-1.-인벤토리-시스템)
+	* [**인벤토리 시스템**](#1-1-인벤토리-시스템)
 
 	![ui_inventory-supp](https://github.com/user-attachments/assets/db793861-1f2b-4a1a-8cfa-2ec56a575776)
 
