@@ -1,10 +1,460 @@
 # Arcane Crusader<br><br>플레이 영상
 
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
-*구버전*<br>
-[![플레이 영상](https://img.youtube.com/vi/p7fB2LRsM9Y/0.jpg)](https://youtu.be/p7fB2LRsM9Y)
 
 # 0. 목차
+- [1. UI]()
+  
+	* [**인벤토리 시스템**](1-1.-인벤토리-시스템)
+
+	![ui_inventory-supp](https://github.com/user-attachments/assets/db793861-1f2b-4a1a-8cfa-2ec56a575776)
+
+	* [**NPC 상호작용 시스템**]()
+	* [**상점 시스템**]()
+   
+ 	![ui_shop2_supp](https://github.com/user-attachments/assets/ac0f9d4d-11b1-4d6a-bbee-636b49239d90)
+
+	* [**퀘스트 시스템**]()
+	* [**스테이지 선택 시스템**]()
+ 
+ 	![ui_teleport_supp](https://github.com/user-attachments/assets/9b01dfc6-941f-4185-bea1-e1e859be84f6)
+
+	* [**저장 시스템**]()
+
+	![main_supp](https://github.com/user-attachments/assets/2f56297a-2704-4731-86a4-9053e34a6743)
+
+	* [**HUD 시스템**]()
+ 
+	![ui_whole_supp](https://github.com/user-attachments/assets/c4aae09e-9d13-4bdc-a5f9-0f5b09719a6e)
+
+- [2. 전투]()
+	* [**플레이어 State 관리**]()
+	* [**회피 시스템**]()
+
+	![atk_bs_evade_supp](https://github.com/user-attachments/assets/0d77c391-1872-4684-a1a7-b81bbf546fa4)
+
+	* [**대미지 표기 시스템**]()
+	* [**아이템 드랍 시스템**]()
+
+	![atk_rs_ult_supp](https://github.com/user-attachments/assets/61a85212-024a-4f96-97ef-d01e9b9b1dd4)
+
+	* [**연속 공격 시스템**]()
+
+	![atk_bs_pyeong](https://github.com/user-attachments/assets/08135222-e660-438f-90cf-a55e458e2e13)
+	![atk_bs_switch](https://github.com/user-attachments/assets/6d5263ff-2c25-4d35-bf89-acbef3ae8f13)
+
+	* [**이펙트 소환 최적화 시스템**]()
+	* [**투사체 공격 시스템**]()
+
+	![atk_rs_switch_supp](https://github.com/user-attachments/assets/dc910141-aad5-41e4-bbdb-d599f067f2dc)
+
+# 1. UI
+## 1-1. 인벤토리 시스템
+
+![ui_inventory](https://github.com/user-attachments/assets/b213e1b4-996f-4733-8237-d51efaa40836)
+
+인벤토리는 장비탭과 소지탭을 구분하여 구현하였습니다.
+소비 아이템의 경우 클릭하여 퀵슬롯에 아이템을 등록할 수 있도록 구현하였습니다.
+
+```C++
+class MMB_API UCInventory : public UUserWidget
+{
+	GENERATED_BODY()
+	
+	UCInventory(const FObjectInitializer& ObjectInitializer);
+	
+	public:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> ItemList;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> PlayerGold;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> Weapon;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> Artifact;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UListView> Armor;
+	
+	virtual void SetVisibility(ESlateVisibility InVisibility) override;
+	
+	bool EquipItem(int ItemType, class UCInventoryItemData& ToEquipItemData);
+};
+```
+
+TileView를 사용하여 장착 아이템과 소지 아이템이 저장될 공간을 구분하였습니다.
+
+```C++
+void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData, bool OnPickup)
+{
+	if (ItemData == nullptr) return;
+	
+	if (ItemData->GetItemType() == ITEM_TYPE_GOLD)
+	{
+		IIPlayerState* PS = Cast<IIPlayerState>(GetCharacter());
+		if (PS == nullptr) return;
+		PS->GainPlayerGold(ItemData->GetItemCount());
+		return;
+	}
+	
+	if (ItemData->GetItemType() > 3)
+	{
+		for (UObject* HasItem : ItemInventory->ItemList->GetListItems())
+		{
+			if (HasItem == nullptr) continue;
+			UCInventoryItemData* HasItemData = Cast<UCInventoryItemData>(HasItem);
+			if (HasItemData->GetstrName() == ItemData->GetstrName())
+			{
+				HasItemData->SetItemCount(
+					HasItemData->GetItemCount() + ItemData->GetItemCount());
+				CheckQuest(ItemData->GetItemClass());
+				return;
+			}
+		}
+	}
+	ItemInventory->ItemList->AddItem(ItemData);
+	CheckQuest(ItemData->GetItemClass());
+}
+```
+아이템 습득 시, CInventoryItemData 객체를 ItemList에 저장합니다.
+중첩이 가능한 아이템일 경우, 대신 아이템의 카운트를 증가시킵니다.
+
+```C++
+void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass, int AchievedActionType)
+{
+	TArray<UUserWidget*> QuestWidgets = HUDOverlay->QuestList->GetDisplayedEntryWidgets();
+	for (UUserWidget* QuestWidget : QuestWidgets)
+	{
+		UCQuest* WQ = Cast<UCQuest>(QuestWidget);
+		if (WQ == nullptr) continue;
+		if (WQ->IsCleared()) continue;
+		if (WQ->RefreshQuestRecap(ToCheckObjectClass, AchievedActionType)) // If Cleared Quest (Required Class All Completed)
+		{
+			IIPlayerQuest* QuestManage = Cast<IIPlayerQuest>(GetCharacter());
+			if (QuestManage == nullptr) continue;
+			QuestManage->QuestClear(WQ->GetQuestRewardIndex());
+		}
+	}
+	HUDOverlay->QuestList->RequestRefresh();
+}
+```
+아이템 습득 처리 이후, CheckQuest 함수를 호출하여 퀘스트 달성 여부를 검사합니다.
+플레이어가 가지고 있는 퀘스트 위젯을 전부 순회하며 RefreshQuestRecap 함수를 통해 퀘스트가 가지고 있는 목표와 일치하는지 검사합니다.
+
+```C++
+bool UCQuest::RefreshQuestRecap(UClass* AchievedObjectClass, int AchievedActionType)
+{
+	FString Recap = QuestRecapString + "\n";
+	int Achieved = RequiredClasses.Num();
+	for (int i = 0; i < RequiredClasses.Num(); i++)
+	{
+		if (AchievedObjectClass != nullptr)
+		{
+			if (RequiredActions[i] == AchievedActionType && AchievedObjectClass == RequiredClasses[i])
+			{
+				AcquiredQuantities[i] += 1;
+			}
+		}
+
+		Recap += "\n" + RequiredClassNames[i] +
+			" " + FString::FromInt(AcquiredQuantities[i]) +
+			" / " + FString::FromInt(RequiredQuantities[i]);
+		if (AcquiredQuantities[i] >= RequiredQuantities[i]) Achieved--;
+	}
+	QuestRecap->SetText(FText::FromString(Recap));
+	if (Achieved <= 0)
+	{
+		QuestBG->SetColorAndOpacity(QualifiedColor);
+		bCleared = true;
+	}
+	return bCleared;
+}
+```
+RefreshQuestRecap은 퀘스트 요약을 재생성하고, 클리어 여부를 업데이트 후 반환하는 기능을 수행합니다.
+
+```C++
+void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
+{
+	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
+	ItemData = ListItemObject;
+
+	if (UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData))
+	{
+		Rarity = ID->GetRarity();
+		if (IIItemManager* GM = Cast<IIItemManager>(GetWorld()->GetAuthGameMode()))
+		{
+			UTexture2D* T = GM->IconGetter(ID->GetIconTexture());
+			ItemImage->SetBrushFromTexture(T);
+		}
+		if (ID->GetItemType() >= 3)
+		{
+			ItemQuantity->SetText(FText::FromString(FString::FromInt(ID->GetItemCount())));
+		}
+		else
+		{
+			ItemQuantity->SetVisibility(ESlateVisibility::Hidden);
+		}
+		ItemType = ID->GetItemType();
+	}
+	if (GetOwningPlayer())
+	{
+		ACPlayerCharacter* tempPlayer = Cast<ACPlayerCharacter>(GetOwningPlayer()->GetCharacter());
+		if (tempPlayer != nullptr) tempPlayer->InventoryOpenedEvent.BindUFunction(this, TEXT("ReleasePutItem"));
+	}
+}
+```
+ItemList에 추가된 뒤, UserWidget을 상속한 UCInventoryItem 클래스에서
+아이템 데이터 오브젝트(UCInventoryItemData)의 포인터를 저장하고, 표시되는 섬네일, 중첩 수량을 조정합니다.
+
+```C++
+AMMBGameModeBase::AMMBGameModeBase()
+{
+	// …생략
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	TArray<FAssetData> AssetData;
+	FARFilter Filter;
+	Filter.PackagePaths.Add("/Game/CraftResourcesIcons/Textures/");
+	AssetRegistryModule.Get().GetAssets(Filter, AssetData);
+	UTexture2D* tempTexture;
+	for (FAssetData Dat : AssetData)
+	{
+		tempTexture = Cast<UTexture2D>(Dat.GetAsset());
+		if (tempTexture == nullptr) continue;
+		PreLoadedTextureMap.Add(Dat.AssetName.ToString(), tempTexture);
+	}
+	// …생략
+}
+
+UTexture2D* AMMBGameModeBase::IconGetter(FString IconAssetName)
+{
+	return PreLoadedTextureMap.Contains(IconAssetName) ? PreLoadedTextureMap[IconAssetName] : DefaultIconDroppedItem;
+}
+```
+섬네일로 사용할 UTexture2D 오브젝트는 Gamemode의 생성자에서 미리 로드시켜 Map 형태로 저장해두어
+에셋의 이름을 통해 포인터를 불러올 수 있도록 구현하였습니다.
+
+
+![image](https://github.com/user-attachments/assets/0955c45d-66f2-4370-a2bb-35e366222c8c)
+
+아이템 위젯 위로 마우스를 올리면 아이템의 세부 정보를 표시하는 기능을 구현하였습니다.
+
+```C++
+void UCInventoryItem::OnHovered()
+{
+	IIPlayerState* PlayerState = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	if (PlayerState != nullptr)
+	{
+		PlayerState->SetState(PLAYER_INVENTORY_HOVERRING, true);
+		PlayerState->SetHoverringUI(this);
+	}
+	
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController != nullptr)
+	{
+		UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+		if (ID == nullptr) return;
+		UIController->ShowItemDetailUI(ID); //세부정보 출력
+	}
+}
+
+void UCInventoryItem::OnUnHovered()
+{
+	IIPlayerState* PlayerState = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	if (PlayerState != nullptr)
+	{
+		PlayerState->SetState(PLAYER_INVENTORY_HOVERRING, false);
+		PlayerState->SetHoverringUI(nullptr);
+	}
+	
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController == nullptr) return;
+	UIController->UnShowItemDetailUI(); //세부정보 숨김
+}
+```
+아이템 위젯 클래스(CInventoryItem)의 OnHovered / UnHovered 이벤트에 함수를 바인딩하여
+아이템의 세부 정보를 출력하도록 구현하였습니다.
+
+```C++
+void ACPlayerController::ShowItemDetailUI(UCInventoryItemData* ItemData)
+{
+	if (ItemData == nullptr) return;
+	
+	if (ItemDetailAsset)
+	{
+		if (ItemDetailUI != nullptr) UnShowItemDetailUI();
+		
+		UCItemDetailUI* DetailUI = CreateWidget<UCItemDetailUI>(this, ItemDetailAsset);
+		if (IsValid(DetailUI))
+		{
+			DetailUI->SetDetail(ItemData); //아이템 정보 전달
+			
+			FVector2D MousePos;
+			GetMousePosition(MousePos.X, MousePos.Y);
+			
+			DetailUI->SetPositionInViewport(MousePos);
+			DetailUI->AddToViewport(1);
+			DetailUI->SetVisibility(ESlateVisibility::HitTestInvisible);
+			ItemDetailUI = DetailUI;
+		}
+	}
+}
+```
+ShowItemDetailUI 함수는 아이템의 정보를 UI에 업데이트하고
+현재 마우스 커서의 위치에 아이템 세부 정보 UI(UCItemDetailUI)를 위치시킵니다.
+
+```C++
+void UCItemDetailUI::SetDetail(UCInventoryItemData* ItemData)
+{
+	if (IIItemManager* GM = Cast<IIItemManager>(GetWorld()->GetAuthGameMode()))
+	{
+		UTexture2D* T = GM->IconGetter(ItemData->GetIconTexture());
+		ItemImage->SetBrushFromTexture(T);
+	}
+
+	ItemName->SetText(FText::FromString(ItemData->GetstrName()));
+	ItemPrice->SetText(FText::FromString(FString::FromInt(ItemData->GetPrice())));
+	ItemDetail->SetText(ItemData->GetItemDetail());
+
+	ItemStat* Stats = ItemData->GetItemStats();
+	FString tempStat;
+	FString tempStatDesc;
+	bool EnterFlag = false;
+	if (Stats->_AttackDamage != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("공격력");
+		if (Stats->_AttackDamage > 0) tempStatDesc += "+ ";
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_AttackDamage);
+		EnterFlag = true;
+	}
+	if (Stats->_Defence != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("방어력");
+		tempStatDesc += "+ ";
+		//tempStatDesc += FString::SanitizeFloat(Stats->_Defence);
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_Defence);
+		EnterFlag = true;
+	}
+	if (Stats->_AttackSpeed != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("공격속도");
+		if (Stats->_AttackSpeed > 0) tempStatDesc += "+ ";
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_AttackSpeed * 100.f);
+		//tempStatDesc += FString::SanitizeFloat(Stats->_AttackSpeed * 100.f);
+		tempStatDesc += "%";
+		EnterFlag = true;
+	}
+
+	//Potion
+	if (ItemData->GetItemType() == 5 && Stats->_HealPoint != 0.f)
+	{
+		if (EnterFlag)
+		{
+			tempStat += "\n";
+			tempStatDesc += "\n";
+		}
+		tempStat += TEXT("체력 회복");
+		if (Stats->_HealPoint > 0) tempStatDesc += "+ ";
+		else tempStatDesc += "- ";
+		tempStatDesc += FString::Printf(TEXT("%.0f"), Stats->_HealPoint);
+		EnterFlag = true;
+	}
+
+	ItemStatText->SetText(FText::FromString(tempStat));
+	ItemStatDescText->SetText(FText::FromString(tempStatDesc));
+}
+```
+UCItemDetailUI의 SetDetail함수는 아이템 정보를 업데이트합니다.
+공격력, 공격속도 등 장착 / 사용 시 변화하는 스탯이 있다면 표시하고
+그 값이 0일 경우 표시하지 않도록 구현하였습니다.
+
+```C++
+void UCItemDetailUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	FVector2D MousePos;
+	GetOwningPlayer()->GetMousePosition(MousePos.X, MousePos.Y);
+
+	int Vx, Vy;
+	FVector2D DS = MainPannel->GetDesiredSize();
+	GetOwningPlayer()->GetViewportSize(Vx, Vy);
+	if (Vx - MousePos.X <= DS.X) MousePos.X -= DS.X - (Vx - MousePos.X); //화면 넘길 시 좌우반전
+
+	SetPositionInViewport(MousePos);
+}
+```
+NativeTick에서는 해당 위젯이 플레이어의 마우스 커서 위치를 따라가도록 구현하였습니다.
+
+
+
+
+
+
+
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+******
+******
+***DEPRECATED***
+******
+******
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+
 - [1. 게임 흐름](#1.-게임-흐름)
 - [2. 구현한 기능](#2.-구현한-기능)
   * [2-1. UI](#2-1-ui)
