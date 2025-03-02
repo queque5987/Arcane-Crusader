@@ -9,12 +9,15 @@
 
 	![ui_inventory-supp](https://github.com/user-attachments/assets/db793861-1f2b-4a1a-8cfa-2ec56a575776)
 
-	* [**NPC 상호작용 시스템**]()
+	* [**NPC 상호작용 시스템**](#1-2-NPC-상호작용-시스템)
 	* [**상점 시스템**]()
    
  	![ui_shop2_supp](https://github.com/user-attachments/assets/ac0f9d4d-11b1-4d6a-bbee-636b49239d90)
 
 	* [**퀘스트 시스템**]()
+
+	![ui_quest_supp](https://github.com/user-attachments/assets/5446f413-2611-4100-878b-a2c84d26580e)
+
 	* [**스테이지 선택 시스템**]()
  
  	![ui_teleport_supp](https://github.com/user-attachments/assets/9b01dfc6-941f-4185-bea1-e1e859be84f6)
@@ -54,6 +57,7 @@
 ![ui_inventory](https://github.com/user-attachments/assets/b213e1b4-996f-4733-8237-d51efaa40836)
 
 인벤토리는 장비탭과 소지탭을 구분하여 구현하였습니다.
+
 소비 아이템의 경우 클릭하여 퀵슬롯에 아이템을 등록할 수 있도록 구현하였습니다.
 
 ```C++
@@ -119,6 +123,7 @@ void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData, bool On
 }
 ```
 아이템 습득 시, CInventoryItemData 객체를 ItemList에 저장합니다.
+
 중첩이 가능한 아이템일 경우, 대신 아이템의 카운트를 증가시킵니다.
 
 ```C++
@@ -141,6 +146,7 @@ void ACPlayerController::CheckQuest(UClass* ToCheckObjectClass, int AchievedActi
 }
 ```
 아이템 습득 처리 이후, CheckQuest 함수를 호출하여 퀘스트 달성 여부를 검사합니다.
+
 플레이어가 가지고 있는 퀘스트 위젯을 전부 순회하며 RefreshQuestRecap 함수를 통해 퀘스트가 가지고 있는 목표와 일치하는지 검사합니다.
 
 ```C++
@@ -206,6 +212,7 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 }
 ```
 ItemList에 추가된 뒤, UserWidget을 상속한 UCInventoryItem 클래스에서
+
 아이템 데이터 오브젝트(UCInventoryItemData)의 포인터를 저장하고, 표시되는 섬네일, 중첩 수량을 조정합니다.
 
 ```C++
@@ -233,6 +240,7 @@ UTexture2D* AMMBGameModeBase::IconGetter(FString IconAssetName)
 }
 ```
 섬네일로 사용할 UTexture2D 오브젝트는 Gamemode의 생성자에서 미리 로드시켜 Map 형태로 저장해두어
+
 에셋의 이름을 통해 포인터를 불러올 수 있도록 구현하였습니다.
 
 
@@ -274,6 +282,7 @@ void UCInventoryItem::OnUnHovered()
 }
 ```
 아이템 위젯 클래스(CInventoryItem)의 OnHovered / UnHovered 이벤트에 함수를 바인딩하여
+
 아이템의 세부 정보를 출력하도록 구현하였습니다.
 
 ```C++
@@ -302,6 +311,7 @@ void ACPlayerController::ShowItemDetailUI(UCInventoryItemData* ItemData)
 }
 ```
 ShowItemDetailUI 함수는 아이템의 정보를 UI에 업데이트하고
+
 현재 마우스 커서의 위치에 아이템 세부 정보 UI(UCItemDetailUI)를 위치시킵니다.
 
 ```C++
@@ -381,7 +391,9 @@ void UCItemDetailUI::SetDetail(UCInventoryItemData* ItemData)
 }
 ```
 UCItemDetailUI의 SetDetail함수는 아이템 정보를 업데이트합니다.
+
 공격력, 공격속도 등 장착 / 사용 시 변화하는 스탯이 있다면 표시하고
+
 그 값이 0일 경우 표시하지 않도록 구현하였습니다.
 
 ```C++
@@ -403,9 +415,276 @@ void UCItemDetailUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 NativeTick에서는 해당 위젯이 플레이어의 마우스 커서 위치를 따라가도록 구현하였습니다.
 
 
+## 1-2. NPC 상호작용 시스템
 
+![image](https://github.com/user-attachments/assets/25bb8744-e3f6-42c3-b496-8f08a44299c2)
+![image](https://github.com/user-attachments/assets/ee5dd1f3-18e7-4e56-a54c-ba22bbeb878f)
 
+```C++
+void ACStaticNPC::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(OtherActor))
+	{
+		if (ACPlayerController* PCC = Cast<ACPlayerController>(PC->GetController()))
+		{
+			PCC->NPCInteract_ShowAndInputReady(this);
+		}
+	}
+}
+```
+NPC의 Collider에 충돌할 경우 ACPlayerController의 NPCInteract_ShowAndInputReady 함수를 통해 상호작용 버튼을 화면에 표시하였습니다.
 
+![image](https://github.com/user-attachments/assets/155f4a40-69d9-4d2d-a344-a0ff5f2cd065)
+```C++
+void ACPlayerController::NPCInteract_ShowAndInputReady(ACStaticNPC* NPC)
+{
+	if (ButtonActionUI != nullptr) NPCInteract_UnShow();
+	ButtonActionUI = CreateWidget<UCButtonAction>(this, ButtonActionAsset);
+	if (IsValid(ButtonActionUI))
+	{
+		FVector MiddlePos = (GetCharacter()->GetActorLocation() + (GetCharacter()->GetActorRightVector() * 100.f + GetCharacter()->GetActorUpVector() * 100.f));
+		FVector2D ScreenLocation;
+		ProjectWorldLocationToScreen(MiddlePos, ScreenLocation);
+
+		ButtonActionUI->AddToViewport();
+		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_NPCDIALOGUE);
+		ButtonActionUI->SetNPC(NPC);
+		ButtonActionUI->SetPositionInViewport(ScreenLocation);
+	}
+}
+```
+NPCInterAct_ShowAndInputReady함수는 상호작용 버튼을 Viewport로 띄워줌과 동시에
+
+SetButtonMode함수를 호출하여 버튼에 표시되는 텍스트를 교체합니다.
+
+```C++
+void UCButtonAction::SetButtonMode(int e)
+{
+	ButtonMode = e;
+
+	switch (e)
+	{
+	case(INTERACT_BUTTON_MODE_NPCDIALOGUE):
+		NPCName->SetText(FText::FromString(TEXT("대화하기")));
+		return;
+	case(INTERACT_BUTTON_MODE_CLIMBROPE):
+		NPCName->SetText(FText::FromString(TEXT("매달리기")));
+		return;
+	case(INTERACT_BUTTON_MODE_JUMPPOINTS):
+		NPCName->SetText(FText::FromString(TEXT("뛰기")));
+		return;
+	case(INTERACT_BUTTON_MODE_PICKUPITEM):
+		NPCName->SetText(FText::FromString(TEXT("줍기")));
+		return;
+	}
+}
+```
+각 모드를 통해 동일한 UCButtonAction 위젯으로부터 여러개의 상호작용을 처리할 수 있도록 구현하였습니다.
+
+```C++
+void ACPlayerController::OnInteract()
+{
+	if (ButtonActionUI == nullptr) return;
+	switch(ButtonActionUI->GetButtonMode())
+	{
+		case(INTERACT_BUTTON_MODE_NPCDIALOGUE):
+			NPCInteract_Interact();
+			return;
+		case(INTERACT_BUTTON_MODE_CLIMBROPE):
+			ClimbRopeInteract_Interact();
+			return;
+		case(INTERACT_BUTTON_MODE_JUMPPOINTS):
+			JumpPointsInteract_Interact();
+			return;
+		case(INTERACT_BUTTON_MODE_PICKUPITEM):
+			PickUpItemInteract_Interact();
+			return;
+	}
+}
+```
+NPC의 Collider와의 충돌이 해제되지 않았을 때(UCButtonAction이 아직 Viewport에 표시되고 있을 때)
+
+E버튼을 통해 현재 버튼의 상태에 따라 상호작용을 수행하도록 구현하였습니다.
+
+```C++
+void ACPlayerController::NPCInteract_Interact()
+{
+	if (ButtonActionUI == nullptr) return;
+	SetNPCConversationVisibility(true, ButtonActionUI->GetNPC());
+	NPCInteract_UnShow();
+}
+
+void ACPlayerController::SetNPCConversationVisibility(bool e, ACStaticNPC* npc)
+{
+	//UE_LOG(LogTemp, Log, TEXT("NPC Conversation UI Set %s"), (e ? TEXT("True") : TEXT("False")));
+
+	if (e)
+	{
+		TArray<FNPCDialoguesRow*> DialogueRow = npc->GetDialogue();
+
+		NPCConversation->SetNPC(npc);
+		if (npc != nullptr)
+		{
+			if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetPawn()))
+			{
+				SetViewTargetWithBlend(npc->SetCameraOn(true, PC->CameraComponent->GetComponentTransform()));
+			}
+		}
+
+		if (DialogueRow.Num() > 0)
+		{
+			NPCConversation->SetDialogues(DialogueRow);
+			//NPCConversation->SetNPCName(DialogueRow->NPCName);
+			//NPCConversation->SetNPCLine(DialogueRow->NPCDialogue);
+		}
+
+		NPCConversation->SetVisibility(ESlateVisibility::Visible);
+		bShowMouseCursor = true;
+		bEnableClickEvents = true;
+	}
+	else
+	{
+		NPCConversation->SetVisibility(ESlateVisibility::Hidden);
+		bShowMouseCursor = false;
+		bEnableClickEvents = false;
+
+		if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetPawn()))
+		{
+			if (npc != nullptr)
+			{
+				npc->SetCameraOn(false, PC->CameraComponent->GetComponentTransform());
+			}
+			SetViewTargetWithBlend(PC->CameraComponent->GetOwner());
+		}
+	}
+}
+```
+NPCInteract_Interact 함수 호출 시 NPC에 저장되어 있는 DialougRow들을
+
+NPC대화 위젯(NPCConversation)에 전달하고 Viewport에 해당 위젯을 띄워줍니다.
+
+```C++
+void UCNPCConversation::SetVisibility(ESlateVisibility InVisibility)
+{
+	Super::SetVisibility(InVisibility);
+
+	if (ACPlayerController* PCC = Cast<ACPlayerController>(GetOwningPlayer()))
+	{
+		if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(PCC->GetCharacter()))
+		{
+			PC->SetState(PLAYER_UI_INTERACTING, InVisibility == ESlateVisibility::Hidden ? false : true);
+		}
+	}
+
+	if (InVisibility == ESlateVisibility::Visible)
+	{
+		if (GetWorld()->GetTimerManager().TimerExists(SwingbyTimerHandle))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(SwingbyTimerHandle);
+			AllowInput = false;
+			InSwingbyTime = 0.f;
+		}
+		ShoppingBox->SetVisibility(ESlateVisibility::Hidden);
+		NPCLineBox->SetVisibility(ESlateVisibility::Visible);
+		TeleportableListBox->SetVisibility(ESlateVisibility::Hidden);
+		QuestListBox->SetVisibility(ESlateVisibility::Hidden);
+		QuestRewardBox->SetVisibility(ESlateVisibility::Hidden);
+		SetLineFromDialogues(0);
+	}
+}
+```
+UCNPCConversation의 SetVisibility를 Override하여 Viewport에 띄워질 때 각 패널들의 Visibility를 초기화하고,
+
+화면에 나타낼 대사의 인덱스(초기 0)를 지정합니다.
+
+![image](https://github.com/user-attachments/assets/533dfadc-cfad-490f-a2c7-1e18d59fb2de)
+FNPCDialoguesRow는 NPC이름, 대사, 그리고 각 버튼의 목적지가 담긴 열(*_POSTLINE)으로 구성되어 있습니다.
+
+```C++
+void UCNPCConversation::SetLineFromDialogues(int e)
+{
+	if (Dialogues.IsValidIndex(e))
+	{
+		FNPCDialoguesRow* Row = Dialogues[e];
+		NPCName->SetText(Row->NPCName);
+		NPCLine->SetText(Row->NPCDialogue);
+		
+		BUTTON_NEXT_POSTLINE = Row->BUTTON_NEXT_POSTLINE;
+		BUTTON_YES_POSTLINE = Row->BUTTON_YES_POSTLINE;
+		BUTTON_NO_POSTLINE = Row->BUTTON_NO_POSTLINE;
+		BUTTON_SHOP_POSTLINE = Row->BUTTON_SHOP_POSTLINE;
+		BUTTON_QUEST_POSTLINE = Row->BUTTON_QUEST_POSTLINE;
+		BUTTON_LEAVE_POSTLINE = Row->BUTTON_LEAVE_POSTLINE;
+		BUTTON_REWARD_POSTLINE = Row->BUTTON_REWARD_POSTLINE;
+		
+		if (BUTTON_REWARD_POSTLINE >= 0) OpenQuestRewardBox();
+		
+		BtnNext->SetIsEnabled((BUTTON_NEXT_POSTLINE >= 0) ? true : false);
+		BtnYes->SetIsEnabled((BUTTON_YES_POSTLINE >= 0) ? true : false);
+		BtnNo->SetIsEnabled((BUTTON_NO_POSTLINE >= 0) ? true : false);
+		BtnShopIn->SetIsEnabled((BUTTON_SHOP_POSTLINE >= 0) ? true : false);
+		BtnQuest->SetIsEnabled((BUTTON_QUEST_POSTLINE >= 0) ? true : false);
+		BtnLeave->SetIsEnabled((BUTTON_LEAVE_POSTLINE >= 0) ? true : false);
+	}
+}
+```
+각 *_POSTLINE은 버튼 상호작용 시 이동할 FNPCDialoguesRow의 인덱스를 담고 있으며,
+
+음수일 경우 해당 버튼이 비활성화 되도록 구현하였습니다.
+
+```C++
+AActor* ACStaticNPC::SetCameraOn(bool e, FTransform CurrentCameraTransform)
+{
+	NPCCameraOn = e;
+	if (e)
+	{
+		NPCCameraFixedTransform = NPCCameraComponent->GetComponentTransform();
+		NPCCameraComponent->SetWorldTransform(CurrentCameraTransform);
+	}
+	else NPCCameraComponent->SetWorldTransform(NPCCameraFixedTransform);
+	return e? NPCCameraComponent->GetOwner() : nullptr;
+}
+```
+NPC 대화 시작 시, 각 NPC마다 가지고 있는 CameraComponent로 플레이어가 빙의되어 있는 카메라를 교체합니다.
+
+SetCameraOn함수를 호출하여 NPC의 카메라 위치를 플레이어의 카메라 위치로 이동시키고,
+
+SetViewTartgetWithBlend 함수를 호출하여 카메라를 NPC의 카메라로 교체합니다.
+
+```C++
+void ACStaticNPC::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (NPCCameraOn)
+	{
+		FTransform CameraTransform = NPCCameraComponent->GetComponentTransform();
+		CameraTransform.SetLocation(
+			FMath::Lerp(CameraTransform.GetLocation(), 
+			NPCCameraFixedTransform.GetLocation(), CameraMoveSpeed)
+		);
+		CameraTransform.SetRotation(
+			FMath::Lerp(CameraTransform.GetRotation(), 
+			NPCCameraFixedTransform.GetRotation(), CameraMoveSpeed)
+		);
+		NPCCameraComponent->SetWorldTransform(CameraTransform);
+		if (
+			FMath::IsNearlyEqual(CameraTransform.GetLocation().X, NPCCameraFixedTransform.GetLocation().X, 3.f) &&
+			FMath::IsNearlyEqual(CameraTransform.GetLocation().Y, NPCCameraFixedTransform.GetLocation().Y, 3.f) &&
+			FMath::IsNearlyEqual(CameraTransform.GetLocation().Z, NPCCameraFixedTransform.GetLocation().Z, 3.f)
+		)
+		{
+			NPCCameraOn = false;
+		}
+	}
+}
+```
+Tick함수를 Override하여 플레이어의 카메라가 있던 위치(CurrentCameraTransform)에서
+
+NPC의 카메라가 배치되어 있던 위치(NPCCameraFixedTransform)으로
+
+Lerp함수를 통해 부드럽게 이동하도록 구현하였습니다.
+
+![ui_quest](https://github.com/user-attachments/assets/18db24dd-7f72-4418-949e-84026973985c)
 
 
 
