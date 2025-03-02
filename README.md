@@ -1,3 +1,4 @@
+
 # Arcane Crusader<br><br>플레이 영상
 
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
@@ -10,7 +11,7 @@
 	![ui_inventory-supp](https://github.com/user-attachments/assets/db793861-1f2b-4a1a-8cfa-2ec56a575776)
 
 	* [**NPC 상호작용 시스템**](#1-2-NPC-상호작용-시스템)
-	* [**상점 시스템**]()
+	* [**상점 시스템**](#1-3-상점-시스템)
    
  	![ui_shop2_supp](https://github.com/user-attachments/assets/ac0f9d4d-11b1-4d6a-bbee-636b49239d90)
 
@@ -50,7 +51,7 @@
 	* [**투사체 공격 시스템**]()
 
 	![atk_rs_switch_supp](https://github.com/user-attachments/assets/dc910141-aad5-41e4-bbdb-d599f067f2dc)
-
+------
 # 1. UI
 ## 1-1. 인벤토리 시스템
 
@@ -414,6 +415,7 @@ void UCItemDetailUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 ```
 NativeTick에서는 해당 위젯이 플레이어의 마우스 커서 위치를 따라가도록 구현하였습니다.
 
+------
 
 ## 1-2. NPC 상호작용 시스템
 
@@ -685,6 +687,159 @@ NPC의 카메라가 배치되어 있던 위치(NPCCameraFixedTransform)으로
 Lerp함수를 통해 부드럽게 이동하도록 구현하였습니다.
 
 ![ui_quest](https://github.com/user-attachments/assets/18db24dd-7f72-4418-949e-84026973985c)
+
+------
+
+## 1-3. 상점 시스템
+
+![ui_shopin_supp](https://github.com/user-attachments/assets/f2fe17cf-02c4-4467-b018-f4522529cce6)
+![ui_shop2_supp](https://github.com/user-attachments/assets/ac0f9d4d-11b1-4d6a-bbee-636b49239d90)
+
+NPC와의 대화 중 활성화된 상점 버튼을 통해 상점에 진입할 수 있도록 구현하였습니다.
+
+```C++
+void UCNPCConversation::OnButtonShopInClicked()
+{
+	PlayNPCAnimation(0);
+	SetLineFromDialogues(BUTTON_SHOP_POSTLINE);
+	ShoppingBox->SetVisibility(ESlateVisibility::Visible);
+	ShoppingBox_LoadPlayerInventory();
+	SetSelectedShopItem(nullptr);
+	ItemList->ClearListItems();
+	if (NPC != nullptr) NPC->SetNPCConversationItemList(ItemList);
+}
+```
+버튼 상호작용 시 ShoppingBox 패널을 활성화하고, 플레이어의 아이템과 NPC의 아이템을 각각 업데이트합니다.
+
+![image](https://github.com/user-attachments/assets/510d6d56-3201-4a0e-ab22-99b6a1eaef8c)
+
+ShoppinbBox는 두 개의 TileView로 구성하였고, 좌측은 NPC의 아이템을 표시하는 ItemList,
+
+우측은 플레이어의 아이템을 표시하는 ItemList_Inventory로 구성하였습니다.
+
+```C++
+void UCNPCConversation::ShoppingBox_LoadPlayerInventory()
+{
+	IIPlayerUIController* IController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (IController == nullptr) return;
+	IIPlayerState* PC = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	if (PC == nullptr) return;
+	ItemList_Inventory->ClearListItems();
+	IController->SetShopInventoryItems(ItemList_Inventory);
+	PlayerGold->SetText(FText::FromString(FString::FromInt(PC->GetPlayerGold())));
+}
+```
+ShoppingBox_LoadPlayerInventory는 플레이어의 인벤토리를 불러와 ItemList_Inventory에 저장하는 함수입니다.
+
+ItemList_Inventory의 주소를 PlayerController에 전달하는 기능을 수행합니다.
+
+```C++
+void ACPlayerController::SetShopInventoryItems(TObjectPtr<class UTileView>& ShopTileList)
+{
+	ShopTileList->ClearListItems();
+	if (ItemInventory->ItemList->GetNumItems() <= 0) return;
+	for (UObject* Item : ItemInventory->ItemList->GetListItems())
+	{
+		ShopTileList->AddItem(Item);
+	}
+	IIPlayerState* PS = Cast<IIPlayerState>(GetCharacter());
+	if (PS == nullptr) return;
+	ItemInventory->PlayerGold->SetText(FText::FromString(FString::FromInt(PS->GetPlayerGold())));
+}
+```
+PlayerController는 전달 받은 ItemList_Inventory의 주소를 통해 인벤토리 내 모든 아이템을 순회하며
+
+해당 TileView에 플레이어가 보유 중인 아이템을 추가하고, 소지금 또한 업데이트합니다.
+
+![image](https://github.com/user-attachments/assets/30498e5c-7486-4118-8bea-a32793e44d20)
+![image](https://github.com/user-attachments/assets/7436fc65-3a0c-49e7-86a7-c1d36292b67a)
+
+NPC는 아이템을 인덱스 형태로 가지고 있으며 에디터에서 NPC를 배치할 때 수정 가능하도록 구현하였습니다.
+
+```C++
+void ACDynamicNPC::Initialize()
+{
+	ItemList.Empty();
+	
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+	if (ItemManager == nullptr) return;
+	
+	for (FName PossessItemRowName : PossessItems)
+	{
+		UCInventoryItemData* ID = ItemManager->GetItem(PossessItemRowName);
+		if (ID == nullptr) continue;
+		ItemList.Add(ID);
+	}
+}
+```
+
+각 NPC는 BeginPlay 단계에서 아이템 인덱스를 통해 아이템 테이블에서
+
+아이템 정보(UCInventoryItemData)를 꺼내와 ItemList배열에 저장합니다.
+
+```C++
+UCInventoryItemData* AMMBGameModeBase::GetItem(FName ItemRowName, int Count)
+{
+	FItemTableRow* Row = ItemTable->FindRow<FItemTableRow>(ItemRowName, FString(""));
+
+	UE_LOG(LogTemp, Log, TEXT("Loading Item : %s"), *ItemRowName.ToString())
+	if (Row == nullptr) return nullptr;
+	UCInventoryItemData* D = NewObject<UCInventoryItemData>(GetWorld(), UCInventoryItemData::StaticClass(), *(Row->ItemName + FString::FromInt(ItemGetCounter++)));
+	D->SetDT_RowName(ItemRowName);
+	D->SetIconTexture(Row->IconTexture);
+	D->SetItemClass(StaticLoadClass(UObject::StaticClass(), nullptr, *Row->ItemClass));
+	D->SetItemCount(Count);
+	D->SetstrName(Row->ItemName);
+	D->SetPrice(Row->ItemPrice);
+	D->SetItemType(Row->ItemType);
+	D->SetRarity(Row->Rarity);
+	D->SetItemDetail(FText::FromString(Row->ItemDetail));
+	D->SetItemStats(
+		Row->AttackDamage,
+		Row->Defence,
+		Row->AttackSpeed,
+		Row->Potion_HealPoint
+	);
+	D->SetBulletType(Row->BulletType);
+	
+	return D;
+}
+```
+아이템 테이블은 게임 모드에 저장해두어 Getter를 사용하여 불러오도록 구현하였습니다.
+
+```C++
+void ACStaticNPC::SetNPCConversationItemList(TObjectPtr<UTileView>& NPCTileList)
+{
+	NPCTileList->ClearListItems();
+	if (ItemList.IsEmpty()) return;
+	for (int i = 0; i < ItemList.Num(); i++)
+		{
+		if (ItemList[i] != nullptr)
+		{
+			NPCTileList->AddItem(ItemList[i]);
+		}
+	}
+}
+```
+NPC가 nullptr이 아닐 경우 SetNPCConversationItemList 함수를 통해
+
+판매중인 아이템에 NPC가 소유 중인 아이템을 추가하였습니다.
+
+![image](https://github.com/user-attachments/assets/501facce-d7c1-4f29-aa1a-947b7dd83d2d)
+
+상점에 표시되는 아이템 위젯 클래스(UCShopItem)은 인벤토리 아이템 위젯 클래스를 상속하여 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/b2b268ab-89e0-4d2a-9701-e55ab4d69222)
+
+아이템 아이콘의 배경은 머티리얼을 사용하여 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/1ccbbb95-6350-47b1-b3f6-126e8d44a799)
+
+![image](https://github.com/user-attachments/assets/a6ef12bb-b2ef-4214-9ea5-848335384e63)
+
+LinearGradient와 RadialGradient를 사용하여 가운데가 뚫려 있는 이미지를 만들었고,
+
+Opacity로 사용하여 아이템 아이콘이 들어갈 공간을 확보하였습니다.
 
 
 
