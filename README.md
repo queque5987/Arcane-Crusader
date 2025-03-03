@@ -841,6 +841,14 @@ LinearGradient와 RadialGradient를 사용하여 가운데가 뚫려 있는 이�
 
 Opacity로 사용하여 아이템 아이콘이 들어갈 공간을 확보하였습니다.
 
+![image](https://github.com/user-attachments/assets/a0ba2323-1d36-4b92-b75e-24c7c8ea7a6e)
+
+![ui_item_grade_sprite](https://github.com/user-attachments/assets/bb424255-9937-452e-9558-4fe22e84f88b)
+
+TextureIndex를 통해 Texture2DArray를 순회하여 움직이는 이미지를 구현하였고,
+
+이미지를 확대하여 Opacity의 주변에서 빛나도록 구현하였습니다.
+
 
 
 .
