@@ -1,3 +1,4 @@
+![image](https://github.com/user-attachments/assets/3ac7635e-b2cb-4d40-b38b-028a4d1f3887)![image](https://github.com/user-attachments/assets/66a75ef2-d306-4a9d-83a5-7ae9a992a37c)
 
 # Arcane Crusader<br><br>플레이 영상
 
@@ -7,11 +8,18 @@
 - [1. UI]()
   
 	* [**인벤토리 시스템**](#1-1-인벤토리-시스템)
+	    + [*1-1-1. 아이템 획득*](#1-1-1-아이템-획득)
+	    + [*1-1-2. 아이템 세부정보*](#1-1-2-아이템-세부정보)
 
 	![ui_inventory-supp](https://github.com/user-attachments/assets/db793861-1f2b-4a1a-8cfa-2ec56a575776)
 
 	* [**NPC 상호작용 시스템**](#1-2-NPC-상호작용-시스템)
+	    + [*1-2-1. NPC 대화 진행*](#1-2-1-npc-대화-진행)
+	    + [*1-2-2. NPC 시점 변환*](#1-2-2-npc-시점-변환)
+
 	* [**상점 시스템**](#1-3-상점-시스템)
+	    + [*1-3-1. 상점 아이템 위젯*](#1-3-1-상점-아이템-위젯)
+	    + [*1-3-2. 상점 구매 / 판매*](#1-3-2-상점-구매-/-판매)
    
  	![ui_shop2_supp](https://github.com/user-attachments/assets/ac0f9d4d-11b1-4d6a-bbee-636b49239d90)
 
@@ -91,6 +99,7 @@ class MMB_API UCInventory : public UUserWidget
 
 TileView를 사용하여 장착 아이템과 소지 아이템이 저장될 공간을 구분하였습니다.
 
+### 1-1-1. 아이템 획득
 ```C++
 void ACPlayerController::AddInventoryItem(UCInventoryItemData* ItemData, bool OnPickup)
 {
@@ -244,6 +253,7 @@ UTexture2D* AMMBGameModeBase::IconGetter(FString IconAssetName)
 
 에셋의 이름을 통해 포인터를 불러올 수 있도록 구현하였습니다.
 
+### 1-1-2. 아이템 세부정보
 
 ![image](https://github.com/user-attachments/assets/0955c45d-66f2-4370-a2bb-35e366222c8c)
 
@@ -599,6 +609,8 @@ UCNPCConversation의 SetVisibility를 Override하여 Viewport에 띄워질 때 �
 
 화면에 나타낼 대사의 인덱스(초기 0)를 지정합니다.
 
+### 1-2-1. NPC 대화 진행
+
 ![image](https://github.com/user-attachments/assets/533dfadc-cfad-490f-a2c7-1e18d59fb2de)
 FNPCDialoguesRow는 NPC이름, 대사, 그리고 각 버튼의 목적지가 담긴 열(*_POSTLINE)으로 구성되어 있습니다.
 
@@ -633,6 +645,8 @@ void UCNPCConversation::SetLineFromDialogues(int e)
 각 *_POSTLINE은 버튼 상호작용 시 이동할 FNPCDialoguesRow의 인덱스를 담고 있으며,
 
 음수일 경우 해당 버튼이 비활성화 되도록 구현하였습니다.
+
+### 1-2-2. NPC 시점 변환
 
 ```C++
 AActor* ACStaticNPC::SetCameraOn(bool e, FTransform CurrentCameraTransform)
@@ -825,6 +839,8 @@ NPC가 nullptr이 아닐 경우 SetNPCConversationItemList 함수를 통해
 
 판매중인 아이템에 NPC가 소유 중인 아이템을 추가하였습니다.
 
+### 1-3-1. 상점 아이템 위젯
+
 ![image](https://github.com/user-attachments/assets/501facce-d7c1-4f29-aa1a-947b7dd83d2d)
 
 상점에 표시되는 아이템 위젯 클래스(UCShopItem)은 인벤토리 아이템 위젯 클래스를 상속하여 구현하였습니다.
@@ -837,6 +853,8 @@ NPC가 nullptr이 아닐 경우 SetNPCConversationItemList 함수를 통해
 
 ![image](https://github.com/user-attachments/assets/a6ef12bb-b2ef-4214-9ea5-848335384e63)
 
+**Opacity*
+
 LinearGradient와 RadialGradient를 사용하여 가운데가 뚫려 있는 이미지를 만들었고,
 
 Opacity로 사용하여 아이템 아이콘이 들어갈 공간을 확보하였습니다.
@@ -845,9 +863,305 @@ Opacity로 사용하여 아이템 아이콘이 들어갈 공간을 확보하였�
 
 ![ui_item_grade_sprite](https://github.com/user-attachments/assets/bb424255-9937-452e-9558-4fe22e84f88b)
 
+**Sprite1*
+
 TextureIndex를 통해 Texture2DArray를 순회하여 움직이는 이미지를 구현하였고,
 
-이미지를 확대하여 Opacity의 주변에서 빛나도록 구현하였습니다.
+이미지를 확대하여 아이템 아이콘 주변에서 빛이 나는 효과를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/7bfa7d1f-745a-4449-8e9c-3a7c7253b94f)
+
+![ui_item_grade_bg](https://github.com/user-attachments/assets/8d2a98ed-4914-4576-aef6-657c955b8bb0)
+
+**Sprite2*
+
+TextureIndex를 재활용하여 밝기가 변화하는 그라데이션 효과를 만들었고,
+
+아이템의 등급에 따라 색상을 변경할 수 있도록 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/477cad67-e129-44f8-b544-e03cbf7c9a10)
+
+![image](https://github.com/user-attachments/assets/92e5fcb6-feff-442a-8558-1e3866c01f05)
+
+![ui_item_grade](https://github.com/user-attachments/assets/9f779b82-6d7b-46c6-92f0-bb9b082814bc)
+
+Sprite1에 아이템의 등급 색상 + 그라데이션 효과인 Sprite2를 곱하여 상점 아이템 효과를 구현하였습니다.
+
+```C++
+void UCShopItem::OnShopButtonClicked()
+{
+	ClickedSec = FPlatformTime::Seconds();
+	SwitchPressed(!bPressed);
+}
+
+void UCShopItem::SwitchPressed(bool Pressed)
+{
+	if (Pressed == bPressed) return;
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	UCInventoryItemData* ItemDataCasted = Cast<UCInventoryItemData>(ItemData);
+	if (UIController == nullptr || ItemDataCasted == nullptr) return;
+	if (Pressed)
+	{
+		bPressed = true; 
+		UIController->SetPressedButton(this);
+	}
+	else
+	{
+		bPressed = false;
+		CurrentTextureIndex = 0.f;
+	}
+}
+```
+
+```C++
+void ACPlayerController::SetPressedButton(UUserWidget* SelectedButton)
+{
+	NPCConversation->SetSelectedButton(SelectedButton);
+}
+```
+
+```C++
+void UCNPCConversation::SetSelectedButton(UUserWidget* SelectedButton)
+{
+	if (SelectedButton->IsA(UCShopItem::StaticClass())) 	SetSelectedShopItem(SelectedButton);
+	else if (SelectedButton->IsA(UCListedQuest::StaticClass())) 	SetSelectedQuest(SelectedButton);
+	else if (SelectedButton->IsA(UCUserWidget_ListedStage::StaticClass())) 	SetSelectedStage(SelectedButton);
+}
+```
+
+상점 아이템 클릭 시, PlayerController를 통해 NPC대화 위젯(UCNPCConversation)의 SetSelectedButton 함수를 통해 선택된 아이템을 저장합니다.
+
+해당 함수에서는 선택한 위젯이 상점 아이템인지, 퀘스트인지, 스테이지인지 하위 클래스를 통해 판별하여 적절한 함수를 호출합니다.
+
+```C++
+void UCNPCConversation::SetSelectedShopItem(UUserWidget* SelectedButton)
+{
+	TArray<UUserWidget*> ItemWidgets = ItemList->GetDisplayedEntryWidgets();
+	IIWidgetInteract* tempPressedWidget = nullptr;
+	bool flag = false;
+	for (UUserWidget* ItemWidget : ItemWidgets)
+	{
+		IIWidgetInteract* IIWidget = Cast<IIWidgetInteract>(ItemWidget);
+		if (IIWidget == nullptr) continue;
+		if (ItemWidget == SelectedButton)
+		{
+			flag = true;
+			IIWidget->SwitchPressed(true);
+			SelectedButton_ToBuy = SelectedButton;
+			continue;
+		}
+		if (IIWidget->GetbPressed())
+		{
+			tempPressedWidget = IIWidget;
+		}
+	}
+	if (flag && tempPressedWidget != nullptr) tempPressedWidget->SwitchPressed(false);
+
+	flag = false;
+	tempPressedWidget = nullptr;
+	ItemWidgets = ItemList_Inventory->GetDisplayedEntryWidgets();
+	for (UUserWidget* ItemWidget : ItemWidgets)
+	{
+		IIWidgetInteract* IIWidget = Cast<IIWidgetInteract>(ItemWidget);
+		if (IIWidget == nullptr) continue;
+		if (ItemWidget == SelectedButton)
+		{
+			flag = true;
+			IIWidget->SwitchPressed(true);
+			SelectedButton_ToSell = SelectedButton;
+			continue;
+		}
+		if (IIWidget->GetbPressed())
+		{
+			tempPressedWidget = IIWidget;
+		}
+	}
+	if (flag && tempPressedWidget != nullptr) tempPressedWidget->SwitchPressed(false);
+}
+```
+
+선택된 위젯을 상점 아이템(ItemList)와 플레이어의 아이템(ItemList_Inventory)를 탐색하여
+
+SetPressed함수를 호출하여 이전에 선택된 아이템의 선택을 해제합니다.
+
+```C++
+void UCShopItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+
+	if (ItemSelectSpriteMaterial != nullptr)
+	{
+		ItemSelectSpriteMaterial->SetScalarParameterValue("TextureIndex", CurrentTextureIndex);
+		
+		//UE_LOG(LogTemp, Log, TEXT("Set TextureIndex To %f"), CurrentTextureIndex);
+	}
+
+	CurrentTextureIndex += InDeltaTime * 10.f;
+
+	if (bPressed || bHovered)
+	{
+		float tempMaxSize = (bPressed ? 150.f : 120.f);
+		if (ItemImageSize < tempMaxSize)
+		{
+			ItemImageSize += 50.f * InDeltaTime / (bPressed ? 0.35f : 0.7f);
+			if (ItemImageSize > tempMaxSize)
+			{
+				ItemImageSize = tempMaxSize;
+			}
+			ItemImage->SetBrushSize(FVector2D(ItemImageSize));
+			ItemSelectSpriteMaterial->SetScalarParameterValue("SizeOfImage", ItemImageSize);
+		}
+	}
+	else
+	{
+		if (ItemImageSize > 100.f)
+		{
+			ItemImageSize -= 50.f * InDeltaTime / 0.8f;
+			if (ItemImageSize < 100.f)
+			{
+				ItemImageSize = 100.f;
+			}
+			ItemImage->SetBrushSize(FVector2D(ItemImageSize));
+			ItemSelectSpriteMaterial->SetScalarParameterValue("SizeOfImage", ItemImageSize);
+		}
+	}
+}
+```
+
+![ui_editor_item_grade_param](https://github.com/user-attachments/assets/c8455c79-9b54-4fb9-8652-4ae0c45639af)
+
+상점 아이템 클래스(UCShopItem)의 NativeTick에서는 스프라이트의 인덱스(TextureIndex)를 통해
+
+Texture2DArray내에서 이미지를 순회하여 애니메이션을 구현하였습니다.
+
+버튼이 눌림 상태이거나(bPressed) 마우스가 올라와 있는 상태면(bHovered)
+
+SetBrushSize를 통해 아이템 아이콘의 사이즈를 변화시키고,
+
+SizeOfImage 변수를 증가시켜 아이템 주위 스프라이트의 크기를 변경하여 선택 / 마우스 오버되는 효과를 구현하였습니다.
+
+### 1-3-2. 상점 구매 / 판매
+
+```C++
+void UCNPCConversation::OnButtonBuyClicked()
+{
+	PlayNPCAnimation(2);
+	if (SelectedButton_ToBuy == nullptr) return;
+	UCShopItem* ShopItem = Cast<UCShopItem>(SelectedButton_ToBuy);
+	if (ShopItem == nullptr) return;
+	if (!ShopItem->GetbPressed()) return;
+	ShopItem->BuyItem();
+	ShoppingBox_LoadPlayerInventory();
+}
+
+void UCNPCConversation::OnButtonSellClicked()
+{
+	PlayNPCAnimation(2);
+	if (SelectedButton_ToSell == nullptr) return;
+	UCShopItem* ShopItem = Cast<UCShopItem>(SelectedButton_ToSell);
+	if (ShopItem == nullptr) return;
+	if (!ShopItem->GetbPressed()) return;
+	ShopItem->SellItem();
+	ShoppingBox_LoadPlayerInventory();
+}
+```
+
+구매 / 판매 버튼 클릭 시 해당 버튼에 바인딩된 함수를 호출하도록 하였습니다.
+
+```C++
+void UCShopItem::BuyItem()
+{
+	IIPlayerState* PC = Cast<IIPlayerState>(this->GetOwningPlayer()->GetCharacter());
+	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+
+	if (ItemManager == nullptr) return;
+	if ((PC == nullptr || PCC == nullptr) || !IsValid(ID)) return;
+
+	int32 PlayerGold = PC->GetPlayerGold();
+	int32 Price = ID->GetPrice();
+
+	if (Price > PlayerGold)
+	{
+		PCC->AddAlert(FText::FromString(TEXT("Not Enough Gold")));
+		return;
+	}
+	
+	UCInventoryItemData* NewID = ItemManager->GetItem(ID->GetDT_RowName());
+	if (NewID == nullptr)
+	{
+		PCC->AddAlert(FText::FromString(TEXT("Fail To Buy Item")));
+		return;
+	}
+	PC->SetPlayerGold(PlayerGold - Price);
+	ID->SetIsShopItem(false);
+	PCC->AddInventoryItem(NewID);
+	PCC->ResumeShopInventoryItems();
+}
+```
+
+아이템 구매 시 BuyItem함수를 호출하여 플레이어의 골드를 비교하고 부족할 경우
+
+PlayerController클래스에 선언한 AddAlert함수를 사용하여 경고창을 띄웁니다.
+
+[*1-1-1. 아이템 획득*](#1-1-1-아이템-획득)에서 사용한 GetItem함수를 통해 아이템을 불러와
+
+AddInventoryItem 함수를 호출하여 플레이어의 인벤토리에 추가하도록 구현하였습니다.
+
+```C++
+void UCShopItem::SellItem()
+{
+	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+	IIPlayerState* PC = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	UCInventoryItemData* ID = Cast<UCInventoryItemData>(ItemData);
+	if ((PCC == nullptr || ID == nullptr) || !PCC->IsOnShop()) return;
+	int iItemPrice = ID->GetPrice();
+	
+	if (ID->GetItemCount() > 1)
+	{
+		ID->SetItemCount(ID->GetItemCount() - 1);
+	}
+	else
+	{
+		PCC->RemoveInventoryItem(ID);
+	}
+
+	PC->GainPlayerGold(iItemPrice);
+}
+```
+
+```C++
+void ACPlayerController::RemoveInventoryItem(UCInventoryItemData* ItemData)
+{
+	if (ItemData != nullptr) ItemInventory->ItemList->RemoveItem(ItemData);
+}
+```
+
+아이템 판매 시, 아이템이 중첩되어 있는 경우 수량을 감소시키고
+
+보통의 경우 인벤토리의 TileView에서 해당 위젯을 제거합니다.
+
+이후 플레이어의 소지금에 해당 아이템의 가격에 해당하는 재화를 추가합니다.
+
+
+```C++
+void UCNPCConversation::ShoppingBox_LoadPlayerInventory()
+{
+	IIPlayerUIController* IController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (IController == nullptr) return;
+	IIPlayerState* PC = Cast<IIPlayerState>(GetOwningPlayer()->GetCharacter());
+	if (PC == nullptr) return;
+	ItemList_Inventory->ClearListItems();
+	IController->SetShopInventoryItems(ItemList_Inventory);
+	PlayerGold->SetText(FText::FromString(FString::FromInt(PC->GetPlayerGold())));
+}
+```
+
+판매 이후 ShoppingBox_LoadPlayerInventory를 재호출하여
+
+상점 위젯 내 아이템 리스트(ItemList_Inventory)를 초기화합니다.
 
 
 
