@@ -646,6 +646,8 @@ void UCNPCConversation::SetLineFromDialogues(int e)
 음수일 경우 해당 버튼이 비활성화 되도록 구현하였습니다.
 
 ### 1-2-2. NPC 시점 변환
+ 
+![ui_quest](https://github.com/user-attachments/assets/18db24dd-7f72-4418-949e-84026973985c)
 
 ```C++
 AActor* ACStaticNPC::SetCameraOn(bool e, FTransform CurrentCameraTransform)
@@ -698,8 +700,6 @@ Tick함수를 Override하여 플레이어의 카메라가 있던 위치(CurrentC
 NPC의 카메라가 배치되어 있던 위치(NPCCameraFixedTransform)으로
 
 Lerp함수를 통해 부드럽게 이동하도록 구현하였습니다.
-
-![ui_quest](https://github.com/user-attachments/assets/18db24dd-7f72-4418-949e-84026973985c)
 
 ------
 
