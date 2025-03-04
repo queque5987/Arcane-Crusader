@@ -1,4 +1,3 @@
-![image](https://github.com/user-attachments/assets/3ac7635e-b2cb-4d40-b38b-028a4d1f3887)![image](https://github.com/user-attachments/assets/66a75ef2-d306-4a9d-83a5-7ae9a992a37c)
 
 # Arcane Crusader<br><br>플레이 영상
 
@@ -19,7 +18,7 @@
 
 	* [**상점 시스템**](#1-3-상점-시스템)
 	    + [*1-3-1. 상점 아이템 위젯*](#1-3-1-상점-아이템-위젯)
-	    + [*1-3-2. 상점 구매 / 판매*](#1-3-2-상점-구매-/-판매)
+	    + [*1-3-2. 상점 구매 / 판매*](#1-3-2-상점-구매---판매)
    
  	![ui_shop2_supp](https://github.com/user-attachments/assets/ac0f9d4d-11b1-4d6a-bbee-636b49239d90)
 
