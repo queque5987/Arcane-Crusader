@@ -1,4 +1,3 @@
-![image](https://github.com/user-attachments/assets/3f7a4083-a1c2-49d1-aa4a-68e36d18874e)
 
 # Arcane Crusader<br><br>플레이 영상
 
@@ -36,10 +35,11 @@
 
 	* [**1-6. 저장 시스템**](#1-6-저장-시스템)
 	    + [*1-6-1. 메인 화면 UI*](#1-6-1-메인-화면-UI)
+	    + [*1-6-2. 메인 화면 배경*](#1-6-2-메인-화면-배경)
   
 	![main_supp](https://github.com/user-attachments/assets/2f56297a-2704-4731-86a4-9053e34a6743)
 
-	* [**HUD 시스템**]()
+	* [**1-7. HUD 시스템**](#1-7-HUD-시스템)
  
 	![ui_whole_supp](https://github.com/user-attachments/assets/c4aae09e-9d13-4bdc-a5f9-0f5b09719a6e)
 
@@ -2112,3 +2112,136 @@ void ACPlayerController::LoadGame(int32 SaveSlot)
 모든 월드의 경우 게임 인스턴스에 저장되어 있는 슬롯 인덱스, 혹은 메모리 주소를 매개변수로 사용하여 LoadGame함수를 호출합니다.
 
 저장되어 있는 아이템 코드를 통해 아이템을 불러오고 인벤토리 추가, 장착, 퀵슬롯 장착을 수행합니다.
+
+### 1-6-1. 메인 화면 UI
+
+![ui_main_load](https://github.com/user-attachments/assets/6f5dc23c-a53c-4db5-a6cc-0864e9284af3)
+![ui_esc_save](https://github.com/user-attachments/assets/715ebca2-a0dc-4028-bf04-2612124dcd73)
+
+메인화면 혹은 ESC 메뉴에서 저장 / 불러오기를 수행할 수 있도록 구현 하였습니다.
+
+ESC 메뉴(UCESCUI)는 메인화면 UI(UCMainUI)를 상속하고 불러오기 기능을 추가하는 방식으로 구현하였습니다.
+
+```C++
+void UCMainUI::LoadSaveSlot()
+{
+	SaveSlotList->ClearListItems();
+
+	for (int i = 0; i < 3; i++)
+	{
+		UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot("Save" + FString::FromInt(i), i));
+		if (SaveGameInstance == nullptr) continue;
+		SaveSlotList->AddItem(SaveGameInstance);
+	}
+}
+```
+
+불러오기 버튼 클릭 시, 세이브 파일을 순회하여 TileView(SaveSlotList)에 추가합니다.
+
+```C++
+void UCSaveFileUI::NativeOnListItemObjectSet(UObject* ListItemObject)
+{
+	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
+
+	SaveFile = Cast<UCSaveGame>(ListItemObject);
+	if (SaveFile == nullptr) return;
+
+	SaveSlotName->SetText(FText::FromString(SaveFile->SaveSlotName));
+	PlayerGold->SetText(FText::FromString(FString::FromInt(SaveFile->SavedGold)));
+
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+	if (ItemManager == nullptr) return;
+
+	UCInventoryItemData* ID = ItemManager->GetItem(SaveFile->SavedWeapon);
+	if (ID != nullptr) Weapon->AddItem(ID);
+	ID = ItemManager->GetItem(SaveFile->SavedArtifact);
+	if (ID != nullptr) Artifact->AddItem(ID);
+	ID = ItemManager->GetItem(SaveFile->SavedArmor);
+	if (ID != nullptr) Armor->AddItem(ID);
+}
+```
+
+![image](https://github.com/user-attachments/assets/775a4149-1bb9-47a7-806e-57c04adaa3e8)
+
+TileView의 엔트리 위젯 클래스 UCSaveFileUI는 UCSaveGame에서 장비 중인 아이템과 소지 중인 골드를 표시합니다.
+
+```C++
+void UCESCUI::OnSaveClicked()
+{
+	SlotSelectPanel->SetVisibility(ESlateVisibility::Visible);
+
+	SelectSlotList->ClearListItems();
+
+	for (int i = 0; i < 3; i++)
+	{
+		UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot("Save" + FString::FromInt(i), i));
+		if (SaveGameInstance == nullptr)
+		{
+			SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
+			SaveGameInstance->SaveIndex = i;
+		}
+		SelectSlotList->AddItem(SaveGameInstance);
+	}
+}
+```
+
+저장 기능도 비슷한 방식으로 구현하였으나, 세이브 파일이 없을 경우 UCSaveGame 오브젝트를 생성하여 추가하여,
+
+저장된 게임이 없을 경우에도 모든 저장 공간을 선택할 수 있도록 구현하였습니다.
+
+```C++
+void UCSaveFileUI::OnButtonClicked()
+{
+	if (SaveFile == nullptr) return;
+ 
+	UGameInstance* UGI = GetGameInstance();
+	UCGameInstance* GI = Cast<UCGameInstance>(UGI);
+	if (GI == nullptr) return;
+	GI->SelectedSaveSlot = SaveFile->SaveIndex;
+
+	FName LoadedLevel = SaveFile->SavedLevel;
+	if (SaveFile->SavedLevel.IsNone())
+	{
+		LoadedLevel = "Startlevel";
+	}
+
+	OnLoadingScreenSet.Broadcast(LoadedLevel);
+
+	UGameplayStatics::OpenLevel(this, LoadedLevel);
+
+	if (ACPlayerController* e = Cast<ACPlayerController>(GetOwningPlayer()))
+	{
+		e->MainUI->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+```
+
+불러오기 기능은 저장된 슬롯 위젯(UCSaveFileUI)를 클릭 시,
+
+게임 인스턴스에 해당 슬롯의 인덱스를 저장하고, UCSaveGame 오브젝트에 저장된 스테이지로 이동하도록 구현하였습니다.
+
+이후 [**1-6. 저장 시스템**](#1-6-저장-시스템)에서 서술한 것과 같이 BeginPlay단계에서 LoadGame 함수를 호출합니다.
+
+```C++
+void UCSaveFileSelectUI::OnButtonClicked()
+{
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+
+	if (UIController == nullptr) return;
+	UIController->SaveGame(SaveFile->SaveIndex);
+
+	UIController->AddAlert(FText::FromString("Saved"));
+}
+```
+
+동일한 위젯(UCSaveFileUI)를 상속하여 UCSaveFileSelectUI를 선언하였습니다.
+
+해당 위젯 클릭 시, 위젯 클래스에 저장되어 있는 인덱스를 매개변수로 하여 SaveGame함수를 호출하여 저장을 진행합니다.
+
+## 1-6-2. 메인 화면 배경
+
+![object_main](https://github.com/user-attachments/assets/5c89d6a0-c404-4c35-bdc5-5b8babe46cc3)
+
+
+## 1-7. HUD 시스템
+
