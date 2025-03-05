@@ -1,4 +1,4 @@
-
+![image](https://github.com/user-attachments/assets/3f7a4083-a1c2-49d1-aa4a-68e36d18874e)
 
 # Arcane Crusader<br><br>플레이 영상
 
@@ -30,11 +30,13 @@
 	![ui_quest_supp](https://github.com/user-attachments/assets/5446f413-2611-4100-878b-a2c84d26580e)
 
 	* [**1-5. 스테이지 선택 시스템**](#1-5-스테이지-선택-시스템)
- 
+	    + [*1-5-1. 스테이지 선택 UI*](#1-5-1-스테이지-선택-UI)
+  
  	![ui_teleport_supp](https://github.com/user-attachments/assets/9b01dfc6-941f-4185-bea1-e1e859be84f6)
 
-	* [**저장 시스템**]()
-
+	* [**1-6. 저장 시스템**](#1-6-저장-시스템)
+	    + [*1-6-1. 메인 화면 UI*](#1-6-1-메인-화면-UI)
+  
 	![main_supp](https://github.com/user-attachments/assets/2f56297a-2704-4731-86a4-9053e34a6743)
 
 	* [**HUD 시스템**]()
@@ -1704,5 +1706,409 @@ void UCNPCConversation::OnButtonQuestRewardAcceptClicked()
 
 ![ui_teleport](https://github.com/user-attachments/assets/dab3d350-746a-478f-a357-05c80f920b11)
 
-NPC를 통해 스테이지를 선택하고 진입할 수 있는 시스템과 UI를 구현하였습니다.
+NPC를 통해 스테이지를 선택하고 진입할 수 있는 UI를 구현하였습니다.
 
+```C++
+class MMB_API ACPortalNPC : public ACStaticNPC, public IIPortalNPC
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	class UDataTable* MapTable;
+
+public:
+	virtual void GetTeleportableMaps(TArray<struct FTeleportableMapMonsterTableRow*>& Arr) override;
+
+};
+```
+
+![image](https://github.com/user-attachments/assets/84863bf1-549a-4000-8672-fa36cb4c0a8c)
+
+ACPortalNPC는 이동이 가능한 스테이지 목록인 MapTable을 가지고 있습니다.
+
+MapTable은 표시될 이름과 스테이지 배경 텍스쳐, 몬스터 텍스쳐, 이동할 레벨, 이동 시 자동 수락되는 퀘스트를 담고 있습니다.
+
+```C++
+void UCNPCConversation::OnButtonYesClicked()
+{
+	//…생략
+	else // Teleport Map Select Mode
+	{
+		if (IIPortalNPC* TNPC = Cast<IIPortalNPC>(NPC))
+		{
+			SelectableMapArr.Empty();
+			TNPC->GetTeleportableMaps(SelectableMapArr);
+
+			TeleportableListBox->SetVisibility(ESlateVisibility::Visible);
+
+			if (SelectableMapArr.Num() >= 1)
+			{
+				for (FTeleportableMapMonsterTableRow* SelectableMap : SelectableMapArr)
+				{
+					UCTeleportableMapData* temp = NewObject<UCTeleportableMapData>(this, UCTeleportableMapData::StaticClass(), SelectableMap->DisplayLevelName);
+					StageList->AddItem(temp);
+				}
+			}
+		}
+		
+		if (BUTTON_YES_POSTLINE == Dialogues.Num()) // 마을로 복귀
+		{
+			OnLoadingScreenSet.Broadcast("Level_Town");
+			UGameplayStatics::OpenLevel(this, "Level_Town");
+			UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
+			IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+			if (PCC != nullptr)
+			{
+				if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
+				else PCC->SaveGame(GI->SelectedSaveSlot);
+			}
+
+			//UE_LOG(LogTemp, Log, TEXT("TODO Teleport Immediate To : %s"), *SelectableMapArr[SelectedMapIndex]->LevelName.ToString());
+		}
+		SetLineFromDialogues(BUTTON_YES_POSTLINE);
+	}
+}
+```
+
+![image](https://github.com/user-attachments/assets/03495ad3-a85a-43b0-9d18-08459ec479db)
+
+수락하기 버튼을 통해 스테이지 선택 위젯으로 진입할 수 있습니다.
+
+NPC에게 저장되어 있는 스테이지 정보를 SelectableMapArr에 불러온 뒤 StageList에 추가하여 화면에 표시합니다.
+
+```C++
+void UCUserWidget_ListedStage::NativeOnListItemObjectSet(UObject* ListItemObject)
+{
+	MapName = ListItemObject->GetName();
+	StageName->SetText(FText::FromString(MapName));
+
+	StageButton->OnClicked.AddDynamic(this, &UCUserWidget_ListedStage::OnButtonClicked);
+}
+```
+
+![image](https://github.com/user-attachments/assets/3e6a22c0-3255-47b4-8400-416676c9fb65)
+
+StageList에 추가된 위젯(UCUserWidget_ListedStage)는 StageList에 추가할 때 지정했던 객체의 이름만 가지고 있습니다.
+
+```C++
+void UCUserWidget_ListedStage::OnButtonClicked()
+{
+	SwitchPressed(!bPressed);
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (UIController != nullptr)
+	{
+		UIController->SetPressedButton(this);
+	}
+}
+```
+
+```C++
+void UCNPCConversation::SetSelectedButton(UUserWidget* SelectedButton)
+{
+	if (SelectedButton->IsA(UCShopItem::StaticClass())) 	SetSelectedShopItem(SelectedButton);
+	else if (SelectedButton->IsA(UCListedQuest::StaticClass())) 	SetSelectedQuest(SelectedButton);
+	else if (SelectedButton->IsA(UCUserWidget_ListedStage::StaticClass())) 	SetSelectedStage(SelectedButton);
+}
+```
+
+```C++
+void UCNPCConversation::SetSelectedStage(UUserWidget* StageButton)
+{
+	SelectedStage = (SelectedStage == StageButton) ? nullptr : StageButton;
+	if (SelectedStage == nullptr)
+	{
+		SelectedMapIndex = -1;
+		MapSelectionMaterialInstance->SetScalarParameterValue("SelectedMapIndex", -1.f);
+	}
+
+	TArray<UUserWidget*> tempArr = StageList->GetDisplayedEntryWidgets();
+	for (int i = 0; i < tempArr.Num(); i++)
+	{
+		UCUserWidget_ListedStage* CWidget = Cast<UCUserWidget_ListedStage>(tempArr[i]);
+		if (CWidget != nullptr)
+		{
+			bool IsIt = (SelectedStage == tempArr[i]) ? true : false;
+			CWidget->SwitchPressed(IsIt);
+			if (IsIt && (MapSelectionMaterialInstance != nullptr && MonsterSelectionMaterialInstance != nullptr))
+			{
+				MapSelectionMaterialInstance->SetScalarParameterValue("SelectedMapIndex", SelectableMapArr[i]->TextureArrayIndex);
+				MonsterSelectionMaterialInstance->SetScalarParameterValue("SelectedMonsterIndex", SelectableMapArr[i]->MonsterTextureArrayIndex);
+				SelectedMapIndex = i;
+			}
+		}
+	}
+}
+```
+
+[*1-3-1. 상점 아이템 위젯*](#1-3-1-상점-아이템-위젯)과 동일한 방식으로 SetPressedButton을 호출하고,
+
+선택한 스테이지 위젯을 SelectedStage에 저장한 뒤, 해당 위젯을 제외한 위젯의 선택 상태를 해제하고,
+
+머티리얼의 파라미터를 수정하여 스테이지 배경과 몬스터 이미지를 변경합니다.
+
+### 1-5-1. 스테이지 선택 UI
+
+![image](https://github.com/user-attachments/assets/33eb1d94-d733-4bbf-8525-16d278757d77)
+
+몬스터의 섬네일은 Panner 함수를 사용하여 텍스쳐가 상하 방향으로 자연스럽게 움직이도록 하였습니다.
+
+주변 테두리에 해당하는 Texture는 상하좌우로 움직이도록 하여 생동감 있는 UI를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/a935a788-6c2d-47a8-bc49-0a1fe056641f)
+
+주변 테두리 텍스쳐는 Time변수에 따라 회전하도록 하여 완성하였습니다.
+
+![image](https://github.com/user-attachments/assets/22a3f078-ca79-4c49-a60d-e82d71a9ce18)
+
+![ui_stage_monster](https://github.com/user-attachments/assets/72623f89-938b-4ef3-b534-3e2dcf693c96)
+
+테두리 텍스쳐는 RadialGradient를 사용하여 내부를 부드럽게 투명화하여서 몬스터의 섬네일이 들어갈 공간을 확보하였습니다.
+
+몬스터의 텍스쳐와 테두리를 합쳐 머티리얼 UI로 사용하였습니다.
+
+## 1-6. 저장 시스템
+
+![image](https://github.com/user-attachments/assets/6f429b99-5f26-48d2-b610-d20e2cf64a3c)
+
+```C++
+void UCNPCConversation::OnButtonTeleportSendClicked()
+{
+	if (SelectedMapIndex < 0) return;
+
+	PlayNPCAnimation(1);
+
+	FName LoadedMapName = SelectableMapArr[SelectedMapIndex]->LevelName;
+
+	UCGameInstance* GI = Cast<UCGameInstance>(GetGameInstance());
+
+	IIItemManager* ItemManager = Cast<IIItemManager>(GetWorld()->GetAuthGameMode());
+	if (ItemManager == nullptr) return;
+
+	GI->BattleQuestRowIndex = SelectableMapArr[SelectedMapIndex]->QuestIndex;
+	GI->StartLevelClock = SelectableMapArr[SelectedMapIndex]->LevelClock;
+
+	IIPlayerUIController* PCC = Cast<IIPlayerUIController>(GetOwningPlayer());
+	if (PCC != nullptr)
+	{
+		if (GI->SelectedSaveSlot < 0) PCC->SaveGame(GI->TempSaveFileAddress);
+		else PCC->SaveGame(GI->SelectedSaveSlot);
+	}
+
+	OnLoadingScreenSet.Broadcast(LoadedMapName);
+	UGameplayStatics::OpenLevel(this, LoadedMapName);
+}
+```
+
+스테이지 선택 후 이동 버튼 클릭 시, 게임 인스턴스에 스테이지의 데이터테이블에 저장되어 있는 QuestIndex를 저장합니다.
+
+이후 저장한 적이 있다면 해당 세이브 슬롯에, 없다면 메모리에 캐릭터의 현재 상태를 저장합니다.
+
+```C++
+void ACPlayerController::SaveGame(int32 SlotIndex)
+{
+	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::CreateSaveGameObject(UCSaveGame::StaticClass()));
+	if (SaveGameInstance != nullptr)
+	{
+		SaveGameInstance->SaveSlotName = "Save" + FString::FromInt(SlotIndex);
+		SaveGameInstance->SaveIndex = SlotIndex;
+
+		TArray<FName> ItemRowNames;
+		TArray<int> ItemCounts;
+		for (UObject* Item : ItemInventory->ItemList->GetListItems())
+		{
+			UCInventoryItemData* ID = Cast<UCInventoryItemData>(Item);
+			if (ID != nullptr)
+			{
+				SaveGameInstance->SavedItemListQ.Add(ID->GetItemCount());
+				SaveGameInstance->SavedItemList.Add(ID->GetDT_RowName());
+			}
+		}
+		if (UCInventoryItemData* W = Cast<UCInventoryItemData>(ItemInventory->Weapon->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedWeapon = W->GetDT_RowName();
+		}
+		if (UCInventoryItemData* A = Cast<UCInventoryItemData>(ItemInventory->Artifact->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedArtifact = A->GetDT_RowName();
+		}
+		if (UCInventoryItemData* M = Cast<UCInventoryItemData>(ItemInventory->Armor->GetItemAt(0)))
+		{
+			SaveGameInstance->SavedArmor = M->GetDT_RowName();
+		}
+
+		IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+		if (PC != nullptr)
+		{
+			SaveGameInstance->SavedGold = PC->GetPlayerGold();
+		}
+		SaveGameInstance->SavedLevel = FName(GetWorld()->GetName()); //->GetPathName();
+
+		TArray<int32> QuickSlots = { -1, -1, -1 };
+		FString QuickSlot1ItemName = HUDOverlay->GetItemDataOnQuickSlot(1);
+		FString QuickSlot2ItemName = HUDOverlay->GetItemDataOnQuickSlot(2);
+		FString QuickSlot3ItemName = HUDOverlay->GetItemDataOnQuickSlot(3);
+		
+		TArray<UObject*> InventoryItemsArr = ItemInventory->ItemList->GetListItems();
+		UCInventoryItemData* ID;
+		for (int i = 0; i < InventoryItemsArr.Num(); i++)
+		{
+			ID = Cast<UCInventoryItemData>(InventoryItemsArr[i]);
+			if (ID == nullptr) continue;
+			if (ID->GetstrName() == QuickSlot1ItemName) QuickSlots[0] = i;
+			if (ID->GetstrName() == QuickSlot2ItemName) QuickSlots[1] = i;
+			if (ID->GetstrName() == QuickSlot3ItemName) QuickSlots[2] = i;
+		}
+		SaveGameInstance->QuickSlots = QuickSlots;
+
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->SaveIndex);
+	}
+}
+```
+
+SaveGame을 호출할 경우 특정 메모리 주소 혹은 저장 슬롯에 진행 상황을 저장합니다.
+
+아이템, 장착 중인 장비, 퀵슬롯 등의 정보를 아이템 테이블의 Index 형태로 저장하였습니다.
+
+```C++
+void ACPlayerController::StartBattleMap()
+{
+	UCGameInstance* GInstance = Cast<UCGameInstance>(GetGameInstance());
+	ACStageGameMode* GM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	
+	// Set Default Save Point
+	TArray<AActor*> arrOut;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("SavePoint"), arrOut);
+	if (arrOut.Num() > 0)
+	{
+		for (AActor* A : arrOut)
+		{
+			ACSavePoint* tempSavePoint = Cast<ACSavePoint>(A);
+			IIPlayerState* IPlayerCharacter = Cast<IIPlayerState>(GetCharacter());
+			if (tempSavePoint != nullptr && IPlayerCharacter != nullptr)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Set Save Point To %s"), *tempSavePoint->GetSavePointPos().ToString());
+				IPlayerCharacter->SetRevivalPoint(tempSavePoint->GetSavePointPos());
+			}
+		}
+	}
+	
+	// Add Hunt Quest
+	FQuestsRow* QR = GM->GetQuestbyIndex(GInstance->BattleQuestRowIndex);
+	if (QR != nullptr)
+	{
+		AddQuest(QR);
+
+		// Find Player Spawn Point
+		AActor* StartPoint = GetWorld()->GetAuthGameMode()->FindPlayerStart(this, QR->QuestStartPoint);
+		if (StartPoint != nullptr)
+		{
+			GetCharacter()->SetActorLocation(StartPoint->GetActorLocation());
+			GetCharacter()->SetActorRotation(StartPoint->GetActorRotation());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("No Specified Spawn Point"));
+		}
+
+		if (HUDOverlay != nullptr) //스테이지 이름, 시작 사운드
+		{
+			UE_LOG(LogTemp, Log, TEXT("PlayerController::StartBattleMap : Throw Stage Start UI - %s"), *QR->QuestName);
+			HUDOverlay->ThrowStageStartUI(QR->QuestName);
+			GM->PlaySoundAtLocation(FVector::ZeroVector, SE_STAGE_STAGE_ENTRANCE);
+		}
+	}
+
+	// Deprecated
+	// Set Level Clock
+	if (GInstance->StartLevelClock > 0.f)
+	{
+		GM->InitLevelClock(GInstance->StartLevelClock * 60.f);
+		UE_LOG(LogTemp, Log, TEXT("Set StartLevel Clock : %f"), GInstance->StartLevelClock);
+	}
+}
+```
+
+이동하는 월드가가 전투 스테이지일 경우, StartBattleMap 함수를 실행하도록 구현하였습니다.
+
+게임 인스턴스에 저장되어 있는 퀘스트의 Index를 통해 퀘스트를 자동 수락하고,
+
+퀘스트에 지정되어 있는 시작 포인트가 있다면 해당 지점으로 플레이어를 이동시켰습니다.
+
+```C++
+void ACPlayerController::LoadGame(int32 SaveSlot)
+{
+	if (SaveSlot < 0) return;
+	UCSaveGame* SaveGameInstance = Cast<UCSaveGame>(UGameplayStatics::LoadGameFromSlot("Save" + FString::FromInt(SaveSlot), SaveSlot));
+	AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (SaveGameInstance == nullptr || GM == nullptr) return;
+
+	for (int i = 0; i < SaveGameInstance->SavedItemList.Num(); i++)
+	{
+		UCInventoryItemData* ID = GM->GetItem(SaveGameInstance->SavedItemList[i],
+			SaveGameInstance->SavedItemListQ[i]);
+		if (ID == nullptr) continue;
+		AddInventoryItem(ID);
+	}
+
+	IIPlayerState* PC = Cast<IIPlayerState>(GetCharacter());
+	if (PC == nullptr) return;
+
+	UCInventoryItemData* W = GM->GetItem(SaveGameInstance->SavedWeapon);
+	if (W)
+	{
+		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(W->GetItemClass(),
+			GetCharacter()->GetActorLocation(), FRotator::ZeroRotator);
+		IIWeapon* isWeapon = Cast<IIWeapon>(spawnedActor);
+		if (isWeapon != nullptr)
+		{
+			isWeapon->SetIsEquiped(true);
+			isWeapon->SetWeaponName(FName(W->GetstrName()));
+			isWeapon->SetAttackDamage(W->GetAttackDamage());
+			isWeapon->SetItemStat(W->GetItemStats());
+			isWeapon->SetBulletType(W->GetBulletType());
+
+			PC->Equip(*spawnedActor);
+		}
+		EquipItem(ITEM_TYPE_WEAPON, *W);
+	}
+
+	UCInventoryItemData* M = GM->GetItem(SaveGameInstance->SavedArmor);
+	if (M) EquipItem(ITEM_TYPE_ARMOR, *M);
+	UCInventoryItemData* A = GM->GetItem(SaveGameInstance->SavedArtifact);
+	if (A) EquipItem(ITEM_TYPE_ARTIFACT, *A);
+
+	PC->SetPlayerGold(SaveGameInstance->SavedGold);
+
+	int32 QuickSlotIdx = -1;
+	for (int QS : SaveGameInstance->QuickSlots)
+	{
+		QuickSlotIdx++;
+		if (QS >= 0)
+		{
+			UObject* tempItem = ItemInventory->ItemList->GetItemAt(QS);
+			if (tempItem == nullptr) continue;
+			UCInventoryItemData* tempItemData = Cast<UCInventoryItemData>(tempItem);
+			if (tempItemData == nullptr) continue;
+
+			switch (QuickSlotIdx)
+			{
+			case(0):
+				HUDOverlay->SetQuickSlot1(tempItemData);
+				break;
+			case(1):
+				HUDOverlay->SetQuickSlot2(tempItemData);
+				break;
+			case(2):
+				HUDOverlay->SetQuickSlot3(tempItemData);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
+```
+
+모든 월드의 경우 게임 인스턴스에 저장되어 있는 슬롯 인덱스, 혹은 메모리 주소를 매개변수로 사용하여 LoadGame함수를 호출합니다.
+
+저장되어 있는 아이템 코드를 통해 아이템을 불러오고 인벤토리 추가, 장착, 퀵슬롯 장착을 수행합니다.
