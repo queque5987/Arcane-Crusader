@@ -36,6 +36,7 @@
 	* [**1-6. 저장 시스템**](#1-6-저장-시스템)
 	    + [*1-6-1. 메인 화면 UI*](#1-6-1-메인-화면-UI)
 	    + [*1-6-2. 메인 화면 배경*](#1-6-2-메인-화면-배경)
+	    + [*1-6-3. 메인 화면 오브젝트*](#1-6-3-메인-화면-오브젝트)
   
 	![main_supp](https://github.com/user-attachments/assets/2f56297a-2704-4731-86a4-9053e34a6743)
 
@@ -2242,6 +2243,87 @@ void UCSaveFileSelectUI::OnButtonClicked()
 
 ![object_main](https://github.com/user-attachments/assets/5c89d6a0-c404-4c35-bdc5-5b8babe46cc3)
 
+머티리얼을 사용하여 번개가 치는 효과와 광원 효과를 표현하였습니다.
+
+![image](https://github.com/user-attachments/assets/622d3b09-7297-424f-970a-675d6cc5bfb5)
+![image](https://github.com/user-attachments/assets/be9fa3f5-cea5-44ff-8fa0-0421f12a8237)
+
+![image](https://github.com/user-attachments/assets/6cf8f347-4f34-407b-b86c-b8d0e96f68bb)
+
+SkySphereMaterial에 RadialGradient를 사용한 광원 효과를 추가하였습니다.
+
+![image](https://github.com/user-attachments/assets/bf26326b-853f-4c35-99f4-d72b348f0b55)
+
+![lighting1](https://github.com/user-attachments/assets/8fcd37f5-69e9-42e5-ba6b-1af135dbf60d)
+
+Texture2DArray를 순회하며 번개가 내리치는 GIF 이미지를 재생하는 텍스쳐를 만들었습니다.
+
+![image](https://github.com/user-attachments/assets/0e53dc92-62da-4dae-9895-04e6e3af3fed)
+
+Time 변수를 사용하여 번개 이펙트가 끝나는 순간, 광원 효과를 추가한 Globe_Glow로 교체하도록 하여
+
+간헐적으로 번개가 내리치는 배경을 구현하였습니다.
+
+## 1-6-3. 메인 화면 오브젝트
+
+![image](https://github.com/user-attachments/assets/91f945db-96b8-4cc3-b73e-cecfae73a09a)
+
+스플라인 액터를 사용하여 오브젝트들을 회전시키는 장식을 구현하였습니다.
+
+```C++
+void ACMainWeaponFloatingSpline::BeginPlay()
+{
+	Super::BeginPlay();
+	RotateActorsLocation.SetNum(RotateActors.Num());
+	for (int i = 0; i < RotateActorsLocation.Num(); i++)
+	{
+		RotateActorsLocation[i] = 1.f / RotateActorsLocation.Num() * i;
+		UE_LOG(LogTemp, Log, TEXT("%f"), RotateActorsLocation[i]);
+	}
+	FloatingObject->AttachToComponent(SplineComponent, FAttachmentTransformRules::KeepWorldTransform);
+
+	FirstLocation = SplineComponent->GetRelativeLocation();
+}
+```
+
+![image](https://github.com/user-attachments/assets/3de84063-951a-4d2e-8e90-02066e403073)
+
+에디터에서 회전시킬 오브젝트를 추가할 수 있도록 구현하였고, 추가된 오브젝트들의 위치를 배열에 저장합니다.
+
+```C++
+void ACMainWeaponFloatingSpline::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (RotateActors.Num() < 1) return;
+
+	//float temp;
+	for (int i = 0; i < RotateActors.Num(); i++)
+	{
+		RotateActorsLocation[i] += DeltaTime * FMath::Max(FMath::Sin(RotateActorsLocation[i] * PI) / 2.f, 0.12f);
+		if (RotateActorsLocation[i] > 1.f) RotateActorsLocation[i] -= 1.f;
+
+		RotateActors[i]->SetActorLocation(SplineComponent->GetLocationAtTime(
+			RotateActorsLocation[i],
+			ESplineCoordinateSpace::World)
+		);
+		FRotator temp = RotateActors[i]->GetActorRotation();
+		temp.Yaw = RotateActorsLocation[i] * 360.f;
+		RotateActors[i]->SetActorRotation(temp);
+	}
+	if (FloatingObject == nullptr) return;
+	ClockTicking += DeltaTime * FMath::Max(FMath::Sin((ClockTicking > FloatingTime / 2.f ? FMath::Abs(ClockTicking - FloatingTime) : ClockTicking) / FloatingTime * 2.f * PI) / 2.f, 0.1f);
+	if (ClockTicking > FloatingTime) ClockTicking -= FloatingTime;
+	FVector NextLocation = FVector(FirstLocation.X, FirstLocation.Y, FirstLocation.Z + (ClockTicking > FloatingTime / 2.f ? FMath::Abs(ClockTicking - FloatingTime) : ClockTicking) * 20.f);
+	SplineComponent->SetRelativeLocation(NextLocation);
+	
+}
+```
+
+사인 함수를 사용하여 시작과 끝나는 지점 근처에서 오브젝트의 회전 속도가 느려지도록 구현하였습니다.
+
+가운데에서 상하운동을 하는 FloatingObject 또한 사인함수를 사용하여 부드럽게 움직이도록 하였습니다.
 
 ## 1-7. HUD 시스템
+
+![ui_whole](https://github.com/user-attachments/assets/844affde-9df2-4313-bf60-cbef793b75a7)
 
