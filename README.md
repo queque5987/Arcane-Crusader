@@ -41,6 +41,9 @@
 	![main_supp](https://github.com/user-attachments/assets/2f56297a-2704-4731-86a4-9053e34a6743)
 
 	* [**1-7. HUD 시스템**](#1-7-HUD-시스템)
+	    + [*1-7-1. 원형 프로그레스 바*](#1-7-1-원형-프로그레스-바)
+	    + [*1-7-2. 직선 프로그레스 바*](#1-7-2-직선-프로그레스-바)
+	    + [*1-7-3. 무기 스위칭 UI*](#1-7-3-무기-스위칭-UI))
  
 	![ui_whole_supp](https://github.com/user-attachments/assets/c4aae09e-9d13-4bdc-a5f9-0f5b09719a6e)
 
@@ -2501,3 +2504,6 @@ Cooldown 파라미터에 비례해서 진행되는 원형의 Progressbar를 사�
 ![ui_gauge](https://github.com/user-attachments/assets/0dcc14e2-6b98-4358-9e38-b138ea95291f)
 
 머티리얼 인스턴스의 파라미터를 조정하여 UI의 상태를 조절할 수 있도록 구현하였습니다.
+
+### 1-7-3. 무기 스위칭 UI
+
