@@ -43,7 +43,7 @@
 	* [**1-7. HUD 시스템**](#1-7-HUD-시스템)
 	    + [*1-7-1. 원형 프로그레스 바*](#1-7-1-원형-프로그레스-바)
 	    + [*1-7-2. 직선 프로그레스 바*](#1-7-2-직선-프로그레스-바)
-	    + [*1-7-3. 무기 스위칭 UI*](#1-7-3-무기-스위칭-UI))
+	    + [*1-7-3. 무기 스위칭 UI*](#1-7-3-무기-스위칭-UI)
  
 	![ui_whole_supp](https://github.com/user-attachments/assets/c4aae09e-9d13-4bdc-a5f9-0f5b09719a6e)
 
@@ -2507,3 +2507,72 @@ Cooldown 파라미터에 비례해서 진행되는 원형의 Progressbar를 사�
 
 ### 1-7-3. 무기 스위칭 UI
 
+![atk_rs_switch](https://github.com/user-attachments/assets/0034ddae-fac2-40d8-9a74-f7dc564cca2d)
+
+![image](https://github.com/user-attachments/assets/72a751dd-f5a1-4cd0-9ed1-92ce9e7a3ae3)
+
+무기의 상태에 따라 탄환의 종류를 달리하였고, 모든 탄환의 상황을 나타내는 UI와
+
+탄환을 변경하는 과정에서의 움직임을 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/3af10305-0a50-4106-b54d-9403fbbfa22b)
+
+![image](https://github.com/user-attachments/assets/d2770d5a-59c2-4344-9c6c-2d092f2e63f5)
+
+각 오브는 Clock값에 따라 위치가 결정되도록 구현하였습니다.
+
+해당 시계에 위치하게끔 Clock값을 조정하여 세 오브의 UV좌표를 계산하였습니다.
+
+![image](https://github.com/user-attachments/assets/26f16fcf-2841-4408-891d-b8bab8874687)
+
+Clock값에 따라 시계방향으로 위치가 변하고, 원점으로부터 특정 거리만큼 떨어진 UV 좌표를 만들었습니다.
+
+![image](https://github.com/user-attachments/assets/6b24b77d-edbc-4b88-a00d-d078e80a26e7)
+![image](https://github.com/user-attachments/assets/db8ab571-f1f7-456c-80c3-bcabf331e460)
+
+해당 위치(OrbTexCoord)에 방울 형태의 텍스쳐와 총기 아이콘을 흑백화 시킨 텍스쳐를 위치시켰습니다.
+
+![image](https://github.com/user-attachments/assets/ff4ef166-9829-4ef2-9149-b707c3215e11)
+
+해당 UV 좌표에서 텍스쳐가 회전하도록 한 UV 좌표도 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/04728f12-a04a-48e3-81d1-42cf3343a5c1)
+
+해당 위치에는 오브를 배치하여 위치에 따라 회전하도록 하였습니다.
+
+![image](https://github.com/user-attachments/assets/0282fb47-2c26-44bd-bc9b-491adb70b802)
+
+![image](https://github.com/user-attachments/assets/7d1c7a65-deda-406e-a78f-3dda4b3dc750)
+
+실린더 모양의 텍스쳐와 그를 변형시킨 텍스쳐, 마법진 모양의 텍스쳐를 합쳐 원하는 실린더의 형태를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/b628d0d2-d2f4-4ab2-bd2a-49503a4279bb)
+
+![image](https://github.com/user-attachments/assets/148db2b4-84e5-4f9b-808d-a302ee8e8fc2)
+
+오브의 위치를 나타내는 UV 좌표를 사용해서 0 - 1 사이의 게이지를 구현하여 해당 탄환의 잔탄수를 표현하였습니다.
+
+![image](https://github.com/user-attachments/assets/6d7a3773-b54f-4c56-906d-77ef3e02772a)
+
+![image](https://github.com/user-attachments/assets/598f4d00-7119-44bd-bd92-47bdc0b8300e)
+
+Lerp를 사용해서 게이지가 차오른 부분은 특정 색상으로, 나머지는 흑백으로 곱해주었습니다.
+
+최종 값에 총기 텍스쳐를 빼서 그림자 효과를 추가하였습니다.
+
+![image](https://github.com/user-attachments/assets/a00e2421-075a-4c56-b53a-018cfa44af50)
+
+![image](https://github.com/user-attachments/assets/378958b4-f13d-4e2b-a3ed-454a3d6195ad)
+
+Clock값에 따라 서로 다른 위치에 위치한 세 오브와 실린더 모양의 텍스쳐를 합쳐 최종 텍스쳐를 구현하였습니다.
+
+```C++
+void ACPlayerController::DoRifleSelectBarrelRoll()
+{
+	HUDOverlay->DoRifleSelectBarrelRoll();
+}
+```
+
+```C++
+응애
+```
