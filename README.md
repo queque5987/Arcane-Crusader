@@ -2327,3 +2327,177 @@ void ACMainWeaponFloatingSpline::Tick(float DeltaTime)
 
 ![ui_whole](https://github.com/user-attachments/assets/844affde-9df2-4313-bf60-cbef793b75a7)
 
+무료 GIF 이미지 에셋과 블루프린트 머티리얼을 활용하여 UI를 제작하였고, C++ 스크립트를 통해 상호작용을 구현하였습니다.
+
+### 1-7-1. 원형 프로그레스 바
+
+![ui_status_hp](https://github.com/user-attachments/assets/51157959-4bec-40f2-a69e-6c766ce8ff7c)
+
+체력, 스테미나, 궁극기 충전량을 표시하는 UI를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/cf5b1c01-4aea-4631-9a78-c83ec75206e6)
+
+![image](https://github.com/user-attachments/assets/976bfd0d-fd91-4701-9ee1-3d9cb1a7de81)
+
+![image](https://github.com/user-attachments/assets/77dd021b-2ee8-46d3-8567-0c2c63ae2400)
+
+![image](https://github.com/user-attachments/assets/bc71ea2a-dd7f-44d5-b7a7-a4ca9b97e7bf)
+
+두 RadialGradient를 사용해서 원형의 텍스쳐를 만들었고,
+
+12시에서 시계방향으로 1부터 0의 값을 갖는 CircularGradient를 만들었고,
+
+특정 변수를 더하여 변수에 따라 시계방향으로 차오르는 원형의 게이지를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/00d2115e-9a68-41cb-9d41-3cc8260e8705)
+
+![image](https://github.com/user-attachments/assets/e0bcf8dc-40a3-4460-9eca-7906a8dda025)
+
+위 텍스쳐와 배경 텍스쳐를 사용하여 원형의 체력바를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/21ac56e3-6652-4037-81a2-86873580aeb3)
+
+![image](https://github.com/user-attachments/assets/190ed78a-1f54-4d30-8099-a2b75f123162)
+
+현재 체력에 최근에 입은 대미지를 더한 값을 통해 만든 원형의 게이지에
+
+현재 체력으로 만든 게이지를 빼서 최근에 입은 대미지에 해당하는 Mask를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/be9b8e76-8db5-4130-9b05-804c19af7f63)
+
+![image](https://github.com/user-attachments/assets/7200d088-14d9-4eb7-a6b4-8b30e69168a0)
+
+유사한 방식으로 구현한 체력, 최근 입은 대미지, 스태미나,
+
+그리고 수직으로 만든 궁극기 게이지 텍스쳐를 합쳐 최종 텍스쳐를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/042e9837-2098-4bdc-883b-64d70b9e3ee7)
+
+![image](https://github.com/user-attachments/assets/f0b9c42b-a3bb-4412-b072-907f21984080)
+
+RadialGradient를 이용하여 Segmentation 변수에 따라 원형으로 공간을 구분짓는 텍스쳐를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/924192ea-a84e-4210-bd07-1339e8118953)
+
+![image](https://github.com/user-attachments/assets/b3f281db-4bcb-4f34-9ddd-f6ee1b94f2ca)
+
+체력, 스태미나에 각각의 Segmentation을 지정하여 체력, 스태미나의 크기에 비례해서
+
+공간을 나눌 수 있도록 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/3f8a8852-ad4e-4b82-b62d-e09835b23e92)
+![ui_status_hp](https://github.com/user-attachments/assets/51157959-4bec-40f2-a69e-6c766ce8ff7c)
+
+궁극기 충전량에 해당하는 텍스트와 원형으로 회전하는 텍스쳐를 합쳐 블루프린트 위젯으로 사용하였습니다.
+
+```C++
+void UCUserWidget_CircularProgressBar::AddRecentDamage(float Damage)
+{
+	RecentDamageSum += Damage;
+	bEraseRecentDamage = false;
+	GetWorld()->GetTimerManager().ClearTimer(RecentDamageTimer);
+	GetWorld()->GetTimerManager().SetTimer(RecentDamageTimer, FTimerDelegate::CreateLambda([&] {
+		bEraseRecentDamage = true;
+		}), 2.f, false
+	);
+}
+
+void UCUserWidget_CircularProgressBar::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (CircularProgressBarMPCInstance == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CircularProgressBarMPCInstance Can Not Found"));
+		return;
+	}
+	ProgressTextureIndex += 10 * InDeltaTime;
+	if (ProgressTextureIndex > 24) ProgressTextureIndex = 0.f;
+	CircularProgressBarMPCInstance->SetScalarParameterValue(FName("ProgressTextureIndex"), ProgressTextureIndex);
+
+	if (bEraseRecentDamage && RecentDamageSum > 0.f)
+	{
+		RecentDamageSum -= RecentDamageSum * InDeltaTime * 0.6f;
+		RecentDamageSum = RecentDamageSum < 0.f ? 0.f : RecentDamageSum;
+	}
+}
+```
+
+최근에 대미지를 입었을 경우, RecentDamageSum에 입은 대미지를 더한 뒤
+
+타이머를 사용하여 2초 후 bEraseRecentDamage변수를 True로 설정합니다.
+
+NativeTick 함수에서는 bEraseRecentDamage 변수가 True일 경우
+
+RecentDamageSum의 값을 줄여 최근에 입은 대미지가 줄어들도록 구현하였습니다.
+
+### 1-7-2. 직선 프로그레스 바
+
+![ui_gauge_whole](https://github.com/user-attachments/assets/048738ac-68b3-406c-b789-e22adc111c34)
+![ui_gauge_whole_b](https://github.com/user-attachments/assets/b6f7a26c-2b2c-4de8-a79f-ab0d6519e616)
+
+특정 모드에 진입했을 때 변화하는 게이지를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/325b7772-9cc1-4a68-9bc9-8b681b512db8)
+
+![image](https://github.com/user-attachments/assets/d44204cd-74ec-478c-86d8-7d82df771d0c)
+
+가로로 진행되는 프로그레스 바를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/c7a6338a-118b-48e5-a214-709af11baa04)
+
+![image](https://github.com/user-attachments/assets/ba869b59-11d9-4c08-8f3b-743723b67416)
+
+RadialGradient를 사용해서 프로그레스 바의 경계에 위치하는 원 형태의 텍스쳐를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/2ba32fb8-4ecf-48c6-8937-72fae0311d07)
+
+해당 경계 UV좌표를 사용해서 해당 위치에 불타오르는 텍스쳐를 배치하였습니다.
+
+![image](https://github.com/user-attachments/assets/1d332a30-a603-4091-bc1e-fab11bf5e0c7)
+
+프로그레스 바의 경계에 BruteMode 변수에 따라 원 형태의 텍스쳐와 불타오르는 텍스쳐가 위치하도록 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/ddb7377d-f3e7-43b0-852e-2b115879d510)
+![image](https://github.com/user-attachments/assets/a4f236c3-1320-4c0d-bc56-ae6d38528141)
+
+경계 텍스쳐와 프로그레스 바를 합쳐 두 가지 버전의 텍스쳐를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/0cbd1801-6880-4d0e-8fa4-95c8be804fcf)
+![image](https://github.com/user-attachments/assets/0277a942-6511-438f-ad26-d2b9069a0574)
+
+![image](https://github.com/user-attachments/assets/9d1da2c0-8ff0-4c68-9410-0c2d1ad23870)
+![image](https://github.com/user-attachments/assets/a6710eec-d396-448c-8e67-d4bede2f577f)
+
+해당 텍스쳐에 BruteMode에 따라 서로 다른 텍스쳐를 곱해서 최종 텍스쳐를 완성하였습니다.
+
+![image](https://github.com/user-attachments/assets/8e090aef-6193-4e4a-a2e9-2c102c47b490)
+
+원본 텍스쳐를 Opacity와 경계로 사용해서 게이지부분을 완성하였습니다.
+
+![image](https://github.com/user-attachments/assets/20c19b3b-a47d-4f38-988f-c264d2118d2f)
+
+![image](https://github.com/user-attachments/assets/81aa8a31-4cc3-4ddd-bfbb-b46cba0405b8)
+
+구형의 물체가 타오르는 이미지에 오브가 들어갈 공간을 만들어 사용하였습니다.
+
+![image](https://github.com/user-attachments/assets/1708b245-3557-4a0e-bf56-619377bed0fc)
+
+![image](https://github.com/user-attachments/assets/edb12f38-e0ab-40b0-bb0a-31966036d131)
+
+Cooldown 파라미터에 비례해서 진행되는 원형의 Progressbar를 사용해서 쿨타임을 표현하였습니다.
+
+![image](https://github.com/user-attachments/assets/8f3d5550-bcec-451f-9dd9-b4a748690ef9)
+
+최종적으로 BruteMode 변수에따라 표시되는 텍스쳐가 달라지는 오브를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/f09ae871-0570-4a63-8bc9-6793042ef1d2)
+![ui_gauge_whole](https://github.com/user-attachments/assets/048738ac-68b3-406c-b789-e22adc111c34)
+
+블루프린트 위젯을 사용해서 게이지와 오브를 합쳐 완성하였습니다.
+
+![ui_ball](https://github.com/user-attachments/assets/0e8068d9-2c53-4520-a8ef-209235414efd)
+
+![ui_gauge](https://github.com/user-attachments/assets/0dcc14e2-6b98-4358-9e38-b138ea95291f)
+
+머티리얼 인스턴스의 파라미터를 조정하여 UI의 상태를 조절할 수 있도록 구현하였습니다.
