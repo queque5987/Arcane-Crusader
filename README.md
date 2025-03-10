@@ -2567,12 +2567,52 @@ Lerp를 사용해서 게이지가 차오른 부분은 특정 색상으로, 나�
 Clock값에 따라 서로 다른 위치에 위치한 세 오브와 실린더 모양의 텍스쳐를 합쳐 최종 텍스쳐를 구현하였습니다.
 
 ```C++
-void ACPlayerController::DoRifleSelectBarrelRoll()
+void UCUserWidgetPlayerHUD::DoRifleSelectBarrelRoll()
 {
-	HUDOverlay->DoRifleSelectBarrelRoll();
+	if (BarrelRollLeft > 0) return;
+	BarrelRollLeft += 2;
 }
 ```
 
+무기 스위칭 시, DoRifleSelectBarrelRoll 함수를 호출하여 실린더를 회전시키는 효과를 구현하였습니다.
+
 ```C++
-응애
+void UCUserWidgetPlayerHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	// …생략
+	if (BarrelRollLeft > 0)
+	{
+		if (RifleSelectMaterial != nullptr)
+		{
+			CylinderAngle += BarrelRollLeft % 2 > 0 ? (InDeltaTime * 1.3f) : -(InDeltaTime * 3.5f);
+
+			if (CylinderAngle < -0.5f)
+			{
+				CylinderAngle = -0.5f;
+				BarrelRollLeft--;
+			}
+			else if (CylinderAngle > 0.f)
+			{
+				CylinderAngle = 0.f;
+				BarrelRollLeft--;
+			}
+			//UE_LOG(LogTemp, Log, TEXT("CylinderAngle : %f"), CylinderAngle);
+			RifleSelectMaterial->SetScalarParameterValue("Clock", CylinderAngle);
+		}
+	}
+}
 ```
+
+BarrelRollLeft의 값이 증가할 경우 NatvieTick에서 스위칭 UI의 Clock 값을 변화시켜
+
+시계방향, 반시계방향으로 2회 회전하도록 구현하였습니다.
+
+```C++
+void ACRifleStaff::Tab_Triggered(AttackResult& AttackResult)
+{
+	SetBulletType((BulletType + 1) % 3);
+	//…생략
+}
+```
+
