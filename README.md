@@ -4,7 +4,7 @@
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
 
 # 0. 목차
-- [1. UI](1-UI)
+- [1. UI](#1-UI)
   
 	* [**1-1. 인벤토리 시스템**](#1-1-인벤토리-시스템)
 	    + [*1-1-1. 아이템 획득*](#1-1-1-아이템-획득)
@@ -47,12 +47,14 @@
  
 	![ui_whole_supp](https://github.com/user-attachments/assets/c4aae09e-9d13-4bdc-a5f9-0f5b09719a6e)
 
-- [2. 전투](2-전투)
+- [2. 전투](#2-전투)
 	* [**2-1. 플레이어 State 관리**](#2-1-플레이어-State-관리)
 	    + [*2-1-1. 회피 방향 지정*](#2-1-1-회피-방향-지정)
 	    + [*2-1-2. 회피 판정*](#2-1-2-회피-판정)
-	* [**회피 시스템**]()
-
+	* [**2-2. 회피 시스템**](#2-2-회피-시스템)
+	    + [*2-2-1. PostProcessMaterial을 활용한 흑백 효과 구현*](#2-2-1-PostProcessMaterial을-활용한-흑백-효과-구현)
+	    + [*2-2-2. 이벤트를 활용한 둔화 효과 구현*](#2-2-2-이벤트를-활용한-둔화-효과-구현)
+  
 	![atk_bs_evade_supp](https://github.com/user-attachments/assets/0d77c391-1872-4684-a1a7-b81bbf546fa4)
 
 	* [**대미지 표기 시스템**]()
@@ -3108,3 +3110,330 @@ PLAYER_ROLL_INVINCIBLE이 true일 경우 대미지를 입지 않도록 구현하
 시전된 스킬이 끝나기 전까지 PLAYER_DODGED를 true로 두어 중복으로 시전되지 않도록 하였습니다.
 
 ![atk_rs_evade](https://github.com/user-attachments/assets/a68a4a89-1c8a-4b19-93a8-c246424d717d)
+
+## 2-2. 회피 시스템
+
+```C++
+void UCAnimNotifyState_PlayerFStep::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+{
+	PC = Cast<ACPlayerCharacter>(MeshComp->GetOwner());
+	ScaleValue = 20.f;
+	if (PC != nullptr) Direction = PC->GetActorForwardVector();
+}
+
+void UCAnimNotifyState_PlayerFStep::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
+{
+	if (PC != nullptr)
+	{
+		PC->AddMovementInput(Direction, ScaleValue, true);
+	}
+}
+```
+
+![image](https://github.com/user-attachments/assets/317948f0-0683-4008-904f-f75a8c051a5c)
+
+회피 애니메이션 재생 시, 캐릭터를 전진시키는 AnimNotifyState를 구현하여 애니메이션 도중 앞으로 구르며 이동하는 효과를 구현하였습니다.
+
+```C++
+void ACPlayerCharacter::OnDodgedAttack()
+{
+	if (StageMaterialManager == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("StageMaterialManager Not Found"));
+		return;
+	}
+	StageMaterialManager->PostProcessZoom(true, GetActorLocation());
+	StageMaterialManager->ExecutePlayerDodgedEvent();
+	GetWorld()->GetTimerManager().ClearTimer(DodgeTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(DodgeTimerHandle, FTimerDelegate::CreateLambda(
+		[&] {
+			if (StageMaterialManager != nullptr) StageMaterialManager->ExecutePlayerDodgedEndEvent();
+			SetState(PLAYER_DODGED, false);
+			DodgeDom->SetVisibility(false);
+		}
+	), 3.f, false);
+	DodgeDom->SetRelativeScale3D(FVector(StageMaterialManager->GetPostProcessRadius() / 100.f));
+	DodgeDom->SetVisibility(true);
+	SetState(PLAYER_DODGED, true);
+}
+```
+
+회피 판정 시, OnDodgedAttack함수를 호출하여 주변을 암전시키고 적들의 움직임을 둔화시키는 효과를 구현하였습니다.
+
+### 2-2-1. PostProcessMaterial을 활용한 흑백 효과 구현
+
+```C++
+void ACStageGameMode::PostProcessZoom(bool IsStart, FVector ZoomPos)
+{
+	if (MPC_GlobalPostProcessVolume == nullptr) return;
+	if (IsStart) MPC_GlobalPostProcessVolume->SetVectorParameterValue("PlayerPos", ZoomPos);
+	MPC_GlobalPostProcessVolume->SetScalarParameterValue("IsDesaturate", IsStart ? 1.f : 0.f);
+
+	bPostProcessZoom = IsStart;
+	PostProcessRadius = PostProcessMaxRadius;
+}
+```
+
+게임 모드 클래스에 정의되어 있는 PossProcessZoom을 호출하여 플레이어의 현재 위치와 IsDesturate 변수를 변경합니다.
+
+이후 흑백이 아닌 부분이 줄어드는 효과를 구현하기 위해 bPostProcessZoom 변수를 true로 변경하고,
+
+PostProcessRadius 변수를 최대값으로 변경하였습니다.
+
+```C++
+void ACStageGameMode::Tick(float DeltaSeconds)
+{
+	//…생략
+	if (bPostProcessZoom)
+	{
+		if (PostProcessRadius <= 0.f) return;
+
+		PostProcessRadius -= PostProcessMaxRadius * DeltaSeconds / 0.1f * PostProcessRadius / PostProcessMaxRadius;
+		if (PostProcessRadius < 0.f)
+		{
+			PostProcessRadius = 0.f;
+		}
+		UpdateRadius(PostProcessRadius);
+	}
+	//…생략
+}
+
+void ACStageGameMode::UpdateRadius(float e)
+{
+	if (MPC_GlobalPostProcessVolume == nullptr) return;
+	MPC_GlobalPostProcessVolume->SetScalarParameterValue("Radius", e);
+	UE_LOG(LogTemp, Log, TEXT("ACStageGameMode::UpdateRadius : %f"), e);
+}
+```
+
+이후 Tick에서 플레이어 주변 흑백이 아닌 부분이 줄어들도록 PostProcess머티리얼 내의 Radius변수를 지속적으로 감소시켰습니다.
+
+![image](https://github.com/user-attachments/assets/b1ddf476-8385-4dfb-93d3-0bab61efc05c)
+
+![image](https://github.com/user-attachments/assets/130698b5-0dc2-4ef1-8209-e3eddb1e3aa7)
+
+플레이어의 좌표 PlayerPos와 절대 월드 포지션을 비교해서 플레이어 주변 공간(In/OutMask)를 생성하였습니다.
+
+![image](https://github.com/user-attachments/assets/5c515c07-9f38-4164-9f72-0b3f8d7f5255)
+
+동일한 방식으로 섬의 중심으로부터 떨어진 거리를 계산해서 섬 외부 공간(Outside Island)를 생성하였습니다.
+
+섬 내부는 단순한 세피아톤![image](https://github.com/user-attachments/assets/317948f0-0683-4008-904f-f75a8c051a5c)
+
+회피 애니메이션 재생 시, 캐릭터를 전진시키는 AnimNotifyState를 구현하여 애니메이션 도중 앞으로 구르며 이동하는 효과를 구현하였습니다.
+
+```C++
+void ACPlayerCharacter::OnDodgedAttack()
+{
+	if (StageMaterialManager == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("StageMaterialManager Not Found"));
+		return;
+	}
+	StageMaterialManager->PostProcessZoom(true, GetActorLocation());
+	StageMaterialManager->ExecutePlayerDodgedEvent();
+	GetWorld()->GetTimerManager().ClearTimer(DodgeTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(DodgeTimerHandle, FTimerDelegate::CreateLambda(
+		[&] {
+			if (StageMaterialManager != nullptr) StageMaterialManager->ExecutePlayerDodgedEndEvent();
+			SetState(PLAYER_DODGED, false);
+			DodgeDom->SetVisibility(false);
+		}
+	), 3.f, false);
+	DodgeDom->SetRelativeScale3D(FVector(StageMaterialManager->GetPostProcessRadius() / 100.f));
+	DodgeDom->SetVisibility(true);
+	SetState(PLAYER_DODGED, true);
+}
+```
+
+회피 판정 시, OnDodgedAttack함수를 호출하여 주변을 암전시키고 적들의 움직임을 둔화시키는 효과를 구현하였습니다.
+
+```C++
+void ACStageGameMode::PostProcessZoom(bool IsStart, FVector ZoomPos)
+{
+	if (MPC_GlobalPostProcessVolume == nullptr) return;
+	if (IsStart) MPC_GlobalPostProcessVolume->SetVectorParameterValue("PlayerPos", ZoomPos);
+	MPC_GlobalPostProcessVolume->SetScalarParameterValue("IsDesaturate", IsStart ? 1.f : 0.f);
+
+	bPostProcessZoom = IsStart;
+	PostProcessRadius = PostProcessMaxRadius;
+}
+```
+
+게임 모드 클래스에 정의되어 있는 PossProcessZoom을 호출하여 플레이어의 현재 위치와 IsDesturate 변수를 변경합니다.
+
+이후 흑백이 아닌 부분이 줄어드는 효과를 구현하기 위해 bPostProcessZoom 변수를 true로 변경하고,
+
+PostProcessRadius 변수를 최대값으로 변경하였습니다.
+
+```C++
+void ACStageGameMode::Tick(float DeltaSeconds)
+{
+	//…생략
+	if (bPostProcessZoom)
+	{
+		if (PostProcessRadius <= 0.f) return;
+
+		PostProcessRadius -= PostProcessMaxRadius * DeltaSeconds / 0.1f * PostProcessRadius / PostProcessMaxRadius;
+		if (PostProcessRadius < 0.f)
+		{
+			PostProcessRadius = 0.f;
+		}
+		UpdateRadius(PostProcessRadius);
+	}
+	//…생략
+}
+
+void ACStageGameMode::UpdateRadius(float e)
+{
+	if (MPC_GlobalPostProcessVolume == nullptr) return;
+	MPC_GlobalPostProcessVolume->SetScalarParameterValue("Radius", e);
+	UE_LOG(LogTemp, Log, TEXT("ACStageGameMode::UpdateRadius : %f"), e);
+}
+```
+
+이후 Tick에서 플레이어 주변 흑백이 아닌 부분이 줄어들도록 PostProcess머티리얼 내의 Radius변수를 지속적으로 감소시켰습니다.
+
+![image](https://github.com/user-attachments/assets/b1ddf476-8385-4dfb-93d3-0bab61efc05c)
+
+![image](https://github.com/user-attachments/assets/130698b5-0dc2-4ef1-8209-e3eddb1e3aa7)
+
+플레이어의 좌표 PlayerPos와 절대 월드 포지션을 비교해서 플레이어 주변 공간(In/OutMask)를 생성하였습니다.
+
+![image](https://github.com/user-attachments/assets/5c515c07-9f38-4164-9f72-0b3f8d7f5255)
+
+동일한 방식으로 섬의 중심으로부터 떨어진 거리를 계산해서 섬 외부 공간(Outside Island)를 생성하였습니다.
+
+섬 내부 공간은 단순한 흑백효과로, 외부 공간은 외곽선이 강조된 카툰 형식으로 구현하였습니다.
+
+
+![image](https://github.com/user-attachments/assets/098ff6f0-513e-4951-8d9d-dc1b0c9621d9)
+
+![image](https://github.com/user-attachments/assets/cf3509c4-b048-430f-97a8-884e6df37c4d)
+
+SceneDepth의 상하좌우 방향에 위치한 Depth들의 평균치를 사용해서 외곽선을 구현하였습니다.
+
+Outside Island를 사용해서 섬 외부 배경에만 적용하였습니다.
+
+![image](https://github.com/user-attachments/assets/383b666d-f74d-4c2b-9676-363007bd8ad1)
+
+```C++
+ACPlayerCharacter::ACPlayerCharacter()
+{
+	//…생략
+	GetMesh()->SetRenderCustomDepth(true);
+	GetMesh()->SetCustomDepthStencilValue(1);
+}
+```
+
+![image](https://github.com/user-attachments/assets/de367317-43f5-409a-a7fb-86e9391ec393)
+
+플레이어의 Character는 CustomDepth를 설정하여 플레이어 캐릭터 메시와 그에 부착된 다른 메시도 적용되지 않도록 구현하였습니다.
+
+Lerp를 사용해서 CustomDepth와 In/OutMask를 제외한 화면에
+
+Desaturation이 적용된 PostProcessInput을 적용하여 흑백 화면을 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/acd78ff8-9308-4a41-92f3-55e18a7a3a70)
+
+![image](https://github.com/user-attachments/assets/b88ca20c-933b-4c8c-a5f6-1978d9591120)
+
+섬 외부의 외곽선을 더하여 완성하였습니다.
+
+결과적으로 회피가 발동된 직후, 플레이어 지점 주변은 컬러로 표시되고 Radius값이 줄면서 점차 전부 흑백으로 전환됩니다.
+
+플레이어의 캐릭터 메시는 CustomDepth를 사용해서 예외로 처리해 컬러로 출력되도록 구현하였습니다.
+
+![atk_bs_evade](https://github.com/user-attachments/assets/ba771466-8561-4077-b7fb-889aef302ed0)
+
+### 2-2-2. 이벤트를 활용한 둔화 효과 구현
+
+```C++
+void ACStageGameMode::ExecutePlayerDodgedEvent()
+{
+	PlayerDodged.ExecuteIfBound();
+}
+
+void ACStageGameMode::ExecutePlayerDodgedEndEvent()
+{
+	PlayerDodgedEnd.ExecuteIfBound();
+	PostProcessZoom(false, FVector::ZeroVector);
+}
+```
+
+몬스터의 공격을 회피하여 OnDodgedAttack함수가 호출되었을 때, 게임모드 클래스에 구현되어 있는 PlayerDodged이벤트를 발생시킵니다.
+
+```C++
+void ACEnemyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ACStageGameMode* StageGM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	if (StageGM != nullptr)
+	{
+		StageGM->PlayerDodged.BindUFunction(this, "OnPlayerDodged");
+		StageGM->PlayerDodgedEnd.BindUFunction(this, "OnPlayerDodgedEnd");
+	}
+
+	if (GetMesh() == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACEnemyCharacter : Can Not Load Mesh"));
+		return;
+	}
+
+	GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &ACEnemyCharacter::OnOverlapPlayer);
+	GetMesh()->OnComponentEndOverlap.AddDynamic(this, &ACEnemyCharacter::OnOverlapEndPlayer);
+
+	DiedFXComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		DiedFX, GetMesh(), FName(), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true, false
+	);
+}
+
+void ACEnemyCharacter::OnPlayerDodged()
+{
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	if (AnimInst == nullptr) return;
+	AnimInst->Montage_SetPlayRate(GetCurrentMontage(), 0.2f);
+}
+
+void ACEnemyCharacter::OnPlayerDodgedEnd()
+{
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	if (AnimInst == nullptr) return;
+	AnimInst->Montage_SetPlayRate(GetCurrentMontage(), 1.f);
+}
+```
+
+PlayerDodged 이벤트는 몬스터 객체의 상위 클래스인 ACEnemyCharacter에서 OnPlayerDodged 함수에 바인딩하였습니다.
+
+OnPlayerDodged함수를 호출할 경우 현재 재생중인 Montage의 재생 속도를 낮춥니다.
+
+```C++
+void UCEnemyAnimInstance::NativeInitializeAnimation()
+{
+	EnemyCharacter = Cast<ACEnemyCharacter>(TryGetPawnOwner());
+	if (EnemyCharacter != nullptr)
+	{
+		OnMontageEnded.AddDynamic(this, &UCEnemyAnimInstance::SetbAttackingFree);
+	}
+
+	ACStageGameMode* StageGM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	if (StageGM != nullptr)
+	{
+		StageGM->PlayerDodged.BindLambda([&]() {
+				PlayRate = 0.2f;
+			}
+		);
+		StageGM->PlayerDodgedEnd.BindLambda([&]() {
+			PlayRate = 1.f;
+			}
+		);
+	}
+}
+```
+
+또한, 몬스터 객체의 애님 클래스의 상위 클래스인 UCEnemyAnimInstance에서 PlayerDodged 이벤트 발생 시,
+
+PlayRate 변수를 조정하여 이후 재생되는 Montage에도 영향을 미치도록 하였습니다.
+
+![atk_bs_evade](https://github.com/user-attachments/assets/0e4ce5f7-e42b-4017-85fc-f4668a3b9cf4)
