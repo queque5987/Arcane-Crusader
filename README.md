@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/f1b966e3-0b55-409a-bc42-f8f8ba9e4263)
+
 # Arcane Crusader<br><br>플레이 영상
 
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
@@ -50,7 +50,7 @@
 - [2. 전투](#2-전투)
 	* [**2-1. 플레이어 State 관리**](#2-1-플레이어-State-관리)
 	    + [*2-1-1. 회피 방향 지정*](#2-1-1-회피-방향-지정)
-	    + [*2-1-2. 회피 판정*](#2-1-2-회피-판정)
+	    + [*2-1-2. 회피 판정*](#2-1-2-NotifyState를-활용한-회피-판정-구현)
 	* [**2-2. 회피 시스템**](#2-2-회피-시스템)
 	    + [*2-2-1. PostProcessMaterial을 활용한 흑백 효과 구현*](#2-2-1-PostProcessMaterial을-활용한-흑백-효과-구현)
 	    + [*2-2-2. 이벤트를 활용한 둔화 효과 구현*](#2-2-2-이벤트를-활용한-둔화-효과-구현)
@@ -3013,7 +3013,7 @@ Shift(회피) 시, GetMoveInputDesiredRotator를 호출해서 플레이어가 �
 
 ![atk_bs_evade](https://github.com/user-attachments/assets/99377d2d-0100-451e-8730-7b13c81499d4)
 
-### 2-1-2. 회피 판정
+### 2-1-2. NotifyState를 활용한 회피 판정 구현
 
 ```C++
 void UCAnimNotifyState_PlayerRollInvin::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
