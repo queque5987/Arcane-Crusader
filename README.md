@@ -4,7 +4,7 @@
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
 
 # 0. 목차
-- [1. UI]()
+- [1. UI](1-UI)
   
 	* [**1-1. 인벤토리 시스템**](#1-1-인벤토리-시스템)
 	    + [*1-1-1. 아이템 획득*](#1-1-1-아이템-획득)
@@ -47,8 +47,10 @@
  
 	![ui_whole_supp](https://github.com/user-attachments/assets/c4aae09e-9d13-4bdc-a5f9-0f5b09719a6e)
 
-- [2. 전투]()
-	* [**플레이어 State 관리**]()
+- [2. 전투](2-전투)
+	* [**2-1. 플레이어 State 관리**](#2-1-플레이어-State-관리)
+	    + [*2-1-1. 회피 방향 지정*](#2-1-1-회피-방향-지정)
+	    + [*2-1-2. 회피 판정*](#2-1-2-회피-판정)
 	* [**회피 시스템**]()
 
 	![atk_bs_evade_supp](https://github.com/user-attachments/assets/0d77c391-1872-4684-a1a7-b81bbf546fa4)
@@ -2604,6 +2606,8 @@ void UCUserWidgetPlayerHUD::NativeTick(const FGeometry& MyGeometry, float InDelt
 }
 ```
 
+![image](https://github.com/user-attachments/assets/2ce57911-ecdf-4b76-be81-34a2fb6e38f4)
+
 BarrelRollLeft의 값이 증가할 경우 NatvieTick에서 스위칭 UI의 Clock 값을 변화시켜
 
 시계방향, 반시계방향으로 2회 회전하도록 구현하였습니다.
@@ -2614,5 +2618,493 @@ void ACRifleStaff::Tab_Triggered(AttackResult& AttackResult)
 	SetBulletType((BulletType + 1) % 3);
 	//…생략
 }
+
+void ACRifleStaff::SetBulletType(int32 e)
+{
+	BulletType = e;
+
+	switch (BulletType)
+	{
+	case(RIFLESTAFF_BULLET_RIFLE):
+		AttackRange = 3000.f;
+		BulletSpeed = 120.f;
+		ConstAttackCoolDown = 0.8f * (1 - ItemStatus->_AttackSpeed);
+		break;
+	case(RIFLESTAFF_BULLET_SHOTGUN):
+		AttackRange = 500.f;
+		BulletSpeed = 60.f;
+		ConstAttackCoolDown = 1.4f * (1 - ItemStatus->_AttackSpeed);
+		break;
+	case(RIFLESTAFF_BULLET_MACHINEGUN):
+		AttackRange = 2500.f;
+		BulletSpeed = 90.f;
+		ConstAttackCoolDown = 1.1f * (1 - ItemStatus->_AttackSpeed);
+		break;
+	default:
+		break;
+	}
+
+	RifleOraEffect->SetWeaponEffect(BulletType);
+}
 ```
 
+ACRifleStaff에서는 현재 탄환의 타입을 변경합니다.
+
+```C++
+void ACPlayerCharacter::UpdateHUDStates()
+{
+	//…생략
+	if (ACRifleStaff* RS = Cast<ACRifleStaff>(WeaponEquipped))
+	{
+		PCC->SetAimSpriteBlur(GetState(PLAYER_AIMING) ? 0.f : 10.f);
+		// Rifle Select UI Update
+		FVector LeftBullets;
+		RS->GetLeftBullet(LeftBullets);
+		//UE_LOG(LogTemp, Log, TEXT("[%f, %f, %f]"), LeftBullets.Y, LeftBullets.X, LeftBullets.Z);
+		int32 CurrBulletType = RS->GetBulletType();
+		PCC->SetRifleSelectCylinder(LeftBullets, FVector(CurrBulletType, (CurrBulletType + 2) % 3, (CurrBulletType + 1) % 3));
+		// Charge Visibility
+		if (RS != nullptr && RS->GetBulletType() == 0)
+		{
+			float Charged = RS->GetLMBCharge();
+			//UE_LOG(LogTemp, Log, TEXT("%f"), Charged);
+			if (Charged < 0.05f) PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
+			else
+			{
+				PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::HitTestInvisible);
+				PCC->HUDOverlay->AimCharge->SetPercent(Charged / 2.f);
+			}
+		}
+		else PCC->HUDOverlay->AimCharge->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+```
+
+PlayerCharacter클래스에서 매 Tick마다 UpdateHUDStates를 호출합니다.
+
+ACRifleStaff에 정의되어 있는 GetLifeBullet함수를 사용해서 남은 탄환 수를 FVector에 저장합니다.
+
+PlayerController클래스의 SetRifleSelectCylinder함수를 호출하여
+
+남은 탄환 FVector와 현재 사용 중인 탄환, 대기중인 탄환들을 파라미터로 전달합니다.
+
+```C++
+void ACPlayerController::SetRifleSelectCylinder(FVector Bullets, FVector WeaponDisplaySequence)
+{
+	HUDOverlay->SetRifleBullets(Bullets);
+	HUDOverlay->SetRifleSelectSequence(WeaponDisplaySequence);
+}
+```
+
+플레이어의 HUD클래스에 정의되어 있는 SetRifleBullets와 SetRifleSelectSequence함수를 호출합니다.
+
+```C++
+void UCUserWidgetPlayerHUD::SetRifleBullets(FVector NewBullets)
+{
+	if (RifleSelectMaterial == nullptr) return;
+	RifleSelectMaterial->SetVectorParameterValue("WeaponBullet", NewBullets);
+}
+
+void UCUserWidgetPlayerHUD::SetRifleSelectSequence(FVector NewSequence)
+{
+	if (RifleSelectMaterial == nullptr) return;
+	RifleSelectMaterial->SetVectorParameterValue("WeaponShadow", NewSequence);
+	RifleSelectMaterial->SetVectorParameterValue("OverlayColor0", GetRifleBulletTypeColor(NewSequence.X));
+	RifleSelectMaterial->SetVectorParameterValue("OverlayColor1", GetRifleBulletTypeColor(NewSequence.Y));
+	RifleSelectMaterial->SetVectorParameterValue("OverlayColor2", GetRifleBulletTypeColor(NewSequence.Z));
+}
+
+FVector UCUserWidgetPlayerHUD::GetRifleBulletTypeColor(int32 BulletType)
+{
+	switch (BulletType)
+	{
+	case(0):
+		return RifleColor;
+	case(1):
+		return ShotGunColor;
+	case(2):
+	default:
+		return MachineGunColor;
+	}
+	return FVector::ZeroVector;
+}
+```
+
+![image](https://github.com/user-attachments/assets/e3dee3d6-84fa-4775-a486-c8180be4acd9)
+
+남은 탄환은 벡터 형식으로 보관하여 Orb0, Orb1, Orb2위치에 있는 게이지의 채워지는 양을 결정합니다.
+
+무기 아이콘(WeaponShadow)는 Texture2DArray에서의 인덱스를 변경하는 방식으로 아이콘을 교체하였습니다.
+
+각 탄환의 대표 색상은 GetRifleTypeColor함수를 통해 FVector에 미리 저장되어 있는 상수를 반환하여
+
+OverlayColor0, 1, 2의 값을 직접 변경하는 방식으로 구현하였습니다.
+
+![atk_rs_switch](https://github.com/user-attachments/assets/f6e56011-8c94-4a2b-a800-ed23c0104a2a)
+
+
+# 2. 전투
+## 2-1. 플레이어 State 관리
+
+```C++
+//Player State
+#define PLAYER_UI_INTERACTING		UINT(1) << 0
+#define PLAYER_RAGDOLL				UINT(1) << 1
+#define PLAYER_CANGETUP				UINT(1) << 2
+#define PLAYER_ROLL_INVINCIBLE		UINT(1) << 3
+
+#define PLAYER_INPUT_W				UINT(1) << 4
+#define PLAYER_INPUT_S				UINT(1) << 5
+#define PLAYER_INPUT_A				UINT(1) << 6
+#define PLAYER_INPUT_D				UINT(1) << 7
+
+#define PLAYER_ATTACKING			UINT(1) << 8
+#define PLAYER_ATTACK_CANCLE_UNLOCK UINT(1) << 9
+#define PLAYER_STAMINA_RUNOUT		UINT(1) << 10
+#define PLAYER_ROLLING				UINT(1) << 11
+
+#define PLAYER_DODGED				UINT(1) << 12
+#define PLAYER_BS_ESCAPE_COMBO_TAB	UINT(1) << 13
+//#define PLAYER_BS_JUMP_UP			UINT(1) << 14
+//#define PLAYER_INPUT_TYPE_JUMP		UINT(1) << 15
+
+//#define PLAYER_INPUT_TYPE_MOVE		UINT(1) << 16
+#define PLAYER_COMBO_STACK_1		UINT(1) << 17
+#define PLAYER_COMBO_STACK_2		UINT(1) << 18
+#define PLAYER_COMBO_STACK_3		UINT(1) << 19
+
+#define PLAYER_GETTINGUP			UINT(1) << 20
+#define PLAYER_STAMINA_REGAIN		UINT(1) << 21
+#define PLAYER_DIED					UINT(1) << 22
+#define PLAYER_DRINKING_POTION		UINT(1) << 23
+
+#define PLAYER_CLIMBING_ROPE		UINT(1) << 24
+#define PLAYER_JUMPING_POINTS		UINT(1) << 25
+#define PLAYER_AIMING				UINT(1) << 26
+#define PLAYER_DIZZY				UINT(1) << 27
+
+#define PLAYER_INVENTORY_HOVERRING	UINT(1) << 28
+#define	PLAYER_BRUTEMODE_ORAORA		UINT(1) << 29
+#define PLAYER_BRUTEMODE_COMBO_IN	UINT(1) << 30
+#define PLAYER_ULT_INVINCIBLE		UINT(1) << 31
+
+//Player Pressing Key
+#define PLAYER_INPUT_LMB			UINT(1) << 0
+#define PLAYER_INPUT_RMB			UINT(1) << 1
+
+//Player Input Type Overall Check
+#define PLAYER_INPUT_TYPE_CLICK		UINT(1) << 2
+#define PLAYER_INPUT_TYPE_SHIFT		UINT(1) << 3
+
+#define PLAYER_INPUT_TYPE_LOOK		UINT(1) << 4
+#define PLAYER_INPUT_TYPE_JUMP		UINT(1) << 5
+#define PLAYER_INPUT_TYPE_MOVE		UINT(1) << 6
+```
+
+플레이어의 현재 상태를 32비트의 정수에 저장하여 관리하였습니다.
+
+```C++
+bool ACPlayerCharacter::GetState(UINT StateType)
+{
+	if (State & StateType) return true;
+	else return false;
+}
+
+void ACPlayerCharacter::SetState(UINT StateType, bool b)
+{	
+	if (GetState(StateType) ^ b)
+	{
+		if (b) State += StateType;
+		else State -= StateType;
+	}
+
+	//Exceptions
+
+	switch (StateType)
+	{
+	case(PLAYER_AIMING):
+		bUseControllerRotationYaw = b;
+		GetCharacterMovement()->bOrientRotationToMovement = !b;
+		if (!b)
+		{
+			ACRifleStaff* RS = Cast<ACRifleStaff>(WeaponEquipped);
+			if (RS != nullptr)
+			{
+				RS->SetLMBLock(false);
+			}
+			//AimOff.ExecuteIfBound();
+		}
+		break;
+	default:
+		break;
+	}
+}
+```
+
+Getter와 Setter를 구현하여 플레이어의 상태를 직접 확인하거나 수정할 수 있도록 하였습니다.
+
+```C++
+bool ACPlayerCharacter::PlayerInputCheck(int InputType)
+{
+	bool UICheck = !GetState(PLAYER_UI_INTERACTING);
+	bool Standing = (!GetState(PLAYER_RAGDOLL) && !GetState(PLAYER_CANGETUP));
+	bool GroundedButCanGetUp = GetState(PLAYER_CANGETUP) && GetState(PLAYER_RAGDOLL);
+	bool notGettingUp = !GetState(PLAYER_GETTINGUP);
+	bool notStaminaRunout = !GetState(PLAYER_STAMINA_RUNOUT);
+	bool notClimbing = !GetState(PLAYER_CLIMBING_ROPE) && !GetState(PLAYER_JUMPING_POINTS); // or jumping
+	bool notDead = !GetState(PLAYER_DIED);
+	bool notAiming = !GetState(PLAYER_AIMING);
+	bool EvadeEscape = (GetState(PLAYER_ATTACKING) && GetState(PLAYER_ATTACK_CANCLE_UNLOCK)) || !GetState(PLAYER_ATTACKING);
+	switch (InputType)
+	{
+	case(PLAYER_INPUT_TYPE_SHIFT):
+		if (notDead) Getup();
+		else Anykey_Triggered();
+		return notAiming && notDead && UICheck && (Standing || GroundedButCanGetUp) && notStaminaRunout && notClimbing && !GetState(PLAYER_ROLLING) && EvadeEscape;
+		break;
+	case(PLAYER_INPUT_TYPE_LOOK):
+		return UICheck;
+		break;
+	case(PLAYER_INPUT_TYPE_CLICK):
+		if (GetState(PLAYER_DRINKING_POTION))
+		{
+			UE_LOG(LogTemp, Log, TEXT("PLAYER_DRINKING_POTION True"));
+			return false;
+		}
+	case(PLAYER_INPUT_TYPE_JUMP):
+	case(PLAYER_INPUT_TYPE_MOVE):
+		if (notDead) LazyGetUp();
+		else Anykey_Triggered();
+		return notDead && UICheck && Standing && notGettingUp && notStaminaRunout && notClimbing;
+		break;
+	default:
+		return false;
+	}
+}
+```
+
+플레이어의 상태를 종합적으로 판단하여 특정 상황에서 특정 행동이 가능한 상황인지 판단하는 함수를 구현하였습니다.
+
+```C++
+void ACPlayerCharacter::LMBTriggered()
+{
+	SetKeyState(PLAYER_INPUT_LMB, true);
+
+	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
+	{
+		if (WeaponEquipped != nullptr)
+		{
+			//(this->*LMBPressedPointer)(*this);
+			AttackResult AR = AttackResult();
+			if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->LMB_Triggered(AR);
+			StaminaSpend(AR.StaminaUsed);
+		}
+	}
+}
+```
+
+버튼에 바인딩 된 함수에서 반드시 호출하여 사용가능한 상태인지 판단하도록 하였습니다.
+
+### 2-1-1. 회피 방향 지정
+
+```C++
+void ACPlayerCharacter::Move(const FInputActionValue& Value)
+{
+	FVector2D MovementVector = Value.Get<FVector2D>();
+
+	//if (SpineCapsuleDist > 40.f) return;
+
+	SetState(PLAYER_INPUT_W, MovementVector.Y > 0 ? true: false);
+	SetState(PLAYER_INPUT_S, MovementVector.Y < 0 ? true : false);
+	SetState(PLAYER_INPUT_D, MovementVector.X > 0 ? true : false);
+	SetState(PLAYER_INPUT_A, MovementVector.X < 0 ? true : false);
+
+	// NO ATTACK or ROLLING BUT AIMING IS FINE 
+	if ((!GetState(PLAYER_AIMING) && GetState(PLAYER_ATTACKING)) || GetState(PLAYER_ROLLING)) return;
+
+	// STAMINA RAN OUT OVERED
+	if (GetState(PLAYER_DIZZY) && !GetState(PLAYER_STAMINA_RUNOUT))
+	{
+		SetState(PLAYER_DIZZY, false);
+		StopAnimMontage();
+	}
+
+	//…생략
+
+	//MOVE
+	if (Controller != nullptr && PlayerInputCheck(PLAYER_INPUT_TYPE_MOVE))
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		if (!CheckIsAtCharacter(ForwardDirection * MovementVector.Y + RightDirection * MovementVector.X))
+		{
+			return;
+		}
+
+		AddMovementInput(ForwardDirection, GetState(PLAYER_AIMING) ? 
+			MovementVector.Y * 0.1f : MovementVector.Y * CameraComponent->FieldOfView / 90.f);
+		AddMovementInput(RightDirection, GetState(PLAYER_AIMING) ? 
+			MovementVector.X * 0.1f : MovementVector.X * CameraComponent->FieldOfView / 90.f);
+
+		float TempSpeed = GetCharacterMovement()->MaxWalkSpeed * (1 + AccMovementSpeedAcc);
+		if (MaxMoveMentSpeed >= TempSpeed) GetCharacterMovement()->MaxWalkSpeed = TempSpeed;
+
+		//UE_LOG(LogTemp, Log, TEXT("%s"), *Rotation.ToString());
+	}
+}
+```
+
+인풋 벡터를 사용해서 이동할 때마다 각 방향의 State를 변경하여 플레이어가 입력중인 버튼을 저장하도록 하였습니다.
+
+```C++
+void ACPlayerCharacter::ShiftTriggered()
+{
+	if (!PlayerInputCheck(PLAYER_INPUT_TYPE_SHIFT))
+	{
+		return;
+	}
+	
+	if (Stamina <= ShiftStamina * 0.4f) return;
+
+	SetActorRotation(GetMoveInputDesiredRotator());
+	StopAnimMontage();
+	if (StandToRoll.ExecuteIfBound())
+	{
+		SetState(PLAYER_ROLLING, true);
+		Stamina -= ShiftStamina;
+	}
+}
+
+FRotator ACPlayerCharacter::GetMoveInputDesiredRotator()
+{
+	double directionalYaw = 0.f;
+
+	bool W = GetState(PLAYER_INPUT_W);
+	bool S = GetState(PLAYER_INPUT_S);
+	bool A = GetState(PLAYER_INPUT_A);
+	bool D = GetState(PLAYER_INPUT_D);
+
+	if (W && A)			directionalYaw = -45.f;
+	else if (W && D)		directionalYaw = 45.f;
+	else if (S && A)		directionalYaw = -135.f;
+	else if (S && D)		directionalYaw = 135.f;
+	else if (S)			directionalYaw = 180.f;
+	else if (A)			directionalYaw = -90.f;
+	else if (D)			directionalYaw = 90.f;
+	else if (W)			directionalYaw = 0.f;
+	else FRotator(0.f, GetActorRotation().Yaw, 0.f);
+	
+	return FRotator(0.f, GetBaseAimRotation().Yaw + directionalYaw, 0.f);
+}
+```
+
+Shift(회피) 시, GetMoveInputDesiredRotator를 호출해서 플레이어가 보는 방향 + 입력중인 버튼을 계산합니다.
+
+이동이 불가능하고 회피는 가능한 공격 중인 상태 등에서 입력 중인 방향으로 회피를 사용할 수 있도록 하였습니다.
+
+![atk_bs_evade](https://github.com/user-attachments/assets/99377d2d-0100-451e-8730-7b13c81499d4)
+
+### 2-1-2. 회피 판정
+
+```C++
+void UCAnimNotifyState_PlayerRollInvin::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+{
+	if (GetPlayerCharacter(MeshComp))
+	{
+		PC->SetState(PLAYER_ROLL_INVINCIBLE, true);
+	}
+}
+
+void UCAnimNotifyState_PlayerRollInvin::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	if (PC != nullptr)
+	{
+		PC->SetState(PLAYER_ROLL_INVINCIBLE, false);
+	}
+}
+
+bool UCAnimNotifyState_PlayerRollInvin::GetPlayerCharacter(USkeletalMeshComponent* MeshComp)
+{
+	PC = Cast<ACPlayerCharacter>(MeshComp->GetOwner());
+	return (PC != nullptr) ? true : false;
+}
+```
+
+![image](https://github.com/user-attachments/assets/df46facc-1cd8-4c2c-99c8-61489ce8edce)
+
+회피 애니메이션 도중 AnimNotifyState를 사용해서 PLYAER_ROLL_INVINCIBLE 상태를 true로 변경합니다.
+
+```C++
+bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector HitLocation, int Power)
+{
+	if (GetState(PLAYER_ROLL_INVINCIBLE))
+	{
+		if (!GetState(PLAYER_DODGED))
+		{
+			OnDodgedAttack();
+		}
+		UE_LOG(LogTemp, Log, TEXT("Player Roll Dodged"));
+		return false;
+	}
+	else if (GetState(PLAYER_RAGDOLL) || GetState(PLAYER_GETTINGUP))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Player in Ragdoll"));
+		return false;
+	}
+	else if (GetState(PLAYER_ULT_INVINCIBLE))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Player Using Ult"));
+		return false;
+	}
+
+	ItemStat CurrStat = ItemStat();
+
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	if (UIController == nullptr) return false;
+	UIController->EquippedItemStat(CurrStat);
+
+	UE_LOG(LogTemp, Log, TEXT("Player Defence = %f"), CurrStat._Defence);
+	float DeffencePer = 1 - (CurrStat._Defence / 500.f);
+	if (DeffencePer <= 0.1f) DeffencePer = 0.1f;
+	UE_LOG(LogTemp, Log, TEXT("Player Defence Damage = %f"), DeffencePer);
+	HP -= (e * DeffencePer);
+	SetState(PLAYER_UI_INTERACTING, false);
+	SetLastDealingEnemy(Attacker);
+	
+	UIController->AddRecentDamage(e * DeffencePer / MaxHP);
+
+
+	ShowDamageUI(e * DeffencePer, HitLocation, true);
+
+	if (HP <= 0.f) return true;
+	switch (Power)
+	{
+	case(PLAYER_HIT_REACT_STAND):
+		break;
+	case(PLAYER_HIT_REACT_FLINCH):
+		StopAnimMontage();
+		SetState(PLAYER_ATTACKING, true);
+		HitReact.ExecuteIfBound();
+		break;
+	case(PLAYER_HIT_REACT_HITDOWN):
+		StopAnimMontage();
+		SetState(PLAYER_RAGDOLL, false);
+		SetState(PLAYER_CANGETUP, true);
+		HitDown.ExecuteIfBound();
+		break;
+	}
+	return true;
+}
+```
+
+PLAYER_ROLL_INVINCIBLE이 true일 경우 대미지를 입지 않도록 구현하였습니다.
+
+회피 성공 시, PLAYER_DODGED를 true로 변경하고 회피 시 시전되는 스킬을 구현하였습니다.
+
+시전된 스킬이 끝나기 전까지 PLAYER_DODGED를 true로 두어 중복으로 시전되지 않도록 하였습니다.
+
+![atk_rs_evade](https://github.com/user-attachments/assets/a68a4a89-1c8a-4b19-93a8-c246424d717d)
