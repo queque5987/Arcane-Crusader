@@ -1,4 +1,4 @@
-
+![image](https://github.com/user-attachments/assets/f1b966e3-0b55-409a-bc42-f8f8ba9e4263)
 # Arcane Crusader<br><br>플레이 영상
 
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
@@ -57,7 +57,10 @@
   
 	![atk_bs_evade_supp](https://github.com/user-attachments/assets/0d77c391-1872-4684-a1a7-b81bbf546fa4)
 
-	* [**대미지 표기 시스템**]()
+	* [**2-3. 대미지 시스템**](#2-3-대미지-시스템)
+	    + [*2-3-1. Map을 활용한 몬스터별 피격 판정 구현*](#2-3-1-Map을-활용한-몬스터별-피격-판정-구현)
+	    + [*2-3-2. Queue를 활용한 대미지 UI 구현*](#2-3-2-Queue를-활용한-대미지-UI-구현)
+     
 	* [**아이템 드랍 시스템**]()
 
 	![atk_rs_ult_supp](https://github.com/user-attachments/assets/61a85212-024a-4f96-97ef-d01e9b9b1dd4)
@@ -3437,3 +3440,388 @@ void UCEnemyAnimInstance::NativeInitializeAnimation()
 PlayRate 변수를 조정하여 이후 재생되는 Montage에도 영향을 미치도록 하였습니다.
 
 ![atk_bs_evade](https://github.com/user-attachments/assets/0e4ce5f7-e42b-4017-85fc-f4668a3b9cf4)
+
+
+## 2-3. 대미지 시스템
+
+```C++
+void UCAnimNotifyState_EnemyAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+{
+	ContinueAttack = true;
+	EC = Cast<IIEnemyStateManager>(MeshComp->GetOwner());
+	if (AttackType < 6) return;
+	if (EC == nullptr) return;
+
+	EC->SpitFireBall(false);
+}
+
+void UCAnimNotifyState_EnemyAttack::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
+{
+	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime);
+	if (!ContinueAttack) return;
+	if (AttackType > 5) return;
+	if (EC == nullptr) return;
+
+	ContinueAttack = !EC->AttackHitCheck(AttackType * 2, DamageScale);
+}
+
+void UCAnimNotifyState_EnemyAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	if (AttackType < 6) return;
+	if (EC == nullptr) return;
+
+	EC->SpitFireBall(true);
+}
+```
+
+몬스터의 공격은 EnemyAttack NotifyState를 사용해서 구현하였습니다.
+
+애니메이션에 NotifyState를 배치하고 AttackType을 지정하면 매 Tick마다 AttackHitCheck함수를 호출하여
+
+몬스터의 특정 Bone과 플레이어와의 충돌 여부를 검사합니다.
+
+### 2-3-1. Map을 활용한 몬스터별 피격 판정 구현
+
+```C++
+#define ENEMY_ATTACK_RHAND		0
+#define ENEMY_ATTACK_RHAND_E		1
+#define ENEMY_ATTACK_HEAD		2
+#define ENEMY_ATTACK_HEAD_E		3
+#define ENEMY_ATTACK_MOUTH		4
+#define ENEMY_ATTACK_MOUTH_E		5
+#define ENEMY_ATTACK_LHAND		6
+#define ENEMY_ATTACK_LHAND_E		7
+#define ENEMY_ATTACK_WINGS		8
+#define ENEMY_ATTACK_WINGS_E		9
+#define ENEMY_ATTACK_WINGS_R		10
+#define ENEMY_ATTACK_WINGS_R_E		11
+#define ENEMY_ATTACK_TURN_L		12
+
+#define ENEMY_ATTACK_TURN_R		14
+
+#define ENEMY_ATTACK_BONE_NUM		16
+```
+
+```C++
+void ACEnemy_Dragon::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	FString AnimBPAdderss = "Class'/Game/Enemy/MountainDragon/Blueprint/BP_AnimBP_Dragon.BP_AnimBP_Dragon_C'";
+	UClass* tempAnimBP = LoadObject<UClass>(nullptr, *AnimBPAdderss);
+	if (!tempAnimBP) return;
+	GetMesh()->SetAnimInstanceClass(tempAnimBP);
+
+	BoneNameArr[ENEMY_ATTACK_RHAND		] = FName("MOUNTAIN_DRAGON_-R-Finger12");
+	BoneNameArr[ENEMY_ATTACK_RHAND_E	] = FName("MOUNTAIN_DRAGON_-R-Hand");
+	BoneNameArr[ENEMY_ATTACK_HEAD		] = FName("");
+	BoneNameArr[ENEMY_ATTACK_HEAD_E		] = FName("");
+	BoneNameArr[ENEMY_ATTACK_MOUTH		] = FName("MOUNTAIN_DRAGON_-Neck5");
+	BoneNameArr[ENEMY_ATTACK_MOUTH_E	] = FName("MOUNTAIN_DRAGON_-Ponytail1");
+	BoneNameArr[ENEMY_ATTACK_LHAND		] = FName("MOUNTAIN_DRAGON_-L-Hand");
+	BoneNameArr[ENEMY_ATTACK_LHAND_E	] = FName("MOUNTAIN_DRAGON_-L-Finger12");
+	BoneNameArr[ENEMY_ATTACK_WINGS		] = FName("");
+	BoneNameArr[ENEMY_ATTACK_WINGS_E	] = FName("");
+	BoneNameArr[ENEMY_ATTACK_WINGS_R	] = FName("");
+	BoneNameArr[ENEMY_ATTACK_WINGS_R_E	] = FName("");
+
+	ArmRadius = 120.f;
+	HeadRadius = 80.f;
+}
+```
+
+몬스터의 Bone은 PCH에 정수형태로 선언해두었습니다.
+
+각 몬스터의 스켈레탈 메시 별로 Bone의 이름이 달라서, TMap객체에 각 몬스터마다 대응하는 Bone이름을 저장하였습니다.
+
+```C++
+bool ACEnemyCharacter::AttackHitCheck(int AttackType, float DamageScale)
+{
+	bool bResult = false;
+	TArray<bool> AdditionalResults;
+	FVector StartLocation;
+	FVector EndLocation;
+	float Radius = 0.f;
+	FVector Scale = GetActorScale();
+	float FScale = (Scale.X + Scale.Y + Scale.Z) / 3;
+	switch (AttackType)
+	{
+	case(ENEMY_ATTACK_RHAND):
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_RHAND]);//"R_RowerArm");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_RHAND_E]);//"R_Hand");
+		Radius = ArmRadius * FScale;
+		break;
+	case(ENEMY_ATTACK_HEAD):
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_HEAD]);// "Head");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_HEAD_E]);//"Jaw03");
+		Radius = HeadRadius * FScale;
+		AdditionalResults.Add(AttackHitCheck(ENEMY_ATTACK_LHAND));
+		AdditionalResults.Add(AttackHitCheck(ENEMY_ATTACK_RHAND));
+		break;
+	case(ENEMY_ATTACK_MOUTH):
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_MOUTH]);//"Head");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_MOUTH_E]);//"Jaw03");
+		Radius = HeadRadius * FScale;
+		break;
+	case(ENEMY_ATTACK_LHAND):
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_LHAND]);//"L_LowerArm");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_LHAND_E]);//"L_Hand");
+		Radius = ArmRadius * FScale;
+		break;
+	case(ENEMY_ATTACK_WINGS):
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS]);//"WingClaw1_L");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS_E]);//"WingClaw2_L");
+		Radius = ArmRadius * FScale;
+		AdditionalResults.Add(AttackHitCheck(ENEMY_ATTACK_WINGS_R));
+		break;
+	case(ENEMY_ATTACK_WINGS_R):
+		StartLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS_R]);//"WingClaw1_R");
+		EndLocation = GetMesh()->GetBoneLocation(BoneNameArr[ENEMY_ATTACK_WINGS_R_E]);//"WingClaw2_R");
+		Radius = ArmRadius * FScale;
+		break;
+	}
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+	FCollisionObjectQueryParams OQP(ECollisionChannel::ECC_Pawn);
+
+	bResult = GetWorld()->SweepSingleByObjectType(
+		HitResult,
+		StartLocation,
+		EndLocation,
+		FQuat::Identity,
+		OQP,
+		FCollisionShape::MakeSphere(Radius),
+		Params
+	);
+
+	if (AdditionalResults.Num() > 0)
+	{
+		for (bool d : AdditionalResults)
+		{
+			bResult |= d;
+		}
+	}
+
+	if (bResult)
+	{
+		if (ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(HitResult.GetActor()))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Hit At Actor : %s"), *HitResult.GetActor()->GetName());
+			bResult = PC->HitDamage(AttackDamage * DamageScale, this, HitResult.Location, AttackPower);
+		}
+	}
+
+	//DrawDebugSphere(GetWorld(), StartLocation, Radius, 32, bResult ? FColor::Green : FColor::Red);
+	//DrawDebugSphere(GetWorld(), EndLocation, Radius, 32, bResult ? FColor::Green : FColor::Red);
+
+	return bResult;
+}
+```
+
+히트 판정 수행 시, 파라미터를 통해 전달받은 Bone의 Index를 통해 히트 판정을 수행할 두 Bone의 위치를 저장합니다.
+
+각 Bone의 위치에 플레이어가 충돌했을 경우 PlayerCharacter의 HitDamage 함수를 호출하여 대미지를 전달합니다.
+
+HitDamage는 대미지 전달 여부를 반환하고, 성공적으로 전달했을 시 true를 반환하도록 구현하였습니다.
+
+```C++
+bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector HitLocation, int Power)
+{
+	if (GetState(PLAYER_ROLL_INVINCIBLE))
+	{
+		if (!GetState(PLAYER_DODGED))
+		{
+			OnDodgedAttack();
+		}
+		UE_LOG(LogTemp, Log, TEXT("Player Roll Dodged"));
+		return false;
+	}
+	else if (GetState(PLAYER_RAGDOLL) || GetState(PLAYER_GETTINGUP))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Player in Ragdoll"));
+		return false;
+	}
+	else if (GetState(PLAYER_ULT_INVINCIBLE))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Player Using Ult"));
+		return false;
+	}
+
+	ItemStat CurrStat = ItemStat();
+
+	IIPlayerUIController* UIController = Cast<IIPlayerUIController>(GetController());
+	if (UIController == nullptr) return false;
+	UIController->EquippedItemStat(CurrStat);
+
+	UE_LOG(LogTemp, Log, TEXT("Player Defence = %f"), CurrStat._Defence);
+	float DeffencePer = 1 - (CurrStat._Defence / 500.f);
+	if (DeffencePer <= 0.1f) DeffencePer = 0.1f;
+	UE_LOG(LogTemp, Log, TEXT("Player Defence Damage = %f"), DeffencePer);
+	HP -= (e * DeffencePer);
+	SetState(PLAYER_UI_INTERACTING, false);
+	SetLastDealingEnemy(Attacker);
+	
+	UIController->AddRecentDamage(e * DeffencePer / MaxHP);
+
+
+	ShowDamageUI(e * DeffencePer, HitLocation, true);
+
+	if (HP <= 0.f) return true;
+	switch (Power)
+	{
+	case(PLAYER_HIT_REACT_STAND):
+		break;
+	case(PLAYER_HIT_REACT_FLINCH):
+		StopAnimMontage();
+		SetState(PLAYER_ATTACKING, true);
+		HitReact.ExecuteIfBound();
+		break;
+	case(PLAYER_HIT_REACT_HITDOWN):
+		StopAnimMontage();
+		SetState(PLAYER_RAGDOLL, false);
+		SetState(PLAYER_CANGETUP, true);
+		HitDown.ExecuteIfBound();
+		break;
+	}
+	return true;
+}
+```
+
+HitDamage 호출 시, 무적 판정 여부를 검사합니다.
+
+PCH에 선언한 ItemStat 구조체를 사용해서 플레이어의 능력치를 불러오고, 플레이어의 방어력을 토대로 대미지를 조정하였습니다.
+
+![image](https://github.com/user-attachments/assets/a4ba96e2-fa9f-4262-a7af-d1fefd7c7cb1)
+
+PlayerController의 인터페이스, UIController를 통해 AddRecentDamage 함수를 호출하고,
+
+체력바에서의 최근에 입은 대미지를 추가하였습니다.
+
+```C++
+void UCUserWidget_CircularProgressBar::AddRecentDamage(float Damage)
+{
+	RecentDamageSum += Damage;
+	bEraseRecentDamage = false;
+	GetWorld()->GetTimerManager().ClearTimer(RecentDamageTimer);
+	GetWorld()->GetTimerManager().SetTimer(RecentDamageTimer, FTimerDelegate::CreateLambda([&] {
+		bEraseRecentDamage = true;
+		}), 2.f, false
+	);
+}
+
+void UCUserWidget_CircularProgressBar::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+	{
+	// …생략
+	if (bEraseRecentDamage && RecentDamageSum > 0.f)
+	{
+		RecentDamageSum -= RecentDamageSum * InDeltaTime * 0.6f;
+		RecentDamageSum = RecentDamageSum < 0.f ? 0.f : RecentDamageSum;
+	}
+}
+```
+
+최근에 입은 대미지는 Timer를 사용해서 2초 뒤 서서히 사라지는 효과를 구현하였습니다.
+
+```C++
+bool ACPlayerCharacter::HitDamage(float e, ACEnemyCharacter* Attacker, FVector HitLocation, int Power)
+{
+	// …생략
+	ShowDamageUI(e * DeffencePer, HitLocation, true);
+
+	if (HP <= 0.f) return true;
+	switch (Power)
+	{
+	case(PLAYER_HIT_REACT_STAND):
+		break;
+	case(PLAYER_HIT_REACT_FLINCH):
+		StopAnimMontage();
+		SetState(PLAYER_ATTACKING, true);
+		HitReact.ExecuteIfBound();
+		break;
+	case(PLAYER_HIT_REACT_HITDOWN):
+		StopAnimMontage();
+		SetState(PLAYER_RAGDOLL, false);
+		SetState(PLAYER_CANGETUP, true);
+		HitDown.ExecuteIfBound();
+		break;
+	}
+	return true;
+}
+```
+
+Power 변수를 조정하여 피격 시 플레이어의 리액션을 조정할 수 있도록 구현하였습니다.
+
+FLINCH나 HITDOWN의 경우, 현재 재생 중인 애니메이션을 중단하고 쓰러뜨리거나 움츠리는 애니메이션을 재생하였습니다.
+
+### 2-3-2. Queue를 활용한 대미지 UI 구현
+
+```C++
+void ACPlayerController::ShowDamageUI(float Damage, FVector Location, FColor C, bool IsAttacked)
+{
+	if (DamageAsset)
+	{
+		UCDamageUI* DamageUI = CreateWidget<UCDamageUI>(this, DamageAsset);
+		if (IsValid(DamageUI))
+		{
+			FWidgetTransform Transform = FWidgetTransform();
+			FVector2D ScreenLocation;
+			if (IsAttacked)
+			{
+				int32 X;
+				int32 Y;
+				GetViewportSize(X, Y);
+				ScreenLocation = FVector2D(X / 2, Y / 2);
+			}
+			else ProjectWorldLocationToScreen(Location, ScreenLocation);
+
+			DamageUI->SetPositionInViewport(ScreenLocation);
+			UE_LOG(LogTemp, Log, TEXT("Screen Location : %s"), *ScreenLocation.ToString());
+			Transform.Translation = ScreenLocation;
+
+			DamageUI->SetDamage(Damage);
+			DamageUI->SetDamageColor(C);
+			DamageUI->AddToViewport();
+			DamageUI->SetVisibility(ESlateVisibility::Visible);
+			DamageUIQueue.Enqueue(DamageUI);
+			GetWorld()->GetTimerManager().SetTimer(DamageShowTimer, this, &ACPlayerController::DequeueDamageUI, 1.f);
+		}
+	}
+}
+
+void ACPlayerController::DequeueDamageUI()
+{
+	UCDamageUI* D;
+	if (DamageUIQueue.Dequeue(D))
+	{
+		D->RemoveFromViewport();
+		D->Destruct();
+	}
+}
+```
+
+피격 또는 타격 시, ShowDamageUI를 통해 대미지 수치를 화면에 표시할 수 있도록 구현하였습니다.
+
+피격과 타격은 IsAttacked 변수를 통해 구분하였습니다.
+
+공격당했을 경우 화면 정중앙에 대미지를 표시하고, 공격을 했을 경우는 ProjectWorldLocationToScreen 함수를 사용해서
+
+히트 이벤트가 발생한 위치에 대미지 UI를 위치시켰습니다.
+
+대미지 UI는 생성 시 Queue에 Push되고, 타이머와 DamageUIQueue를 통해 특정 시간 이후 제거됩니다.
+
+```C++
+void UCDamageUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	if (GetRenderOpacity() <= 0.f) Destruct();
+	SetRenderOpacity(GetRenderOpacity() - InDeltaTime);
+	FWidgetTransform T = GetRenderTransform();
+	FVector2D newLocation = T.Translation + FVector2D(0.f, InDeltaTime*20);
+	T.Translation = newLocation;
+	SetRenderTransform(T);
+}
+```
+
+대미지 UI는 NativeTick을 통해 투명해지고, 점점 아래로 이동하도록 구현하였습니다.
+
+![atk_bs_ult](https://github.com/user-attachments/assets/6d278978-2ff6-4b8f-94dd-e4715b540996)
