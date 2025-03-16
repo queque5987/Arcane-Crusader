@@ -61,7 +61,9 @@
 	    + [*2-3-1. Map을 활용한 몬스터별 피격 판정 구현*](#2-3-1-Map을-활용한-몬스터별-피격-판정-구현)
 	    + [*2-3-2. Queue를 활용한 대미지 UI 구현*](#2-3-2-Queue를-활용한-대미지-UI-구현)
      
-	* [**아이템 드랍 시스템**]()
+	* [**2-4. 아이템 드랍 시스템**]()
+	    + [*2-4-1. 나이아가라 시스템을 활용한 몬스터 사망 이펙트 구현*](#2-4-1-나이아가라-시스템을-활용한-몬스터-사망-이펙트-구현)
+	    + [*2-4-2. 머티리얼을 활용한 몬스터 사망 이펙트 구현*](#2-4-2-머티리얼을-활용한-몬스터-사망-이펙트-구현)
 
 	![atk_rs_ult_supp](https://github.com/user-attachments/assets/61a85212-024a-4f96-97ef-d01e9b9b1dd4)
 
@@ -3825,3 +3827,559 @@ void UCDamageUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 대미지 UI는 NativeTick을 통해 투명해지고, 점점 아래로 이동하도록 구현하였습니다.
 
 ![atk_bs_ult](https://github.com/user-attachments/assets/6d278978-2ff6-4b8f-94dd-e4715b540996)
+
+## 2-4. 아이템 드랍 시스템
+
+```C++
+void UQuestComponent::Init_Quest9()
+{
+	AActor* tempActor = FindActorByTag(ACMonsterSpawner_Manual::StaticClass(), FName("MonsterSpawner"));
+	if (tempActor == nullptr) return;
+	ACMonsterSpawner_Manual* Spawner = Cast<ACMonsterSpawner_Manual>(tempActor);
+	if (Spawner == nullptr) return;
+	ACEnemyCharacter* EC = Spawner->SpawnMonster(ACEnemy_Dragon::StaticClass());
+	if (EC == nullptr) return;
+
+	MonsterConfigure Config = MonsterConfigure();
+
+	UDataTable* DT = LoadObject<UDataTable>(nullptr, TEXT("/Game/Resources/DataTables/DropTable/DropTable_Spike.DropTable_Spike"));
+	if (DT != nullptr) Config._DropTable = DT;
+	Config._HP = 4000.f;
+	Config._MaxHP = 4000.f;
+	Config._AttackDamage *= 2.5f;
+	EC->SetMonsterConfig(Config);
+}
+```
+
+![image](https://github.com/user-attachments/assets/e68b4bb2-0b33-469e-acbe-2e73007ab2fd)
+
+몬스터는 각자 드랍 아이템에 대한 데이터 테이블을 가지고 있고, 스폰 시 지정할 수 있도록 하였습니다.
+
+드랍 테이블은 아이템 코드와 드랍 확률을 저장해두었습니다.
+
+
+```C++
+void ACEnemyCharacter::Die()
+{
+	if (!bIsDying)
+	{
+		bIsDying = true;
+
+		if (LastHitCharacter == nullptr) LastHitCharacter = GetDealingPlayer();
+
+		DetachFromControllerPendingDestroy();
+
+		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+		CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		SetActorEnableCollision(true);
+
+		IIPlayerQuest* PQ = Cast<IIPlayerQuest>(LastHitCharacter);
+		if (PQ != nullptr)
+		{
+			PQ->MonsterKilledCount(this);
+		}
+
+		if (!bIsRagdoll)
+		{
+			// Ragdoll
+			GetMesh()->SetAllBodiesSimulatePhysics(true);
+			GetMesh()->SetSimulatePhysics(true);
+			GetMesh()->WakeAllRigidBodies();
+			GetMesh()->bBlendPhysics = true;
+
+			UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			if (CharacterComp)
+			{
+				CharacterComp->StopMovementImmediately();
+				CharacterComp->DisableMovement();
+				CharacterComp->SetComponentTickEnabled(false);
+			}
+
+
+			GetWorld()->GetTimerManager().SetTimer(DiedClock, FTimerDelegate::CreateLambda(
+				[&] {
+					if (DiedFXComponent != nullptr) DiedFXComponent->ActivateSystem();
+					bVeporizeCorpes = true;
+				}
+			), 3.f, false );
+
+			
+
+			//SetLifeSpan(28.0f);
+			bIsRagdoll = true;
+
+			//Drop Item
+			FDropTableRow* R;
+			ACDroppedItem* DI;
+			AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
+
+			if (DropTable == nullptr) return;
+			for (FName RowName : DropTable->GetRowNames())
+			{
+				UE_LOG(LogTemp, Log, TEXT("Row Name : %s"), *RowName.ToString());
+				R = DropTable->FindRow<FDropTableRow>(RowName, FString(""));
+				if (R == nullptr || FMath::RandRange(0.f, 1.f) > R->ItemDropRate) continue;
+
+				UCInventoryItemData* ID = GM->GetItem(FName(R->ItemCode));
+				if (ID == nullptr) continue;
+				DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
+				DI->SetPossessingItem(*ID);
+			}
+		}
+	}
+}
+```
+
+몬스터 사망 시, 몬스터의 드랍 테이블에서 RandRange 함수를 통해 드랍률을 계산하고,
+
+드랍 확률을 충족한다면 아이템 구체를 생성하고, 아이템 정보(UCInventoryItemData)를 저장하도록 하였습니다.
+
+```C++
+void ACDroppedItem::BeginPlay()
+{
+	Super::BeginPlay();
+	//Collider->OnComponentBeginOverlap.AddDynamic(this, &ACDroppedItem::OnOverlapBegin);
+	//Collider->OnComponentEndOverlap.AddDynamic(this, &ACDroppedItem::OnOverlapEnd);
+	
+	float vDegree = FMath::RandRange(0.f, 30.f);
+	float hDegree = FMath::RandRange(0.f, 359.f);
+	float V = FMath::DegreesToRadians(vDegree);
+	float H = FMath::DegreesToRadians(hDegree);
+	float Power = 2.f;
+	
+	FVector DirNor = FVector(FMath::Sin(V) * FMath::Cos(H), FMath::Sin(V) * FMath::Sin(H), FMath::Cos(V));
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + DirNor * Power, FColor::Green, false, 10.f);
+	//UE_LOG(LogTemp, Log, TEXT("Force Direction %s"), *DirNor.ToString());
+	StaticMeshComponent->AddForce(DirNor * Power);
+}
+```
+
+아이템 구체(ACDroppedItem)은 생성과 동시에 무작위 방향으로 발사되도록 구현하였습니다.
+
+0 - 30도의 수직 방향, 0 - 359도의 수평 방향을 방향벡터로 연산하여 AddForce함수를 사용해 발사하였습니다.
+
+```C++
+void ACDroppedItem::CheckSweepCharacter()
+{
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+	FCollisionObjectQueryParams OQP(ECollisionChannel::ECC_Pawn);
+
+	if (!PickedUp && (GetWorld()->SweepSingleByObjectType(
+		HitResult,
+		GetActorLocation(),
+		GetActorLocation(),
+		FQuat::Identity,
+		OQP,
+		FCollisionShape::MakeSphere(50.f),
+		Params
+	)))
+	{	// Player Colided
+		if (OverlapingPlayerCharacter != nullptr) return;
+
+		OverlapingPlayerCharacter = Cast<ACPlayerCharacter>(HitResult.GetActor());
+		if (OverlapingPlayerCharacter == nullptr) return;
+		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
+		{
+			PCC->ShowDroppedItemList(true, this, PossessingItem);
+		}
+		return;
+	}
+	if (OverlapingPlayerCharacter != nullptr)
+	{
+		// Player Dettached
+		if (ACPlayerController* PCC = Cast<ACPlayerController>(OverlapingPlayerCharacter->GetController()))
+		{
+			PCC->ShowDroppedItemList(false, this, PossessingItem);
+		}
+		OverlapingPlayerCharacter = nullptr;
+		return;
+
+	}
+}
+```
+
+아이템 구체는 매 Tick마다 CheckSweepCharacter 함수를 호출해서 플레이어와의 충돌 여부를 검사힙니다.
+
+초기는 OnOverlap 이벤트에 함수를 바인딩했으나 생성과 동시에 겹치는 경우가 많아 버그를 줄이기 위해 이런 방식을 채택하였습니다.
+
+플레이어와 겹쳐있을 시, PlayerController의 ShowDroppedItemList를 호출해서 현재 가지고 있는 아이템 정보(UCInventoryItemData)를 전달합니다.
+
+```C++
+void ACPlayerController::ShowDroppedItemList(bool e, ACDroppedItem* Dropped, UCInventoryItemData* ItemData)
+{
+	if (Dropped == nullptr) return;
+	if (DroppedItemList == nullptr) return;
+	if (!IsValid(Dropped) || ItemData == nullptr) return;
+	if (e)
+	{
+		DroppedItemList->SetVisibility(ESlateVisibility::Visible);
+		DroppedItemList->ItemList->AddItem(ItemData);
+		DroppedItemPtrArr.Add(Dropped);
+		PickUpItemInteract_ShowAndInputReady();
+	}
+	else
+	{
+		DroppedItemList->ItemList->RemoveItem(ItemData);
+		//if (DroppedItemPtrArr.Contains(Dropped)) DroppedItemPtrArr.Remove(Dropped);
+		if (DroppedItemList->ItemList->GetNumItems() == 0)
+		{
+			DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
+			DroppedItemPtrArr.Empty();
+			NPCInteract_UnShow();
+		}
+		else
+		{
+			DroppedItemPtrArr.Remove(Dropped);
+		}
+	}
+}
+```
+
+![image](https://github.com/user-attachments/assets/71e4c985-be60-4ff3-96bc-dca8a0bf6a6c)
+
+ShowDroppedItemList의 매개변수 e가 true인 채로 호출되면,
+
+아이템 정보를 DroppedItemList에 추가하고 아이템 구체의 포인터를 배열에 저장합니다.
+
+반대로 플레이어와 겹치지 않을 경우는 e가 false인 채로 호출되어,
+
+DroppedItemList에서 아이템 정보를 제거하고, 아이템 구체의 포인터 또한 제거합니다.
+
+```C++
+void ACPlayerController::PickUpItemInteract_ShowAndInputReady()
+{
+	if (ButtonActionUI != nullptr) NPCInteract_UnShow();
+	ButtonActionUI = CreateWidget<UCButtonAction>(this, ButtonActionAsset);
+	if (IsValid(ButtonActionUI))
+	{
+		FVector MiddlePos = (GetCharacter()->GetActorLocation() + (GetCharacter()->GetActorRightVector() * -100.f + GetCharacter()->GetActorUpVector() * 100.f));
+		FVector2D ScreenLocation;
+		ProjectWorldLocationToScreen(MiddlePos, ScreenLocation);
+
+		ButtonActionUI->AddToViewport();
+		ButtonActionUI->SetButtonMode(INTERACT_BUTTON_MODE_PICKUPITEM);
+		ButtonActionUI->SetPositionInViewport(ScreenLocation);
+		//ButtonActionUI->
+	}
+}
+```
+
+또한 아이템 구체와 충돌 중일 때 PickUpItemInteract_ShowAndInputReady함수를 호출해서
+
+상호작용 버튼을 화면에 표시하고, E버튼 클릭 시 아이템 픽업을 수행하도록 SetButtonMode 함수를 통해서 현재 상태를 저장합니다.
+
+```C++
+void ACPlayerController::OnInteract()
+{
+	if (ButtonActionUI == nullptr) return;
+	switch(ButtonActionUI->GetButtonMode())
+	{
+	case(INTERACT_BUTTON_MODE_NPCDIALOGUE):
+		NPCInteract_Interact();
+		return;
+	case(INTERACT_BUTTON_MODE_CLIMBROPE):
+		ClimbRopeInteract_Interact();
+		return;
+	case(INTERACT_BUTTON_MODE_JUMPPOINTS):
+		JumpPointsInteract_Interact();
+		return;
+	case(INTERACT_BUTTON_MODE_PICKUPITEM):
+		PickUpItemInteract_Interact();
+		return;
+	}
+}
+
+void ACPlayerController::PickUpItemInteract_Interact()
+{
+	if (ButtonActionUI == nullptr) return;
+	TArray<UObject*> tempArr = DroppedItemList->ItemList->GetListItems();
+	//UCInventoryItemData* tempItem;
+	//ACDroppedItem* tempDroppedItem;
+	for (UObject* temp : tempArr)
+	{
+		if (!IsValid(temp)) continue;
+		UCInventoryItemData* tempItem = Cast<UCInventoryItemData>(temp);
+		if (tempItem == nullptr) continue;
+		AddInventoryItem(tempItem);
+		DroppedItemList->ItemList->RemoveItem(tempItem);
+	}
+	for (ACDroppedItem* tempDroppedItem : DroppedItemPtrArr)
+	{
+		if (!IsValid(tempDroppedItem)) continue;
+		//tempDroppedItem = Cast<ACDroppedItem>(temp);
+		if (tempDroppedItem == nullptr) continue;
+		tempDroppedItem->PlayerPickUp();
+		//tempDroppedItem->Destroy();
+	}
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetCharacter());
+	if (PC == nullptr) return;
+	PC->PickUp.ExecuteIfBound();
+	NPCInteract_UnShow();
+
+	DroppedItemList->SetVisibility(ESlateVisibility::Hidden);
+}
+```
+
+상호작용 버튼을 통해 PickUpItemInteract_Interact함수가 호출되면,
+
+DroppedItemList에 저장되어 있는 모든 아이템을 [*1-1-1. 아이템 획득*](#1-1-1-아이템-획득)에서 설명한 AddInventoryItem함수를 통해 인벤토리에 추가합니다.
+
+아이템 구체의 포인터가 저장되어 있는 배열을 통해 충돌 중인 모든 아이템 구체를 비활성화합니다.
+
+### 2-4-1. 나이아가라 시스템을 활용한 몬스터 사망 이펙트 구현
+
+```C++
+void ACEnemyCharacter::Die()
+{
+	if (!bIsDying)
+	{
+		bIsDying = true;
+
+		if (LastHitCharacter == nullptr) LastHitCharacter = GetDealingPlayer();
+
+		DetachFromControllerPendingDestroy();
+
+		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+		CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		SetActorEnableCollision(true);
+
+		IIPlayerQuest* PQ = Cast<IIPlayerQuest>(LastHitCharacter);
+		if (PQ != nullptr)
+		{
+			PQ->MonsterKilledCount(this);
+		}
+
+		if (!bIsRagdoll)
+		{
+			// Ragdoll
+			GetMesh()->SetAllBodiesSimulatePhysics(true);
+			GetMesh()->SetSimulatePhysics(true);
+			GetMesh()->WakeAllRigidBodies();
+			GetMesh()->bBlendPhysics = true;
+
+			UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			if (CharacterComp)
+			{
+				CharacterComp->StopMovementImmediately();
+				CharacterComp->DisableMovement();
+				CharacterComp->SetComponentTickEnabled(false);
+			}
+
+
+			GetWorld()->GetTimerManager().SetTimer(DiedClock, FTimerDelegate::CreateLambda(
+				[&] {
+					if (DiedFXComponent != nullptr) DiedFXComponent->ActivateSystem();
+					bVeporizeCorpes = true;
+				}
+			), 3.f, false );
+
+			
+
+			//SetLifeSpan(28.0f);
+			bIsRagdoll = true;
+
+			//Drop Item
+			FDropTableRow* R;
+			ACDroppedItem* DI;
+			AMMBGameModeBase* GM = Cast<AMMBGameModeBase>(GetWorld()->GetAuthGameMode());
+
+			if (DropTable == nullptr) return;
+			for (FName RowName : DropTable->GetRowNames())
+			{
+				UE_LOG(LogTemp, Log, TEXT("Row Name : %s"), *RowName.ToString());
+				R = DropTable->FindRow<FDropTableRow>(RowName, FString(""));
+				if (R == nullptr || FMath::RandRange(0.f, 1.f) > R->ItemDropRate) continue;
+
+				DI = GetWorld()->SpawnActor<ACDroppedItem>(ACDroppedItem::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
+				UCInventoryItemData* ID = GM->GetItem(FName(R->ItemCode));
+				if (ID == nullptr) continue;
+				DI->SetPossessingItem(*ID);
+			}
+		}
+	}
+}
+```
+
+```C++
+void ACPlayerCharacter::MonsterKilledCount(ACEnemyCharacter* MonsterKilled)
+{
+	//UE_LOG(LogTemp, Log, TEXT("Killed Monster Class : %s"), MonsterKilled->GetFName());
+
+	if (ACPlayerController* PC = Cast<ACPlayerController>(GetController()))
+	{
+		PC->CheckQuest(MonsterKilled);
+		//PC->CheckQuest(this, MonsterClass);
+	}
+}
+```
+
+몬스터 사망 시, [*아이템 획득*](#1-1-1-아이템-획득) 시와 동일하게 CheckQuest 함수를 호출해서 퀘스트 목적 달성 여부를 검사합니다.
+
+또한 SetSimulatePhysics함수를 호출하고, 모든 애니메이션을 정지시켜 랙돌 형태로 전환하여 시체를 구현하였습니다.
+
+```C++
+void ACEnemyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ACStageGameMode* StageGM = Cast<ACStageGameMode>(GetWorld()->GetAuthGameMode());
+	if (StageGM != nullptr)
+	{
+		StageGM->PlayerDodged.BindUFunction(this, "OnPlayerDodged");
+		StageGM->PlayerDodgedEnd.BindUFunction(this, "OnPlayerDodgedEnd");
+	}
+
+	if (GetMesh() == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACEnemyCharacter : Can Not Load Mesh"));
+		return;
+	}
+
+	GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &ACEnemyCharacter::OnOverlapPlayer);
+	GetMesh()->OnComponentEndOverlap.AddDynamic(this, &ACEnemyCharacter::OnOverlapEndPlayer);
+
+	DiedFXComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		DiedFX, GetMesh(), FName(), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true, false
+	);
+
+	//MI_D_FullBody = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this, "DynamicInstanceMaterial_MountainDragon");
+}
+```
+
+![image](https://github.com/user-attachments/assets/244c4023-7969-4b40-ac40-26a62bf9ceee)
+
+
+몬스터 스폰 시, 나이아가라 시스템(DiedFX)를 Attach하여 몬스터 사망 후 타이머를 통해 활성화하도록 구현하였습니다.
+
+해당 나이아가라 시스템은 SkeletalMeshLocation을 사용해서 Attach되어 있는 스켈레탈 메시의 무작위 위치에서 파티클이 스폰되고,
+
+Gravity Force와 Jitter Position을 적용시켜 흔들리며 공중으로 날아가도록 구현하였습니다.
+
+```C++
+void ACEnemyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (HP <= 0.f)
+	{
+		Die();
+
+		if (bVeporizeCorpes && DieGlow < 1.f)
+		{
+			DieGlow += DeltaTime / 15.f;
+			if (DieGlow > 1.f)
+			{
+				DieGlow = 1.f;
+			}
+
+			if (MI_D_FullBody != nullptr)
+			{
+				MI_D_FullBody->SetScalarParameterValue("CorpseVepor", DieGlow);
+			}
+			if (DiedFXComponent != nullptr)
+			{
+				if (DieGlow < 1.f)
+				{
+					DiedFXComponent->SetFloatParameter("SpawnRate", (1 - DieGlow) * DieGlowSpawnRate);
+					DiedFXComponent->SetFloatParameter("SpriteSizeMin", (1 - DieGlow) * 7 + 3);
+					DiedFXComponent->SetFloatParameter("SpriteSizeMax", (1 - DieGlow) * 20 + 10);
+				}
+				if (DieGlow >= 1.f)
+				{
+					DiedFXComponent->Deactivate();
+				}
+			}
+		}
+		return;
+	}
+
+	if (OneSecTickInteager < GetWorld()->GetTimeSeconds())
+	{
+		OneSecTickInteager = GetWorld()->GetTimeSeconds();
+		for (auto& AEID : DamagedAttackEventIDMap)
+		{
+			if (AEID.Value + 3 < OneSecTickInteager) continue;
+			DamagedAttackEventIDMap.Remove(AEID.Key);
+		}
+	}
+
+	//Bone Correction
+	//GetMesh();
+}
+```
+
+사망 이후 Tick함수를 통해 사망 시 나이아가라 시스템의 파라미터를 조정하여 크기가 점진적으로 줄어들며 비활성화되도록 구현하였습니다.
+
+### 2-4-2. 머티리얼을 활용한 몬스터 사망 이펙트 구현
+
+![image](https://github.com/user-attachments/assets/45fa03ac-3eb9-4c0e-a63a-a50ee0868ccc)
+
+몬스터 사망 시, 텍스쳐의 특정 부분을 Desaturation이 적용된 부분으로 교체하여 몬스터가 석화되는 듯한 효과를 구현하였습니다.
+
+RaidialGradient를 사용해서 CorpseVepor 변수에 비례하여 TextureSample을 점점 흑백으로 전환시켰습니다.
+
+```C++
+void ACEnemyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (HP <= 0.f)
+	{
+		Die();
+
+		if (bVeporizeCorpes && DieGlow < 1.f)
+		{
+			DieGlow += DeltaTime / 15.f;
+			if (DieGlow > 1.f)
+			{
+				DieGlow = 1.f;
+			}
+
+			if (MI_D_FullBody != nullptr)
+			{
+				MI_D_FullBody->SetScalarParameterValue("CorpseVepor", DieGlow);
+			}
+			if (DiedFXComponent != nullptr)
+			{
+				if (DieGlow < 1.f)
+				{
+					DiedFXComponent->SetFloatParameter("SpawnRate", (1 - DieGlow) * DieGlowSpawnRate);
+					DiedFXComponent->SetFloatParameter("SpriteSizeMin", (1 - DieGlow) * 7 + 3);
+					DiedFXComponent->SetFloatParameter("SpriteSizeMax", (1 - DieGlow) * 20 + 10);
+				}
+				if (DieGlow >= 1.f)
+				{
+					DiedFXComponent->Deactivate();
+				}
+			}
+		}
+		return;
+	}
+
+	if (OneSecTickInteager < GetWorld()->GetTimeSeconds())
+	{
+		OneSecTickInteager = GetWorld()->GetTimeSeconds();
+		for (auto& AEID : DamagedAttackEventIDMap)
+		{
+			if (AEID.Value + 3 < OneSecTickInteager) continue;
+			DamagedAttackEventIDMap.Remove(AEID.Key);
+		}
+	}
+
+	//Bone Correction
+	//GetMesh();
+}
+```
+
+사망 후 Tick에서 CorpseVepor 변수를 점점 증가시켜 사망 이펙트가 종료됨에 따라
+
+캐릭터 메시가 전부 흑백으로 표현되도록 구현하였습니다.
+
+![perish_2](https://github.com/user-attachments/assets/19eb1ee8-5869-4b17-9e2b-06692204d08e)
