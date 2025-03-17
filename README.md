@@ -1,4 +1,4 @@
-
+![image](https://github.com/user-attachments/assets/918768b5-5cc2-4763-ab78-50997483b3cf)
 # Arcane Crusader<br><br>플레이 영상
 
 [![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
@@ -67,12 +67,17 @@
 
 	![atk_rs_ult_supp](https://github.com/user-attachments/assets/61a85212-024a-4f96-97ef-d01e9b9b1dd4)
 
-	* [**2-5. 연속 공격 시스템**](#2-5-연속-공격-시스템템)
+	* [**2-5. 공격 시스템**](#2-5-공격-시스템)
+	    + [*2-5-1. 머티리얼을 활용한 무기 이펙트 구현*](#2-5-1-머티리얼을-활용한-무기-이펙트-구현)
+	    + [*2-5-2. AnimNotify를 활용한 공격 연계 시스템 구현*](#2-5-2-AnimNotify를-활용한-공격-연계-시스템-구현)
+	    + [*2-5-3. 여러 애니메이션을 사용한 공격 구현*](#2-5-3-여러-애니메이션을-사용한-공격-구현)
 
 	![atk_bs_pyeong](https://github.com/user-attachments/assets/08135222-e660-438f-90cf-a55e458e2e13)
 	![atk_bs_switch](https://github.com/user-attachments/assets/6d5263ff-2c25-4d35-bf89-acbef3ae8f13)
 
-	* [**이펙트 소환 최적화 시스템**]()
+	* [**2-6. 이펙트 소환 최적화 시스템**](#2-6-이펙트-소환-최적화-시스템)
+	    + [*2-6-1. 오브젝트 풀링 패턴을 활용한 최적화 시스템*](#2-6-1-오브젝트-풀링-패턴을-활용한-최적화-시스템)
+  
 	* [**투사체 공격 시스템**]()
 
 	![atk_rs_switch_supp](https://github.com/user-attachments/assets/dc910141-aad5-41e4-bbdb-d599f067f2dc)
@@ -4385,5 +4390,533 @@ void ACEnemyCharacter::Tick(float DeltaTime)
 ![perish_2](https://github.com/user-attachments/assets/19eb1ee8-5869-4b17-9e2b-06692204d08e)
 
 
-## 2-5. 연속 공격 시스템
+## 2-5. 공격 시스템
+
+### 2-5-1. 머티리얼을 활용한 무기 이펙트 구현
+
+![image](https://github.com/user-attachments/assets/ad3a63d0-46d3-43b9-b1be-d6db546ac9ae)
+
+Time 변수와 코사인을 사용하여 특정 주기로 크고 작아지는 변수 Clock Circular Opacity와 Clock Opacity Whole을 선언하였습니다.
+
+변수에 비례해서 점멸하는 효과를 구현하였고, Attacking이 1일 경우 주기를 무시하고 강제로 발광합니다.
+
+![image](https://github.com/user-attachments/assets/0ef5ecb1-ea18-4919-ac34-7b472ae30698)
+
+![bs_glowing_part0](https://github.com/user-attachments/assets/c188151b-20c7-4868-9ad8-d2ad15b99395)
+
+RadialGradient를 사용해서 텍스쳐의 특정 지점으로부터 커지고 작아지는 텍스쳐를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/baeb1e18-f67b-4c42-bb25-e1470b75be86)
+
+![bs_glowing_part1](https://github.com/user-attachments/assets/dbff4c86-c148-4dc6-b4fc-8cbf5fb5772b)
+
+해당 텍스쳐에 기존의 텍스쳐를 곱해 윤곽선을 강조하는 텍스쳐를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/3ccf4138-1922-4604-8e8d-efc025e4c522)
+
+![bs_glowing_part2](https://github.com/user-attachments/assets/9a5b6fb3-b56f-4348-a21a-aefd4972736d)
+
+해당 텍스쳐에 RGB값을 높게 잡은 색상을 곱해 이미시브 컬러로 사용하여 광원효과를 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/9fb72069-5951-4f4d-aef0-c0043e8f2eba)
+
+![bs_glowing_part3](https://github.com/user-attachments/assets/1ebceb84-9d82-4a49-98b6-e3123920c6b7)
+
+특정 지점으로부터 커지고 작아지는 텍스쳐와 기존 텍스쳐를 이용해
+
+점멸하며 보여질 부분을 구현하여 오파시티로 사용하였습니다.
+
+![bs_glowing_whole](https://github.com/user-attachments/assets/4447d3ef-f0e6-4f32-bbc9-c2fb36d53d28)
+
+### 2-5-2. AnimNotify를 활용한 공격 연계 시스템 구현
+
+![atk_bs_switch](https://github.com/user-attachments/assets/95d1d322-9c63-497d-b827-b6c2fc1b0503)
+
+좌, 우클릭을 연계하여 다양한 공격을 수행할 수 있도록 구현하였습니다.
+
+```C++
+void ACPlayerCharacter::LMBTriggered()
+{
+	SetKeyState(PLAYER_INPUT_LMB, true);
+
+	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
+	{
+		if (WeaponEquipped != nullptr)
+		{
+			//(this->*LMBPressedPointer)(*this);
+			AttackResult AR = AttackResult();
+			if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->LMB_Triggered(AR);
+			StaminaSpend(AR.StaminaUsed);
+		}
+	}
+}
+
+void ACPlayerCharacter::LMBCompleted()
+{
+	SetKeyState(PLAYER_INPUT_LMB, false);
+
+	if (PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK))
+	{
+		if (WeaponEquipped != nullptr)
+		{
+			//(this->*LMBPressedPointer)(*this);
+			AttackResult AR = AttackResult();
+			if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(WeaponEquipped)) IWeaponEquipped->LMB_Completed(AR);
+			StaminaSpend(AR.StaminaUsed);
+		}
+	}
+}
+```
+
+인터페이스를 정의해 무기마다 서로 다른 행동을 수행하도록 구현하였습니다.
+
+![atk_bs_pyeong](https://github.com/user-attachments/assets/eb82d845-7e74-405c-a9b3-4f69d30499f0)
+
+![image](https://github.com/user-attachments/assets/f549106a-381e-4961-a946-c34beb9552bc)
+
+```C++
+void UCAnimNotifyState_PlayerComboWait::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+{
+	if (GetPC(MeshComp))
+	{
+		PC->SetContinueCombo(false);
+		PC->SetState(PLAYER_ATTACK_CANCLE_UNLOCK, false);
+	}
+}
+
+void UCAnimNotifyState_PlayerComboWait::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	Super::NotifyEnd(MeshComp, Animation);
+	if (GetPC(MeshComp))
+	{
+		if (!PC->GetContinueCombo() && !PC->GetState(PLAYER_BS_ESCAPE_COMBO_TAB))
+		{
+			PC->StopAnimMontage();
+			PC->SetState(PLAYER_ATTACKING, false);
+		}
+	}
+}
+```
+
+기본 연계 공격은 하나의 애니메이션을 활용해 구현하였습니다.
+
+PlayerComboWait AnimNotifyState를 구현해 해당 애님 노티파이 도중 입력이 없을 경우
+
+애니메이션을 멈추고 공격을 중지하도록 구현하였습니다.
+
+NotifyBegin에서 ContinueCombo 변수를 false로 설정하여 버튼 입력을 받을 준비를 하도록 하였습니다.
+
+```C++
+void ACBattleStaff::LMB_Triggered(struct AttackResult& AttackResult)
+{
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (!IsValid(PC)) return;
+	float Stamina = 0.f;
+
+	if (BruteMode)
+	{
+		// …생략
+	}
+	else
+	{
+		if (!PC->GetState(PLAYER_ATTACKING) && !PC->GetState(PLAYER_ROLLING) && !PC->GetMovementComponent()->IsFalling())
+		{
+			PC->SetState(PLAYER_ATTACKING, true);
+			PC->MeleeAttackCombo.ExecuteIfBound();
+
+			ActivateEffect();
+			RequiredStamina = 6.f;
+		}
+		if (!PC->GetContinueCombo())
+		{
+			PC->SetContinueCombo(true);
+		}
+		if (PC->GetState(PLAYER_COMBO_STACK_2) || PC->GetState(PLAYER_COMBO_STACK_3))
+		{
+			RequiredStamina = 4.f;
+			DamageScale = 0.7f;
+		}
+		else DamageScale = 0.3f;
+	}
+}
+```
+
+무기의 LMB_Triggered에서는 ContinueCombo가 False일 경우 해당 값을 true로 할당하여 콤보를 지속시켰습니다.
+
+```C++
+void UCAnimNotifyState_PlayerComboIn1::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+{
+	if (GetPC(MeshComp))
+	{
+		ResetComboStack();
+		PC->SetState(PLAYER_COMBO_STACK_1, true);
+	}
+}
+
+void UCAnimNotifyState_PlayerComboIn1::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	if (GetPC(MeshComp)) ResetComboStack();
+}
+```
+
+![image](https://github.com/user-attachments/assets/a8ad299e-f791-4764-a893-e580c826dd6a)
+
+콤보가 지속됨에 따라 우클릭 / Tab으로 다른 공격을 수행할 수 있도록 하였습니다.
+
+각 콤보마다 콤보 스택 State를 부여하였고 PlayerConboIn 애님 노티파이가 진행중일 때 우클릭 / Tab을 누를 경우
+
+강력한 공격으로 연계할 수 있도록 구현하였습니다.
+
+```C++
+void ACBattleStaff::RMB_Triggered(struct AttackResult& AttackResult)
+{
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+
+	if (BruteMode)
+	{
+		DamageScale = 0.6f;
+		if (PC->GetState(PLAYER_ATTACKING)) return;
+
+		if (!PC->GetState(PLAYER_BRUTEMODE_ORAORA))
+		{
+			ActivateEffect();
+			PC->InitiatePunchCombo.Execute();
+			WeaponOraEffect_BruteMode->GraspFist(true);
+		}
+		PC->SetState(PLAYER_BRUTEMODE_ORAORA, true);
+		PC->SetState(PLAYER_ATTACKING, true);
+	}
+	else
+	{
+		float Stamina = 0.f;
+
+		if (PC->GetState(PLAYER_COMBO_STACK_3))
+		{
+			ActivateEffect();
+			UE_LOG(LogTemp, Log, TEXT("Combo 3 Stack"));
+			PC->StopAnimMontage();
+			if (PC->FinishAttack.ExecuteIfBound())
+			{
+				Stamina = 8.f;
+				PC->SetState(PLAYER_ATTACKING, true);
+				DamageScale = 1.2f;
+			}
+		}
+		else if (PC->GetState(PLAYER_COMBO_STACK_2))
+		{
+			ActivateEffect();
+			UE_LOG(LogTemp, Log, TEXT("Combo 2 Stack"));
+			PC->StopAnimMontage();
+			if (PC->Combo2Attack.ExecuteIfBound())
+			{
+				Stamina = 6.f;
+				PC->SetContinueCombo(true);
+				PC->SetState(PLAYER_ATTACKING, true);
+				DamageScale = 0.5f;
+			}
+		}
+		else if (PC->GetState(PLAYER_COMBO_STACK_1))
+		{
+			ActivateEffect();
+			Stamina = 2.f;
+			UE_LOG(LogTemp, Log, TEXT("Combo 1 Stack"));
+			PC->StopAnimMontage();
+			if (PC->Combo1Attack.ExecuteIfBound())
+			{
+				PC->SetContinueCombo(true);
+				PC->SetState(PLAYER_ATTACKING, true);
+				DamageScale = 0.2f;
+			}
+		}
+		AttackResult.StaminaUsed = Stamina;
+	}
+}
+```
+
+콤보 스택 State가 활성화된 상태인 경우 (PlayerConboIn 애님 노티파이 도중) 우클릭 시 현재 공격을 중단하고 연계 공격을 수행하도록 하였습니다.
+
+![atk_bs_switch](https://github.com/user-attachments/assets/7dd9c5e1-a846-416c-ac81-03575dee19ea)
+
+
+```C++
+void UCAnimNotifyState_PlayerAttack::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
+{
+	//if (StopAttack) return;
+	if (PC != nullptr)
+	{
+		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(PC->WeaponEquipped))
+		{
+			IWeaponEquipped->MeleeAttackHitCheck(Staff_0_LFist_1_RFist_2, DamageScale);
+		}
+	}
+}
+```
+
+![image](https://github.com/user-attachments/assets/5eff7db2-adaf-4498-90e5-0707d8a62601)
+
+공격 판정이 이루어지는 구간은 PlayerAttack 애님 노티파이를 선언하여 구현하였습니다.
+
+매 Tick마다 MeleeAttackHitCheck함수를 호출하여 충돌을 검사합니다.
+
+충돌을 검사할 위치는 정수(Staff_0_LFist_1_RFist_2)에 저장하여 구분하였습니다.
+
+각 공격 별 대미지 상수는 DamageScale로 전달하여 각 공격별로 다른 대미지를 출력할 수 있도록 하였습니다.
+
+```C++
+bool ACBattleStaff::MeleeAttackHitCheck(int32 HitMode, float fDamageScale, float _ExplodeRadius)
+{
+	switch (HitMode)
+	{
+	case(1):
+		return FistHitCheck(true, fDamageScale);
+		break;
+	case(2):
+		return FistHitCheck(false, fDamageScale);
+		break;
+	case(3):
+		if (WeaponOraEffect == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("WeaponOraEffect Can Not Found"));
+			return false;
+		}
+		return StaffHitCheck(WeaponOraEffect->GetWeaponLocation(true), fDamageScale);
+		break;
+	case(4):
+		return ExplodeHitCheck(_ExplodeRadius, fDamageScale);
+		break;
+	default:
+		return StaffHitCheck(FVector::ZeroVector, fDamageScale);
+		break;
+	}
+}
+```
+
+각 공격 별로 다른 판정을 수행합니다.
+
+```C++
+bool ACBattleStaff::StaffHitCheck(FVector HitLocation, float fDamageScale)
+{
+	//FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, GetAttachParentActor());
+	FCollisionObjectQueryParams OQP(PlayerAttackChannel);
+
+	FTransform FireSocketTransform;
+	bool UltAttacking = (HitLocation != FVector::ZeroVector) ? true : false;
+	if (HitLocation != FVector::ZeroVector)
+	{
+		FireSocketTransform.SetLocation(HitLocation);
+	}
+	else
+	{
+		if (FireSocket != nullptr) FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
+	}
+	TArray<FHitResult> tempResults;
+	bool bResult = GetWorld()->SweepMultiByObjectType(
+		tempResults,
+		FireSocketTransform.GetLocation(),
+		FireSocketTransform.GetLocation(),
+		FQuat::Identity,
+		OQP,
+		UltAttacking ? FCollisionShape::MakeSphere(250.f) : FCollisionShape::MakeSphere(30.f),
+		Params
+	);
+
+	if (bResult)
+	{
+		for (FHitResult HitResult : tempResults)
+		{
+			ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+			if (EC == nullptr || TempHitEnemiesArr.Contains(EC)) continue;
+
+			ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetAttachParentActor());
+			if (PC == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AttachParentActor is not ACPlayerCharacter"));
+				return false;
+			}
+
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), StaffMeleeHitSoundCue, GetActorLocation());
+
+			UE_LOG(LogTemp, Log, TEXT("Attack Damage : %f, Damage Scale : %f"), AttackDamage, DamageScale);
+			PC->DealtDamage(AttackDamage, UltAttacking ? 5.f : fDamageScale, EC);
+			EC->HitDamage(AttackDamage * UltAttacking ? 5.f : fDamageScale, *PC, HitResult.Location);
+			TempHitEnemiesArr.Add(EC);
+
+			FTransform HitEffectSpawnTransform;
+			HitEffectSpawnTransform.SetLocation(HitResult.Location);
+			FRotator HitEffectTempRot = FRotationMatrix::MakeFromX(SwingingDirection.GetSafeNormal()).Rotator();
+			HitEffectSpawnTransform.SetRotation(FQuat(HitEffectTempRot));
+			HitEffectSpawnTransform.SetScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+			if (MaterialManager != nullptr)
+			{
+				MaterialManager->SpawnParticle(WeaponEffect[E_MELLEWEAPON_ATTACK_HIT], 1.f, HitEffectSpawnTransform.GetLocation());
+			}
+		}
+	}
+
+	return bResult;
+}
+```
+
+Sweep 판정은 충돌한 모든 몬스터 객체에 대해 대미지를 전달합니다.
+
+TempHitEnemiesArr에 몬스터의 포인터를 저장하여 해당 공격이 마칠 때까지 충돌한 몬스터에게 대미지를 주지 않도록 하였습니다.
+
+```C++
+void UCAnimNotifyState_PlayerAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	if (PC != nullptr)
+	{
+		if (IIWeapon* IWeaponEquipped = Cast<IIWeapon>(PC->WeaponEquipped))
+		{
+			IWeaponEquipped->OnAttackSwingEnd();
+		}
+	}
+}
+```
+
+```C++
+void ACBattleStaff::OnAttackSwingEnd()
+{
+	BruteChargedAD = 0.f;
+	TempHitEnemiesArr.Empty();
+}
+```
+
+공격 판정이 끝날 때(NotifyEnd) TempHitEnemiesArr을 초기화하여 최근에 공격당한 몬스터가 이후 공격에도 피격될 수 있도록 하였습니다.
+
+### 2-5-3. 여러 애니메이션을 사용한 공격 구현
+
+```C++
+void ACBattleStaff::Tab_Triggered(AttackResult& AttackResult)
+{
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (PC == nullptr) return;
+	if (!BruteMode)
+	{
+		bool bComboing = PC->GetState(PLAYER_COMBO_STACK_1) || PC->GetState(PLAYER_COMBO_STACK_3);
+		bool bComboing2 = PC->GetState(PLAYER_COMBO_STACK_2);
+		if (bComboing || bComboing2)
+		{
+			PC->SetContinueCombo(false);
+			PC->SetState(PLAYER_BS_ESCAPE_COMBO_TAB, true);
+			PC->StopAnimMontage();
+			PC->BattleStaffUlt.Execute(bComboing);
+			PC->SetState(PLAYER_ATTACKING, true);
+			AttackResult.Succeeded = true;
+		}
+		else
+		{
+			if (PC->GetState(PLAYER_ATTACKING) || BruteGauge < 1.f) return;
+			//WeaponOraEffect->SetEffectVisibility(false);
+			WeaponOraEffect_BruteMode->SetEffectVisibility(true);
+			BruteMode = true;
+			PC->Sheath.Execute();
+			//PC->SwitchBruteMode(true);
+		}
+	}
+	else
+	{
+		if (!PC->PlayerInputCheck(PLAYER_INPUT_TYPE_CLICK)) return;
+
+		BruteMode = false;
+		WeaponOraEffect_BruteMode->SetEffectVisibility(false);
+		PC->Draw.Execute();
+		//PC->SwitchBruteMode(false);
+	}
+}
+```
+
+```C++
+void UCPlayerAnimInstance::BattleStaffUlt(bool bSkip)
+{
+	PlaySlotAnimationAsDynamicMontage(AnimSequenceBattleStaffUlt, "DefaultSlot", 0.25f, 0.25f, 1.f, 1, -1.f, bSkip? 2.5f : 1.6f);
+}
+```
+
+콤보 도중 Tab을 누를 경우 공격 판정과 동시에 무기의 모드를 변형합니다.
+
+Delegate를 호출할 때 파라미터를 전달하여 특정 콤보 도중에는 공격 애니메이션의 중간부터 공격을 진행하도록 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/037ec78e-0aac-4af4-b567-ec1e1a10ba28)
+
+![image](https://github.com/user-attachments/assets/c6d6e12f-33af-49ff-8ba3-2be0ee70b1c2)
+
+콤보 도중 다른 애니메이션으로 넘어가거나, 무기를 투척해야 할 때 등 특정 연산이 필요할 때
+
+WeaponCallFunc 함수를 정의하여 사용하였습니다.
+
+```C++
+void UCAnimNotify_WeaponCallFunc::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	IIPlayerState* PlayerState = Cast<IIPlayerState>(MeshComp->GetOwner());
+	if (PlayerState == nullptr) return;
+	if (WeaponType < 1)
+	{
+		switch (ToCallFunc)
+		{
+		case(0):	// Throw Staff Effect Forward
+			PlayerState->ThrowStaffEffect();
+			break;
+		case(1):	// Turn To Brute Mode If Brute Gauge Is Enough ( Check Condition In Function )
+			PlayerState->TurnBruteMode();
+			break;
+		case(2):	// Throw Direct Forward
+			PlayerState->Ult_ThrowStaffEffectDirect();
+			break;
+		case(3):	// Jump Init
+			PlayerState->Ult_Jump();
+			break;
+		case(4):	// Punch Ready
+			PlayerState->Ult_PunchInit();
+			break;
+		case(5):	// Airbone
+			PlayerState->Ult_Airbone();
+			break;
+		case(6):	// Land + Deal Damage
+			PlayerState->Ult_Land();
+			break;
+		case(7):
+			PlayerState->Ult_HitGround();
+			break;
+		case(8):	// Backflip
+			PlayerState->Ult_Backflip();
+			break;
+		case(9):	// Sheath Switch Back Socket
+			PlayerState->SwitchBruteMode(true);
+			break;
+		case(10):	// Draw Switch Hand Socket
+			PlayerState->SwitchBruteMode(false);
+			break;
+		}
+	}
+	else
+	{
+		switch (ToCallFunc)
+		{
+		case(0):	// Switch Hand To Temp (Left) / Spawn + Attach Beacon To RHand
+			PlayerState->SwitchWeaponHoldingHand(true);
+			PlayerState->SpawnAndGraspBeacon();
+			break;
+		case(1):	// Throw Beacon To Target;
+			PlayerState->ThrowBeacon();
+			break;
+		case(2):	// Switch Hand To Normal (Right)
+			PlayerState->SwitchWeaponHoldingHand(false);
+			break;
+		default:
+			break;
+		}
+	}
+}
+```
+
+에디터 상에서 호출할 함수의 Index(ToCallFunc)를 지정하면 애니메이션의 특정 부분에서 함수를 호출하여
+
+무기 투척, 다른 애니메이션으로의 연계 등을 구현하였습니다.
+
+![atk_bs_switch](https://github.com/user-attachments/assets/9d85f0a2-83f8-4655-ae43-08139b2a5208)
+![atk_bs_ult](https://github.com/user-attachments/assets/b5300cbc-9416-4de3-8126-df59fb3b9abc)
 
