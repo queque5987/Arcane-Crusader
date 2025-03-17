@@ -4920,3 +4920,163 @@ void UCAnimNotify_WeaponCallFunc::Notify(USkeletalMeshComponent* MeshComp, UAnim
 ![atk_bs_switch](https://github.com/user-attachments/assets/9d85f0a2-83f8-4655-ae43-08139b2a5208)
 ![atk_bs_ult](https://github.com/user-attachments/assets/b5300cbc-9416-4de3-8126-df59fb3b9abc)
 
+## 2-6. 이펙트 소환 최적화 시스템
+
+```C++
+void ACStageGameMode::SpawnParticle(UParticleSystem* SpawnParticle, float LifeSpan, FVector Location, FRotator Rotation, FVector Scale, USceneComponent* ToAttachComponent)
+{
+	if (SpawnParticle == nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ACStageGameMode::SpawnParticle SpawnParticle Not Found"));
+		return;
+	}
+
+	//Check If There's Usable(Currently Disabled) ParticleSystemComponent
+	if (SpawnedParticleComponents.Num() > 0)
+	{
+		for (int i = 0; i < SpawnedParticleComponents.Num(); i++)
+		{
+			if (!SpawnedParticleComponents[i]->IsActive())
+			{
+				SpawnedParticleComponents[i]->SetTemplate(SpawnParticle);
+				SpawnedParticleLifeSpans[i] = LifeSpan;
+				SpawnedParticleComponents[i]->SetRelativeScale3D(Scale);
+				if (ToAttachComponent != nullptr)
+				{
+					SpawnedParticleComponents[i]->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+					SpawnedParticleComponents[i]->AttachToComponent(ToAttachComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+				}
+				else
+				{
+					SpawnedParticleComponents[i]->SetWorldLocation(Location);
+					SpawnedParticleComponents[i]->SetWorldRotation(Rotation);
+				}
+				SpawnedParticleComponents[i]->Activate();
+				return;
+			}
+		}
+	}
+	// Create
+	UParticleSystemComponent* PSC = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SpawnParticle, Location, Rotation, false);
+	PSC->SetRelativeScale3D(Scale);
+	if (ToAttachComponent != nullptr)
+	{
+		PSC->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		PSC->AttachToComponent(ToAttachComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		PSC->SetRelativeLocation(Location);
+		PSC->SetRelativeRotation(Rotation);
+	}
+	else
+	{
+		PSC->SetWorldLocation(Location);
+		PSC->SetWorldRotation(Rotation);
+	}
+	SpawnedParticleComponents.Add(PSC);
+	SpawnedParticleLifeSpans.Add(LifeSpan);
+	UE_LOG(LogTemp, Log, TEXT("ACStageGameMode Spawn New Component"));
+	return;
+}
+```
+
+파티클은 게임모드의 SpawnParticle 함수를 통해 최적화된 방법으로 소환할 수 있도록 구현하였습니다.
+
+### 2-6-1. 오브젝트 풀링 패턴을 활용한 최적화 시스템
+
+```C++
+void ACStageGameMode::SpawnParticle(UParticleSystem* SpawnParticle, float LifeSpan, FVector Location, FRotator Rotation, FVector Scale, USceneComponent* ToAttachComponent)
+{
+	// …생략
+	// Create
+	UParticleSystemComponent* PSC = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SpawnParticle, Location, Rotation, false);
+	PSC->SetRelativeScale3D(Scale);
+	if (ToAttachComponent != nullptr)
+	{
+		PSC->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		PSC->AttachToComponent(ToAttachComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		PSC->SetRelativeLocation(Location);
+		PSC->SetRelativeRotation(Rotation);
+	}
+	else
+	{
+		PSC->SetWorldLocation(Location);
+		PSC->SetWorldRotation(Rotation);
+	}
+	SpawnedParticleComponents.Add(PSC);
+	SpawnedParticleLifeSpans.Add(LifeSpan);
+	UE_LOG(LogTemp, Log, TEXT("ACStageGameMode Spawn New Component"));
+	return;
+}
+```
+
+파티클 생성 시, TArray에 해당 포인터와 재생 시간(LifeSpan)을 저장합니다.
+
+```C++
+void ACStageGameMode::Tick(float DeltaSeconds)
+{
+	if (DirectionalLight == nullptr) return;
+	// …생략
+	if (SpawnedParticleComponents.Num() > 0.f)
+	{
+		for (int i = 0; i < SpawnedParticleComponents.Num(); i++)
+		{
+			UE_LOG(LogTemp, Log, TEXT("ACStageGameMode Particles[%d] : %s\t%s\tLifeSpan : %f"),
+				i, *SpawnedParticleComponents[i]->GetName(), SpawnedParticleComponents[i]->IsActive() ? TEXT("Active") : TEXT("False"), SpawnedParticleLifeSpans[i]
+			);
+
+			SpawnedParticleLifeSpans[i] -= DeltaSeconds;
+			if (SpawnedParticleLifeSpans[i] < -30.f)
+			{
+				SpawnedParticleComponents[i]->DestroyComponent();
+				SpawnedParticleComponents.RemoveAt(i);
+				SpawnedParticleLifeSpans.RemoveAt(i);
+			}
+			else if (SpawnedParticleLifeSpans[i] < 0.f)
+			{
+				SpawnedParticleComponents[i]->Deactivate();
+			}
+		}
+	}
+}
+```
+
+게임모드의 Tick에선 TArray에 저장되어 있는 파티클을 순회하며 LifeSpan을 감소시키고,
+
+사용이 끝난 파티클은 비활성화, 사용이 오랫동안 되지 않는 파티클은 제거하도록 구현하였습니다.
+
+```C++
+void ACStageGameMode::SpawnParticle(UParticleSystem* SpawnParticle, float LifeSpan, FVector Location, FRotator Rotation, FVector Scale, USceneComponent* ToAttachComponent)
+{
+	// …생략
+	//Check If There's Usable(Currently Disabled) ParticleSystemComponent
+	if (SpawnedParticleComponents.Num() > 0)
+	{
+		for (int i = 0; i < SpawnedParticleComponents.Num(); i++)
+		{
+			if (!SpawnedParticleComponents[i]->IsActive())
+			{
+				SpawnedParticleComponents[i]->SetTemplate(SpawnParticle);
+				SpawnedParticleLifeSpans[i] = LifeSpan;
+				SpawnedParticleComponents[i]->SetRelativeScale3D(Scale);
+				if (ToAttachComponent != nullptr)
+				{
+					SpawnedParticleComponents[i]->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+					SpawnedParticleComponents[i]->AttachToComponent(ToAttachComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+				}
+				else
+				{
+					SpawnedParticleComponents[i]->SetWorldLocation(Location);
+					SpawnedParticleComponents[i]->SetWorldRotation(Rotation);
+				}
+				SpawnedParticleComponents[i]->Activate();
+				return;
+			}
+		}
+	}
+	// …생략
+}
+```
+
+저장된 파티클이 있을 경우 해당 파티클을 순회하며 비활성화 되어 있는 파티클 컴포넌트를 찾습니다.
+
+해당하는 컴포넌트가 있을 경우, 파라미터를 교체하고 재활성화하여 새로운 컴포넌트를 생성하는 과정을 최소화하였습니다.
+
