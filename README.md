@@ -77,9 +77,10 @@
 
 	* [**2-6. 이펙트 소환 최적화 시스템**](#2-6-이펙트-소환-최적화-시스템)
 	    + [*2-6-1. 오브젝트 풀링 패턴을 활용한 최적화 시스템*](#2-6-1-오브젝트-풀링-패턴을-활용한-최적화-시스템)
-	    + [*2-6-2. HLOD*]()
+	    + [*2-6-2. HLOD를 활용한 메모리 최적화*](#-2-6-2-HLOD를-활용한-메모리-최적화)
   
-	* [**투사체 공격 시스템**]()
+	* [**2-7. 투사체 공격 시스템**](#2-7-투사체-공격-시스템)
+	    + [*2-7-1. 재활용 가능한 투사체 오브젝트 구현*](#2-7-1-재활용-가능한-투사체-오브젝트-구현)
 
 	![atk_rs_switch_supp](https://github.com/user-attachments/assets/dc910141-aad5-41e4-bbdb-d599f067f2dc)
 ------
@@ -5080,4 +5081,398 @@ void ACStageGameMode::SpawnParticle(UParticleSystem* SpawnParticle, float LifeSp
 저장된 파티클이 있을 경우 해당 파티클을 순회하며 비활성화 되어 있는 파티클 컴포넌트를 찾습니다.
 
 해당하는 컴포넌트가 있을 경우, 파라미터를 교체하고 재활성화하여 새로운 컴포넌트를 생성하는 과정을 최소화하였습니다.
+
+### 2-6-2. HLOD를 활용한 메모리 최적화
+
+![image](https://github.com/user-attachments/assets/07520402-09d5-4c90-98d5-c6aee3dd2cbc)
+
+## 2-7. 투사체 공격 시스템
+
+```C++
+void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
+{
+	IIPlayerState* PS = Cast<IIPlayerState>(GetOwner());
+	if (PS == nullptr) return;
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (!IsValid(PC)) return;
+
+	if (!PS->GetState(PLAYER_AIMING)) return;
+
+	if (AttackCoolDown < ConstAttackCoolDown) return;
+
+	if (CurrBullet[BulletType] <= 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("No Ammo"));
+		//return;
+	}
+
+	PS->SetState(PLAYER_ATTACKING, true);
+
+	float Delay = 0.01f;
+	switch (BulletType)
+	{
+	case(RIFLESTAFF_BULLET_RIFLE)://Rifle Bullet
+		if (!LMBLock)
+		{
+			SetLMBLock(true);
+		}
+		AttackResult.StaminaUsed = 0.08f;
+		break;
+	case(RIFLESTAFF_BULLET_SHOTGUN)://ShotGun Bullet
+		AttackResult.StaminaUsed = 12.f;
+		PC->FireRifle.ExecuteIfBound();
+		for (int i = 0; i < 10; i++)
+		{
+			BuckShot(i);
+		}
+		AttackCoolDown = 0.f;
+		break;
+	case(RIFLESTAFF_BULLET_MACHINEGUN)://MachineGun Bullet
+		AttackResult.StaminaUsed = 5.f;
+		PC->FireRifle.ExecuteIfBound();
+
+		for (auto& H : MachineGunTimerHandler)
+		{
+			GetWorld()->GetTimerManager().SetTimer(H, this, &ACRifleStaff::Fire, Delay);
+			Delay += 1.f / 6.f;
+		}
+		AttackCoolDown = 0.f;
+		break;
+	default:
+		break;
+	}
+}
+```
+
+특정 무기를 장비하고 좌클릭 시 현재 탄환에 따른 원거리 공격을 수행하도록 구현하였습니다.
+
+### 2-7-1. 재활용 가능한 투사체 오브젝트 구현
+
+```C++
+void ACProjectile::SetLaunch(ACharacter* SpawnCharacter, UParticleSystem* ProjectileEffect, UParticleSystem* ExplodeEffect, UParticleSystem* SpawnEffect, UParticleSystem* LaunchEffect, float Damage, float RangeLimit, float Acc, float ClockLimit, DELAY_START_PROJECTILE_CONFIGURE* config, bool DoPenetrate, bool OnlyDestructOnClock, bool Snowball, float SnowballAcc, USoundBase* pExplodeSE, USoundBase* pLaunchSE)
+{
+	Trail = RangeLimit;
+	Acceleration = Acc;
+	LimitTime = ClockLimit;
+	TotalDamage = Damage;
+	PC = SpawnCharacter;
+
+	Collider->SetCollisionObjectType((SpawnCharacter != nullptr) ? PlayerAttackChannel : EnemyAttackChannel);
+
+	bPenetrate = DoPenetrate;
+	bOnlyDestructOnClock = OnlyDestructOnClock;
+	bSnowball = Snowball;
+	fSnowball = SnowballAcc;
+
+	ParticleSystemFireBall->SetTemplate(ProjectileEffect);
+	ParticleSystemExplode->SetTemplate(ExplodeEffect);
+	ParticleSystemSpawnEffect->SetTemplate(SpawnEffect);
+	ParticleSystemLaunchEffect->SetTemplate(LaunchEffect);
+	if (config != nullptr)
+	{
+		AccCoefficient = config->AccCoefficient;
+		MaxSpeedCoefficient = config->MaxSpeedCoefficient;
+	}
+
+	SetExplodeSE(pExplodeSE);
+	SetLaunchSE(pLaunchSE);
+
+	ParticleSystemSpawnEffect->ActivateSystem();
+
+	Collider->OnComponentBeginOverlap.AddDynamic(this, &ACProjectile::OnOverlapBegin);
+	Collider->OnComponentEndOverlap.AddDynamic(this, &ACProjectile::OnEndOverlap);
+	if (config != nullptr) GetWorld()->GetTimerManager().SetTimer(LaunchTimerHandle, this, &ACProjectile::SetLaunchQuick, config->LaunchClock);
+	else SetLaunchQuick();
+}
+```
+
+ACProjectile 액터는 SetLaunch함수를 사용해서 투사체를 이동시킬 수 있도록 구현하였습니다.
+
+투사체의 이펙트, 사운드, 가속도, 사거리, 대미지, 시간제한 등을 지정할 수 있으며,
+
+관통 가능 여부(nPenetrate), 사거리 관계 없이 시간초를 이용한 수명 관리(bOnlyDestructOnClock),
+
+크기가 점점 커지는 효과(bSnowball) 등 또한 편집할 수 있도록 구현하였습니다.
+
+```C++
+void ACProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), Collider->GetScaledSphereRadius(), 32, FColor::Blue);
+
+	if (bSnowball)
+	{
+		Collider->SetSphereRadius(Collider->GetScaledSphereRadius() * (1 + fSnowball));
+	}
+
+	ElipsedTime += DeltaTime;
+
+	//Projectile Before Move
+	if (!Launch)
+	{
+		float PreAcc = tanh(ElipsedTime * AccCoefficient) * MaxSpeedCoefficient;
+		if (FMath::IsNearlyZero(PreAcc)) return;
+		FVector CurrentLocation = GetActorLocation();
+		FVector DirectionVector = GetActorForwardVector();
+		SetActorLocation(CurrentLocation + DirectionVector * PreAcc);
+		return;
+	}
+	//Projectile Move
+	FVector CurrentLocation = GetActorLocation();
+	FVector DirectionVector = GetActorForwardVector();
+
+	SetActorLocation(CurrentLocation + DirectionVector*Acceleration);
+	Trail -= (DirectionVector * Acceleration).Size();
+
+	//Time Expired
+	if (bOnlyDestructOnClock && Trail <= 0.f && LimitTime > ElipsedTime)
+	{
+		Acceleration = 0.f;
+		return;
+	}
+	//Trail Exceeded
+	if (Trail <= 0.f || (LimitTime > 0.f && LimitTime <= ElipsedTime))
+	{
+		Explode(false);
+		Trail = 0.f;
+		Launch = false;
+		return;
+	}
+	if (bPenetrate && ElipsedTime >= PenetrationTick * (PenetrationTickCounter + 1))
+	{
+		PenetrationTickCounter++;
+		AttackEventID += PenetrationTick * PenetrationTickCounter;
+		SweepOnLaunch();
+	}
+}
+```
+
+크기가 점점 커지는 효과(bSnowball)은 충돌을 처리하는 USphereComponent의 스케일을 점점 크게하여 구현하였습니다.
+
+```C++
+struct DELAY_START_PROJECTILE_CONFIGURE
+{
+	float AccCoefficient;
+	float LaunchClock;
+	float MaxSpeedCoefficient;
+};
+```
+
+(DelayStart)투사체에 생동감을 더하기 위해 발사되기 이전의 가속도 또한 지정할 수 있도록 구현하였습니다.
+
+```C++
+void ACProjectile::SetLaunch(ACharacter* SpawnCharacter, UParticleSystem* ProjectileEffect, UParticleSystem* ExplodeEffect, UParticleSystem* SpawnEffect, UParticleSystem* LaunchEffect, float Damage, float RangeLimit, float Acc, float ClockLimit, DELAY_START_PROJECTILE_CONFIGURE* config, bool DoPenetrate, bool OnlyDestructOnClock, bool Snowball, float SnowballAcc, USoundBase* pExplodeSE, USoundBase* pLaunchSE)
+{
+	// …생략
+	if (config != nullptr) GetWorld()->GetTimerManager().SetTimer(LaunchTimerHandle, this, &ACProjectile::SetLaunchQuick, config->LaunchClock);
+	else SetLaunchQuick();
+}
+
+void ACProjectile::SetLaunchQuick()
+{
+	Launch = true;
+	ParticleSystemLaunchEffect->ActivateSystem();
+	if (LaunchSE != nullptr) UGameplayStatics::PlaySoundAtLocation(PC->GetWorld(), LaunchSE, GetActorLocation(), 1.f, 0.65f);
+	SweepOnLaunch();
+}
+```
+
+SetLuanch에서 DelayStart에 대한 구조체가 지정되어 있다면 해당 시간 이후, 아니라면 즉시
+
+SetLaunchQuick함수를 통해 투사체 발사를 시작하는 방식으로 구현하였습니다.
+
+DelayStart의 경우 SetLaunchQuick이 실행되어 Launch변수가 true로 변하기 전까지 지정된 속도로 이동합니다.
+
+```C++
+void ACProjectile::Tick(float DeltaTime)
+{
+	// …생략
+	if (bPenetrate && ElipsedTime >= PenetrationTick * (PenetrationTickCounter + 1))
+	{
+		PenetrationTickCounter++;
+		AttackEventID += PenetrationTick * PenetrationTickCounter;
+		SweepOnLaunch();
+	}
+}
+```
+
+관통 가능한 투사체는 SweepOnLaunch 함수를 주기적으로 실행하여 구현하였습니다.
+
+생성되고 경과한 시간을 ElipsedTime에 저장하고, PenetrationTick 만큼의 시간이 경과한 경우 충돌 판정을 수행하도록 하여
+
+몬스터를 관통하며 특정 주기에 따라 지속적으로 피해를 주는 투사체를 구현하였습니다.
+
+```C++
+bool ACProjectile::SweepOnLaunch()
+{
+	FCollisionObjectQueryParams OQP(Collider->GetCollisionObjectType());
+	TArray<FHitResult> HitResults;
+	bool bResult = GetWorld()->SweepMultiByObjectType(
+		HitResults,
+		GetActorLocation(),
+		GetActorLocation(),
+		FQuat::Identity,
+		OQP,
+		Collider->GetCollisionShape()
+	);
+
+	if (bResult)
+	{
+		int AttackDeniedEnemyCount = 0;
+		int SweepedEnemyCount = 0;
+
+		for (FHitResult HitResult : HitResults)
+		{
+			if (bPenetrate)
+			{
+				SweepActor = Cast<ACharacter>(HitResult.GetActor());
+				HitLocation = GetActorLocation();
+			}
+
+			if (ACPlayerCharacter* CPC = Cast<ACPlayerCharacter>(PC))
+			{
+				ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(HitResult.GetActor());
+				if (!IsValid(EC)) continue;
+				SweepedEnemyCount++;
+				if (!EC->Damagable(AttackEventID))
+				{
+					AttackDeniedEnemyCount++;
+					continue;
+				}
+				EC->HitDamage(TotalDamage, *PC, GetActorLocation());
+				CPC->DealtDamage(TotalDamage, 0.1f, EC);
+				Explode(true);
+			}
+			else if (ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
+			{
+				ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(HitResult.GetActor());
+				if (!IsValid(EC)) continue;
+				EC->HitDamage(TotalDamage, Attacker, GetActorLocation(), PlayerReactPower);
+				Explode(true);
+			}
+		}
+		return (SweepedEnemyCount > 0) ? (SweepedEnemyCount > AttackDeniedEnemyCount ? true : false) : true;
+		//UE_LOG(LogTemp, Log, TEXT("Hit Actor : %s"), *HitResult.GetActor()->GetName());
+	}
+	//UE_LOG(LogTemp, Log, TEXT("Did Not Hit"));
+	return false;
+}
+```
+
+SweepOnLaunch는 투사체 클래스의 Collider(USphereComponent)의 충돌 여부를 검사합니다.
+
+충돌한 모든 적 캐릭터에 대해 대미지를 전달합니다.
+
+```C++
+void ACProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+	AttackEventID = GetWorld()->GetTimeSeconds();
+}
+
+void ACProjectile::Tick(float DeltaTime)
+{
+	// …생략
+	if (bPenetrate && ElipsedTime >= PenetrationTick * (PenetrationTickCounter + 1))
+	{
+		PenetrationTickCounter++;
+		AttackEventID += PenetrationTick * PenetrationTickCounter;
+		SweepOnLaunch();
+	}
+}
+```
+
+```C++
+bool ACEnemyCharacter::Damagable(float AttackID)
+{
+	if (DamagedAttackEventIDMap.Contains(AttackID)) return false;
+
+	DamagedAttackEventIDMap.Add(AttackID, GetWorld()->GetTimeSeconds());
+	return true;
+}
+```
+
+대미지를 전달하기 전, Damagable 함수를 호출해 현재 투사체에 대해 대미지를 입을 수 있는지 여부를 검토합니다.
+
+객체가 생성됐을 때의 시간(AttackEventID)를 사용해 투사체의 대미지 전달 가능 여부를 검사합니다.
+
+해당 시간을 Array에 추가하여, 이후에 해당 투사체의 충돌로 인해 대미지를 받지 않도록 구현하였습니다.
+
+관통이 가능한 상태의 경우 AttackEventID를 대미지 전달 시마다 갱신하여 계속 대미지를 받도록 구현하였습니다.
+
+```C++
+void ACProjectile::Explode(bool Hit)
+{
+	if (!bPenetrate)
+	{
+		ParticleSystemFireBall->Deactivate();
+		ParticleSystemFireBall->SetVisibility(false);
+		Acceleration = 0.f;
+		ParticleSystemExplode->bAutoDestroy = true;
+	}
+	if (ParticleSystemExplode != nullptr && ParticleSystemExplode->Template != nullptr) ParticleSystemExplode->Template->bAutoDeactivate = true;
+
+	if (Hit)
+	{
+		if (ExplodeSE != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+				ExplodeSE,
+				GetActorLocation(), 1.f, 0.65f
+			);
+		}
+		ParticleSystemExplode->SetRelativeScale3D(FVector(3.f, 3.f, 3.f));
+		ParticleSystemExplode->ActivateSystem();
+		if (bPenetrate) return;
+		ParticleSystemExplode->OnSystemFinished.AddDynamic(this, &ACProjectile::OnExplodeFinished);
+	}
+	else Destroy();
+}
+```
+
+충돌 시, Explode함수를 호출해 폭파 효과 재생과 추가 대미지가 있다면 전달을 수행합니다.
+
+Explode함수는 매개변수를 false로 입력하여 투사체의 지속시간이 경과하여 투사체 소멸 시에도 사용할 수 있도록 하였습니다.
+
+```C++
+void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (PC == nullptr) return;
+	if (bPenetrate)
+	{
+		SweepActor = Cast<ACharacter>(SweepResult.GetActor());
+		HitLocation = SweepResult.Location;
+	}
+	if(ACPlayerCharacter* CPC = Cast<ACPlayerCharacter>(PC))
+	{
+		ACEnemyCharacter* EC = Cast<ACEnemyCharacter>(SweepResult.GetActor());
+		if (!IsValid(EC)) return;
+		UE_LOG(LogTemp, Log, TEXT("Projectile Overlaped Actor : %s"), *SweepResult.GetActor()->GetName());
+		UE_LOG(LogTemp, Log, TEXT("Projectile Overlaped Component : %s"), *SweepResult.GetComponent()->GetName());
+
+		//EC->HitDamage(TotalDamage, *PC, SweepResult.Location);
+		CPC->DealtDamage(TotalDamage, 0.1f, EC);
+		EC->HitDamage(TotalDamage, *PC, GetActorLocation());
+		Explode(true);
+	}
+	else if(ACEnemyCharacter* Attacker = Cast<ACEnemyCharacter>(PC))
+	{
+		ACPlayerCharacter* EC = Cast<ACPlayerCharacter>(SweepResult.GetActor());
+		if (!IsValid(EC)) return;
+		//DrawDebugSphere(GetWorld(), GetActorLocation(), Collider->GetScaledSphereRadius(), 26, FColor::Red);
+		UE_LOG(LogTemp, Log, TEXT("E_Projectile Overlaped Actor : %s"), *SweepResult.GetActor()->GetName());
+		UE_LOG(LogTemp, Log, TEXT("E_Projectile Overlaped Component : %s"), *SweepResult.GetComponent()->GetName());
+
+		//EC->HitDamage(TotalDamage, Attacker, SweepResult.Location, PlayerReactPower);
+		EC->HitDamage(TotalDamage, Attacker, GetActorLocation(), PlayerReactPower);
+		Explode(true);
+	}
+}
+```
+
+관통하지 않는 공격에 대한 처리는 OnComponentBeginOverlap 이벤트에 OnOverlapBegin 함수를 바인딩하여 구현하였습니다.
+
+플레이어뿐만 아니라 적 몬스터의 투사체 공격 또한 해당 함수를 통해 처리할 수 있도록 구현하였습니다.
 
