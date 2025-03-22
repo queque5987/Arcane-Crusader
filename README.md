@@ -81,7 +81,7 @@
   
 	* [**2-7. 투사체 공격 시스템**](#2-7-투사체-공격-시스템)
 	    + [*2-7-1. 재활용 가능한 투사체 오브젝트 구현*](#2-7-1-재활용-가능한-투사체-오브젝트-구현)
-	    + [*2-7-2. 재활용 가능한 투사체 오브젝트 구현*](#2-7-1-재활용-가능한-투사체-오브젝트-구현)
+	    + [*2-7-2. 투사체 오브젝트를 활용한 공격 구현*](#2-7-2-투사체-오브젝트를-활용한-공격-구현)
 
 	![atk_rs_switch_supp](https://github.com/user-attachments/assets/dc910141-aad5-41e4-bbdb-d599f067f2dc)
 ------
@@ -5477,7 +5477,7 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 
 플레이어뿐만 아니라 적 몬스터의 투사체 공격 또한 해당 함수를 통해 처리할 수 있도록 구현하였습니다.
 
-### 2-7-1. 투사체 오브젝트를 활용한 공격 구현
+### 2-7-2. 투사체 오브젝트를 활용한 공격 구현
 
 ```C++
 void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
