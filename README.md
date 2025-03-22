@@ -81,6 +81,7 @@
   
 	* [**2-7. 투사체 공격 시스템**](#2-7-투사체-공격-시스템)
 	    + [*2-7-1. 재활용 가능한 투사체 오브젝트 구현*](#2-7-1-재활용-가능한-투사체-오브젝트-구현)
+	    + [*2-7-2. 재활용 가능한 투사체 오브젝트 구현*](#2-7-1-재활용-가능한-투사체-오브젝트-구현)
 
 	![atk_rs_switch_supp](https://github.com/user-attachments/assets/dc910141-aad5-41e4-bbdb-d599f067f2dc)
 ------
@@ -5476,3 +5477,305 @@ void ACProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 
 플레이어뿐만 아니라 적 몬스터의 투사체 공격 또한 해당 함수를 통해 처리할 수 있도록 구현하였습니다.
 
+### 2-7-1. 투사체 오브젝트를 활용한 공격 구현
+
+```C++
+void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
+{
+	IIPlayerState* PS = Cast<IIPlayerState>(GetOwner());
+	if (PS == nullptr) return;
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (!IsValid(PC)) return;
+
+	if (!PS->GetState(PLAYER_AIMING)) return;
+
+	if (AttackCoolDown < ConstAttackCoolDown) return;
+
+	if (CurrBullet[BulletType] <= 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("No Ammo"));
+		//return;
+	}
+
+	PS->SetState(PLAYER_ATTACKING, true);
+
+	float Delay = 0.01f;
+	switch (BulletType)
+	{
+	case(RIFLESTAFF_BULLET_RIFLE)://Rifle Bullet
+		if (!LMBLock)
+		{
+			SetLMBLock(true);
+		}
+		AttackResult.StaminaUsed = 0.08f;
+		break;
+	case(RIFLESTAFF_BULLET_SHOTGUN)://ShotGun Bullet
+		AttackResult.StaminaUsed = 12.f;
+		PC->FireRifle.ExecuteIfBound();
+		for (int i = 0; i < 10; i++)
+		{
+			BuckShot(i);
+		}
+		AttackCoolDown = 0.f;
+		break;
+	case(RIFLESTAFF_BULLET_MACHINEGUN)://MachineGun Bullet
+		AttackResult.StaminaUsed = 5.f;
+		PC->FireRifle.ExecuteIfBound();
+
+		for (auto& H : MachineGunTimerHandler)
+		{
+			GetWorld()->GetTimerManager().SetTimer(H, this, &ACRifleStaff::Fire, Delay);
+			Delay += 1.f / 6.f;
+		}
+		AttackCoolDown = 0.f;
+		break;
+	default:
+		break;
+	}
+}
+```
+
+현재 탄환 상태(BulletType)에 따라 다른 공격을 수행하도록 구현하였습니다.
+
+```C++
+void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
+{
+	// …생략
+	case(RIFLESTAFF_BULLET_MACHINEGUN)://MachineGun Bullet
+		AttackResult.StaminaUsed = 5.f;
+		PC->FireRifle.ExecuteIfBound();
+
+		for (auto& H : MachineGunTimerHandler)
+		{
+			GetWorld()->GetTimerManager().SetTimer(H, this, &ACRifleStaff::Fire, Delay);
+			Delay += 1.f / 6.f;
+		}
+		AttackCoolDown = 0.f;
+		break;
+	// …생략
+}
+```
+
+머신건 형태의 공격은 타이머를 사용해서 투사체를 발사하는 Fire 함수를 TimerHandler의 수만큼 반복하여 구현하였습니다.
+
+```C++
+void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
+{
+	// …생략
+	case(RIFLESTAFF_BULLET_SHOTGUN)://ShotGun Bullet
+		AttackResult.StaminaUsed = 12.f;
+		PC->FireRifle.ExecuteIfBound();
+		for (int i = 0; i < 10; i++)
+		{
+			BuckShot(i);
+		}
+		AttackCoolDown = 0.f;
+		break;
+	// …생략
+}
+```
+
+샷건 형태의 공격은 무작위 방향 벡터로 투사체를 발사하는 BuckShot함수를 여러번 호출하여 구현하였습니다.
+
+```C++
+void ACRifleStaff::BuckShot(int32 i)
+{
+	if (!SetSpendBullet(BulletType, 0.7f)) return;
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (FireSocket == nullptr || !IsValid(PC)) return;
+	FTransform FireSocketTransform;
+	FireSocket->GetSocketTransform(FireSocketTransform, StaticMeshComponent);
+
+	FVector SpawnLocation = FireSocketTransform.GetLocation();
+	FVector CameraLocation = PC->CameraComponent->GetComponentLocation();
+	//DrawDebugSphere(GetWorld(), SpawnLocation, 100.f, 26, FColor::Green, true, 2.f);
+
+	float CameraSocketDist = FVector::Distance(CameraLocation, SpawnLocation);
+	FVector TargetLocation = CameraLocation + PC->GetBaseAimRotation().RotateVector(FVector::ForwardVector * (AttackRange + CameraSocketDist));
+
+	FHitResult HitResult;
+	PC->GetLineTraceResult(HitResult, AttackRange);
+	if (HitResult.bBlockingHit)
+	{
+		TargetLocation = HitResult.Location;
+		UE_LOG(LogTemp, Log, TEXT("Hit Actor : %s"), *HitResult.GetActor()->GetName());
+	}
+
+	FRotator ProjRotator = (SpawnLocation - TargetLocation).Rotation();
+
+
+	FVector RandomVector = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(
+		(TargetLocation - SpawnLocation).GetSafeNormal(), 45.f);
+	ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(),
+		SpawnLocation, RandomVector.Rotation());
+	//UE_LOG(LogTemp, Log, TEXT("Random vector : %s"), *RandomVector.ToString());
+	Proj->SetLaunch(
+		PC,
+		WeaponEffect[E_RIFLE_TYPE_A_PROJECTILE],
+		WeaponEffect[E_RIFLE_EXPLODE_EFFECT],
+		nullptr,
+		nullptr,
+		0.6f * ItemStatus->_AttackDamage,
+		AttackRange,
+		BulletSpeed,
+		-1.f, nullptr, false, false, false, 0.01f, WeaponSoundEffect[SE_RIFLE_TYPE_A_Hit]
+	);
+	//CurrBullet[BulletType] -= 1;
+	if (i == 0)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponEffect[E_RIFLE_LAUNCH_EFFECT], SpawnLocation);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSoundEffect[SE_RIFLE_TYPE_B_SHOT], SpawnLocation);
+	}
+	
+	//PC->SetState(PLAYER_ATTACKING, false);
+}
+```
+
+탄환이 발사되는 지점(FireSocket)과 카메라 컴포넌트의 좌표를 이용해 조준점을 향한 방향벡터를 구하고,
+
+RandomUnitVectorInConeInDegrees 함수를 통해 원뿔 내에서의 무작위 방향벡터를 구하였습니다.
+
+무작위로 생성된 방향으로 투사체의 Rotation을 설정하여 탄환이 퍼지는 효과를 구현하였습니다.
+
+```C++
+void ACRifleStaff::LMB_Triggered(AttackResult& AttackResult)
+{
+	// …생략
+	case(RIFLESTAFF_BULLET_RIFLE)://Rifle Bullet
+		if (!LMBLock)
+		{
+			SetLMBLock(true);
+		}
+		AttackResult.StaminaUsed = 0.08f;
+		break;
+	// …생략
+}
+
+void ACRifleStaff::LMB_Completed(AttackResult& AttackResult)
+{
+	IIPlayerState* PS = Cast<IIPlayerState>(GetOwner());
+	if (PS == nullptr) return;
+
+	ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+	if (!IsValid(PC)) return;
+
+	if (!PS->GetState(PLAYER_AIMING)) return;
+
+	if (AttackCoolDown < ConstAttackCoolDown) return;
+
+
+	switch (BulletType)
+	{
+		//Rifle Bullet
+	case(RIFLESTAFF_BULLET_RIFLE):
+		PS->SetState(PLAYER_ATTACKING, true);
+		AttackResult.StaminaUsed = 5.f;
+		PC->FireRifle.ExecuteIfBound();
+		Fire();
+		SetLMBLock(false);
+		AttackCoolDown = 0.f;
+		break;
+	default:
+		PS->SetState(PLAYER_ATTACKING, false);
+		break;
+	}
+}
+```
+
+Rifle 모드는 좌클릭을 통해 충전 후 발사하는 방식으로 구현하였습니다.
+
+좌클릭 Trigger 시, SetLMBLock함수를 통해 LMBLock 변수를 true로 설정하고,
+
+Completed 시, 탄환을 발사하는 Fire 함수를 호출하고, LMBLock 변수를 False로 설정합니다.
+
+```C++
+void ACRifleStaff::SetLMBLock(bool e)
+{
+	if (e)
+	{
+		FireSocketEffectComponent->Activate();
+		if (ChargeAudio == nullptr)
+		ChargeAudio->Play();
+		LMBLock = e;
+	}
+	else
+	{
+		FireSocketEffectComponent->Deactivate();
+		LMBCharge = 0.f;
+		if (ChargeAudio == nullptr) return;
+		if (ChargeAudio->IsPlaying()) ChargeAudio->Stop();
+		LMBLock = e;
+	}
+}
+```
+
+SetLMBLock은 충전 시 효과음을 재생하고 충전 이펙트(FireSocketEffectComponent)를 활성화합니다.
+
+매개변수가 False일 경우 충전 정도를 표시하는 LMBCharge를 초기화합니다.
+
+```C++
+void ACRifleStaff::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+// Rifle Mode Charging
+	if (LMBLock)
+	{
+		LMBCharge += DeltaTime * (1 + ItemStatus->_AttackSpeed);
+
+		if (ChargeAudio != nullptr)
+		{
+			ChargeAudio->VolumeMultiplier = 1.f + LMBCharge;
+		}
+
+		//CurrBullet[RIFLESTAFF_BULLET_RIFLE] -= DeltaTime * (1 + ItemStatus->_AttackSpeed);
+		if (!SetSpendBullet(RIFLESTAFF_BULLET_RIFLE, DeltaTime * (7 + ItemStatus->_AttackSpeed)) || LMBCharge > 2.f)
+		{
+			// Force Fire When Not Enough Bullet Or Exceed Charge Time
+			ACPlayerCharacter* PC = Cast<ACPlayerCharacter>(GetOwner());
+			if (PC == nullptr) return;
+			PC->StaminaSpend(12.f);
+			PC->FireRifle.ExecuteIfBound();
+			LMBCharge /= 2.f;
+			Fire();
+			AttackCoolDown = 0.f;
+			if (LMBLock) SetLMBLock(false);
+		}
+	}
+	// …생략
+}
+```
+
+Tick에서는 LMBLock이 True인 경우(좌클릭 입력 중) LMBCharge를 공격속도에 비례해서 증가시킵니다.
+
+최대 충전 시간이 지나거나, 탄환이 부족할 경우 강제로 발사합니다.
+
+```C++
+void ACRifleStaff::Fire()
+{
+	// …생략
+	ACProjectile* Proj = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass(), SpawnLocation, ProjRotator);
+	
+	float tempAD = ItemStatus->_AttackDamage;
+
+	Proj->SetLaunch(
+		PC,
+		WeaponEffect[E_RIFLE_TYPE_A_PROJECTILE],
+		WeaponEffect[E_RIFLE_EXPLODE_EFFECT],
+		nullptr,
+		nullptr,
+		(BulletType == RIFLESTAFF_BULLET_RIFLE) ? tempAD + (tempAD * LMBCharge * 15.f) : tempAD,
+		(BulletType == RIFLESTAFF_BULLET_RIFLE) ? AttackRange + (AttackRange * LMBCharge / 4.f) : AttackRange,
+		BulletSpeed,
+		-1.f, nullptr, false, false, false, 0.01f, WeaponSoundEffect[SE_RIFLE_TYPE_A_Hit]
+	);
+	UE_LOG(LogTemp, Log, TEXT("BulletType  : %d , %f "), BulletType, (BulletType == 0 ? (5 + LMBCharge * 5) : (1.f)));
+	// …생략
+}
+```
+
+Fire함수는 BulletType을 검사해서 Rifle 모드일 경우 LMBCharge에 비례해 대미지 및 사거리를 증가시키도록 구현하였습니다.
+
+![atk_rs_switch](https://github.com/user-attachments/assets/3b22a7d5-ae66-4211-b8f6-19dd013ff22a)
