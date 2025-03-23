@@ -5210,7 +5210,17 @@ void ACStageGameMode::SpawnParticle(UParticleSystem* SpawnParticle, float LifeSp
 
 ### 2-6-2. HLOD를 활용한 메모리 최적화
 
+![image](https://github.com/user-attachments/assets/34262bcd-3b78-444d-ada4-d7fcff256852)
+
 ![image](https://github.com/user-attachments/assets/07520402-09d5-4c90-98d5-c6aee3dd2cbc)
+
+특정 메시들을 HLOD Volume으로 묶어 프록시 메시로 빌드하여 거리에 따라 감소된 트라이앵글과 하나의 메시로 그려지도록 하였습니다.
+
+![image](https://github.com/user-attachments/assets/d8bab4f6-51be-471d-9c51-62eead436584)
+
+![image](https://github.com/user-attachments/assets/1f42bb9b-e678-4f69-921c-d86e95d5f3f6)
+
+레벨에 배치된 주요 스태틱 메시에 HLOD Volume를 배치 후, 빌드하여 드로우콜을 최적화하였습니다.
 
 ## 2-7. 투사체 공격 시스템
 
