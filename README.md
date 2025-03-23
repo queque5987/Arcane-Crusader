@@ -71,6 +71,7 @@
 	    + [*2-5-1. 머티리얼을 활용한 무기 이펙트 구현*](#2-5-1-머티리얼을-활용한-무기-이펙트-구현)
 	    + [*2-5-2. AnimNotify를 활용한 공격 연계 시스템 구현*](#2-5-2-AnimNotify를-활용한-공격-연계-시스템-구현)
 	    + [*2-5-3. 여러 애니메이션을 사용한 공격 구현*](#2-5-3-여러-애니메이션을-사용한-공격-구현)
+	    + [*2-5-4. BehaviorTree를 활용한 딜레이 캐치 구현*](#2-5-4-BehaviorTree를-활용한-딜레이-캐치-구현)
 
 	![atk_bs_pyeong](https://github.com/user-attachments/assets/08135222-e660-438f-90cf-a55e458e2e13)
 	![atk_bs_switch](https://github.com/user-attachments/assets/6d5263ff-2c25-4d35-bf89-acbef3ae8f13)
@@ -4922,6 +4923,130 @@ void UCAnimNotify_WeaponCallFunc::Notify(USkeletalMeshComponent* MeshComp, UAnim
 
 ![atk_bs_switch](https://github.com/user-attachments/assets/9d85f0a2-83f8-4655-ae43-08139b2a5208)
 ![atk_bs_ult](https://github.com/user-attachments/assets/b5300cbc-9416-4de3-8126-df59fb3b9abc)
+
+### 2-5-4. BehaviorTree를 활용한 딜레이 캐치 구현
+
+BehaviorTree를 사용해서 몬스터의 공격 패턴을 구현하였습니다.
+
+![image](https://github.com/user-attachments/assets/e40d4886-f935-434c-99ce-2fc7f80acd56)
+
+전투중(bHostile == true)가 아닐 경우 위 행동 트리를 실행해 주위를 탐색하도록 하였습니다.
+
+```C++
+EBTNodeResult::Type UCBTTaskFindPatrolPos::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
+
+	auto ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	if (ControllingPawn == nullptr) return EBTNodeResult::Failed;
+
+	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetNavigationSystem(ControllingPawn->GetWorld());
+	if (NavSystem == nullptr) return EBTNodeResult::Failed;
+
+	FVector Origin = OwnerComp.GetBlackboardComponent()->GetValueAsVector(ACEnemyAIController::HomePosKey);
+	FNavLocation NextPatrol;
+
+	if (NavSystem->GetRandomPointInNavigableRadius(Origin, 3000.f, NextPatrol))
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsVector(ACEnemyAIController::PatrolPosKey, NextPatrol.Location);
+
+		//DrawDebugSphere(GetWorld(), NextPatrol.Location, 500.f, 32, FColor::Blue, false, 5.f);
+		return EBTNodeResult::Succeeded;
+	}
+
+	return EBTNodeResult::Failed;
+}
+```
+
+FindPatrolPos 실행 시, NavMesh로 감싸여 있는 공간 중 범위 내 무작위 좌표를 향해 이동하도록 하였습니다.
+
+![image](https://github.com/user-attachments/assets/8bbf59d7-deac-4615-b86e-c568bda2f71f)
+
+전투 진입 시, 확률적으로 공격 패턴을 지정하도록 하되, 플레이어와의 대치 상황에 따라서 확률이 변동되도록 구현하였습니다.
+
+```C++
+EBTNodeResult::Type UCBTTask_Enemy_ComputeNextAction::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	UE_LOG(LogTemp, Log, TEXT("EBTNodeResult::Type UCBTTask_Enemy_ComputeNextAction : %s"), *BlackboardKey.SelectedKeyName.ToString());
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	if (AIController == nullptr) return EBTNodeResult::Failed;
+	IIEnemyAITactics* EnemyAITactics = Cast<IIEnemyAITactics>(AIController);
+	if (EnemyAITactics == nullptr) return EBTNodeResult::Failed;
+	UBlackboardComponent* BBComponent = AIController->GetBlackboardComponent();
+	if (BBComponent == nullptr) return EBTNodeResult::Failed;
+	ACharacter* E = AIController->GetCharacter();
+	if (E == nullptr) return EBTNodeResult::Failed;
+
+	bool PlayerAttacking = EnemyAITactics->IsPlayerAttacking();
+	FVector PlayerLoc = EnemyAITactics->GetPlayerLocation();
+	float PlayerDist = FVector::Dist(E->GetActorLocation(), PlayerLoc);
+	FVector PlayerVelocity = EnemyAITactics->GetPlayerVelocity();
+
+	FVector TargetVector = (PlayerLoc - E->GetActorLocation()).GetSafeNormal();
+	FVector ForwardVector = E->GetActorForwardVector();
+	FVector RightVector = E->GetActorRightVector();
+	int NextActIdx = 0;
+	bool IsPlayerInRight = FVector::DotProduct(TargetVector, RightVector) >= 0.f ? true : false;
+
+	double theta = FMath::Abs(FMath::Acos(FVector::DotProduct(TargetVector, ForwardVector)));
+	
+	double R = FMath::RandRange(0.f, 100.f);
+	//UE_LOG(LogTemp, Log, TEXT("UCBTTask_Enemy_ComputeNextAction : %f"), R);
+
+	if (EnemyAITactics->IsEnemyBusy()) NextActIdx = -1;
+	else if (theta > 0.8f) // To Much Angle
+	{
+		NextActIdx = IsPlayerInRight ? 4 : 5;	// Turn L or R
+	}
+	else if (PlayerDist > 1000.f)
+	{
+		if (PlayerDist > 1500.f)	// Too Far 1500~
+		{
+			if (R > 30.f) NextActIdx = 6;	// FireBall 70%
+			else NextActIdx = -1;	// Move To Player 30%
+		}
+		else // Not Too Far 1000~1500
+		{
+			if (R > 40.f) NextActIdx = 7;	// BreathFire 60%
+			else
+			{
+				if (R > 10.f) NextActIdx = 6;	// FireBall 30%
+				else NextActIdx = -1;	// Move To Player 10%
+			}
+		}
+	}
+	else if (PlayerDist > 500.f) // Far Dist Attack 500~1000
+	{
+		if (R > 20.f) NextActIdx = 3;							// Combo Claw 80%
+		else NextActIdx = 0;	// Bite Grasp 20%
+	}
+	else if (PlayerAttacking)
+	{
+		NextActIdx = IsPlayerInRight ? 1 : 2;	// Catch Player Attack Motion L or R
+	}
+	else
+	{
+		if (R > 50.f) NextActIdx = 0;								// Bite Grasp 50%
+		else if (R > 30.f) NextActIdx = IsPlayerInRight ? 1 : 2;	// Quick Scratch 20%
+		else NextActIdx = 3;										// Combo Claw 30%
+	}
+
+	BBComponent->SetValueAsInt(GetSelectedBlackboardKey(), NextActIdx);
+	return EBTNodeResult::Succeeded;
+}
+```
+
+공격 패턴을 수행하기 전, ComputeNextAction 노드를 통해 다음에 수행할 동작을 정수 형태로 블랙보드에 저장하여 수행하도록 하였습니다.
+
+플레이어와의 거리를 계산하여 근거리 / 중거리 공격을 수행하거나, 달려오거나, 원거리 공격을 실행하도록 하였습니다.
+
+플레이어와의 각도가 너무 많이 틀어져 있을 경우, 몸통을 돌리는 행동을 수행합니다.
+
+[**2-1. 플레이어 State 관리**](#2-1-플레이어-State-관리)에서 언급한 플레이어의 State를 확인하여
+
+플레이어가 공격 중일 경우 짧은 딜레이의 공격을 수행할 수 있도록 하였습니다.
+
+
 
 ## 2-6. 이펙트 소환 최적화 시스템
 
