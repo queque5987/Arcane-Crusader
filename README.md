@@ -49,7 +49,7 @@
 
 - [2. 전투](#2-전투)
 	* [**2-1. 플레이어 State 관리**](#2-1-플레이어-State-관리)
-	    + [*2-1-1. 회피 방향 지정*](#2-1-1-회피-방향-지정)
+	    + [*2-1-1. Rotator를 활용한 회피 방향 지정*](#2-1-1-Rotator를-활용한-회피-방향-지정)
 	    + [*2-1-2. NotifyState를 활용한 회피 판정 구현*](#2-1-2-NotifyState를-활용한-회피-판정-구현)
 	* [**2-2. 회피 시스템**](#2-2-회피-시스템)
 	    + [*2-2-1. PostProcessMaterial을 활용한 흑백 효과 구현*](#2-2-1-PostProcessMaterial을-활용한-흑백-효과-구현)
@@ -2921,7 +2921,7 @@ void ACPlayerCharacter::LMBTriggered()
 
 버튼에 바인딩 된 함수에서 반드시 호출하여 사용가능한 상태인지 판단하도록 하였습니다.
 
-### 2-1-1. 회피 방향 지정
+### 2-1-1. Rotator를 활용한 회피 방향 지정
 
 ```C++
 void ACPlayerCharacter::Move(const FInputActionValue& Value)
