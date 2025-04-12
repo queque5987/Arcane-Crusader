@@ -1,7 +1,7 @@
 
 # Arcane Crusader<br><br>플레이 영상
 
-[![플레이 영상](https://img.youtube.com/vi/-hKQ6otIoGA/0.jpg)](https://youtu.be/-hKQ6otIoGA)<br><br>
+[![플레이 영상](https://img.youtube.com/vi/DozURABEUD0/0.jpg)](https://youtu.be/DozURABEUD0)<br><br>
 
 # 0. 목차
 - [1. UI](#1-UI)
